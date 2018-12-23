@@ -22,7 +22,12 @@ $ deactivate
 - Remove Food, Restaurant
 - Add first minty API to check postgresql data
 - Remove Oauth and users
-- ...
+- API
+	- Autocomplete-Redis Search API
+	- MongoDB return dataset json
+	- Using offset to query Data Catalog
+	- According to Query from dc, store offset and run `mintcast`
+
 
 ## MVC Framework
 
