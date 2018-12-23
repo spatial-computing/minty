@@ -6,7 +6,7 @@
 
 ```
 $ pip3 install virtualenv
-$ python3 -m env
+$ python3 -m venv env
 $ source env/bin/activate
 $ ./env/bin/pip3 install -r requirements.txt
 $ ./env/bin/python3 run.py
