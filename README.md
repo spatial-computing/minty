@@ -1,5 +1,7 @@
 # minty
 
+**Beware: Don't put sensitive data like password in `config.py` or any file in this repo**
+
 ## A better way to setup
 
 ```
