@@ -1,4 +1,3 @@
-from exts import db
 from sqlalchemy.sql import func
 from sqlalchemy import text
 from flask_sqlalchemy import SQLAlchemy
