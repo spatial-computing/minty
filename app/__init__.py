@@ -18,6 +18,7 @@ from config import app_config
 import os.path
 import pymongo
 
+
 user_datastore = SQLAlchemyUserDatastore(db, FinalUser, Role)
 
 
@@ -59,8 +60,6 @@ def create_app(config_name):
         db.session.commit()
         user_datastore.find_or_create_role(name='end-user', description='End user')
         db.session.commit()
-
-
 
     mongo_client = pymongo.MongoClient(app.config['MONGODB_DATABASE_URI'])
     mongo_db = mongo_client["mintcast"]
