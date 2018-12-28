@@ -1,6 +1,6 @@
 import os
 import random, string
-
+from database import MongoConfig, PostgresConfig
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class DevelopmentConfig(object):
@@ -36,22 +36,15 @@ class DevelopmentConfig(object):
     #Flask-SQLAlchemy
 
     #SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(os.path.join(BASE_DIR, 'app.db'))
-    DATABASE_URL="postgresql+psycopg2://mintcast:mintCast654321@52.90.74.236/mintcast"
+    DATABASE_URL = PostgresConfig.POSTGRES_CONNECTION
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+
+    MONGODB_DATABASE_URI = MongoConfig.MONGODB_CONNECTION
 
     #Flask-Script
 
     APP_FOLDER = "app/"
-
-    #Flask-Uploads
-
-    UPLOADED_RESTAURANT_DEST  = APP_FOLDER + "static/img/restaurant"
-    UPLOADED_RESTAURANT_URL = 'http://0.0.0.0:65522/restaurant/upload'
-    UPLOADED_FOOD_DEST = APP_FOLDER + "static/img/food"
-    UPLOADED_FOOD_URL = 'http://0.0.0.0:65522/food/upload'
-    UPLOADED_USER_DEST = APP_FOLDER + "static/img/user"
-    UPLOADED_USER_URL = 'http://0.0.0.0:65522/user/upload'
-
+    
     #OAUTH LOGIN
 
     OAUTH_CREDENTIALS = {
