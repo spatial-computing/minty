@@ -35,7 +35,8 @@ class DevelopmentConfig(object):
 
     #Flask-SQLAlchemy
 
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(os.path.join(BASE_DIR, 'app.db'))
+    #SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(os.path.join(BASE_DIR, 'app.db'))
+    DATABASE_URL="postgresql+psycopg2://mintcast:mintCast654321@52.90.74.236/mintcast"
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
     #Flask-Script
