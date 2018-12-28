@@ -1,5 +1,3 @@
-import sqlite3
-
 from flask import Flask, render_template, current_app
 from flask_assets import Environment
 from flask_wtf import CSRFProtect
@@ -18,7 +16,7 @@ from .admin import create_security_admin
 from config import app_config
 
 import os.path
-
+import pymongo
 
 user_datastore = SQLAlchemyUserDatastore(db, FinalUser, Role)
 
@@ -61,6 +59,12 @@ def create_app(config_name):
         db.session.commit()
         user_datastore.find_or_create_role(name='end-user', description='End user')
         db.session.commit()
+
+
+
+    mongo_client = pymongo.MongoClient(app.config['MONGODB_DATABASE_URI'])
+    mongo_db = mongo_client["mintcast"]
+    mongo_col = mongo_db["layer"]
 
     @app.route('/', methods=['GET'])
     @app.route('/home', methods=['GET'])
