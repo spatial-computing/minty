@@ -7,7 +7,7 @@ database.py
 # C extensions
 *.so
 *.db
-
+minty_env/
 # Distribution / packaging
 .Python
 build/
