@@ -1,8 +1,36 @@
 from flask import jsonify, request, url_for, redirect, current_app, render_template, flash, make_response
 from flask.views import MethodView
-
 # from .. import app
-
+import pymongo
+    
 class LayerJson(MethodView):
+    def __init__(self):
+        print(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_col = self.mongo_db["layer"]
+
+    def get(self, md5):
+        jsonData = self.mongo_col.find_one({'md5': md5})
+        self.mongo_client.close()
+        return jsonify(jsonData)
+
+        
+class MetadataJson(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_col = self.mongo_db["metadata"]
+
     def get(self):
-        return render_template('food/profile.html')
+        jsonData = self.mongo_col.find_one({'type': 'mintmap-metadata'})
+        self.mongo_client.close()
+        print(jsonData, type(jsonData['_id']))
+        if jsonData:
+            del jsonData['_id']
+            return jsonify(jsonData)
+        else:
+            return "{ }"
+
+
+        

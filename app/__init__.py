@@ -9,21 +9,19 @@ from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import create_engine
 
 from .assets import create_assets
-from .models import db, FinalUser, Role
-from .user.forms import SecurityRegisterForm
-from .admin import create_security_admin
+from .models import db
+# from .user.forms import SecurityRegisterForm
+# from .admin import create_security_admin
 
 from config import app_config
 
 import os.path
-import pymongo
-
-
-user_datastore = SQLAlchemyUserDatastore(db, FinalUser, Role)
+# from flask_mongoengine import MongoEngine
+# user_datastore = SQLAlchemyUserDatastore(db)
 
 
 def create_app(config_name):
-    global user_datastore
+    # global user_datastore
     app = Flask(__name__)
 
     app.config.from_object(app_config[config_name])
@@ -34,36 +32,39 @@ def create_app(config_name):
     assets = Environment(app)
     create_assets(assets)
 
+    # api = restful.Api(app)
+
     via = Via()
+    # via.init_app(app, restful_api=api)
     via.init_app(app)
 
     # Code for desmostration the flask upload in several models - - - -
 
-    from .user import user_photo
-    from .restaurant import restaurant_photo
-    from .food import food_photo
+    # from .user import user_photo
+    # from .restaurant import restaurant_photo
+    # from .food import food_photo
 
-    configure_uploads(app, (restaurant_photo, food_photo, user_photo))
+    # configure_uploads(app, (restaurant_photo, food_photo, user_photo))
 
-    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
-    if not database_exists(engine.url):
-        create_database(engine.url)
+    # engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+    # if not database_exists(engine.url):
+    #     create_database(engine.url)
 
-    security = Security(app, user_datastore, register_form=SecurityRegisterForm)
+    # security = Security(app, user_datastore, register_form=SecurityRegisterForm)
 
-    create_security_admin(app=app, path=os.path.join(os.path.dirname(__file__)))
+    # create_security_admin(app=app, path=os.path.join(os.path.dirname(__file__)))
+    # mongodb = MongoEngine()
+    # mongodb.init_app(app)
+
+
 
     with app.app_context():
         db.init_app(app)
         db.create_all()
-        user_datastore.find_or_create_role(name='admin', description='Administrator')
+        # user_datastore.find_or_create_role(name='admin', description='Administrator')
+        # db.session.commit()
+        # user_datastore.find_or_create_role(name='end-user', description='End user')
         db.session.commit()
-        user_datastore.find_or_create_role(name='end-user', description='End user')
-        db.session.commit()
-
-    mongo_client = pymongo.MongoClient(app.config['MONGODB_DATABASE_URI'])
-    mongo_db = mongo_client["mintcast"]
-    mongo_col = mongo_db["layer"]
 
     @app.route('/', methods=['GET'])
     @app.route('/home', methods=['GET'])
