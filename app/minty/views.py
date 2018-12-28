@@ -11,10 +11,13 @@ class LayerJson(MethodView):
         self.mongo_col = self.mongo_db["layer"]
 
     def get(self, md5):
-        jsonData = self.mongo_col.find_one({'md5': md5})
+        jsonData = self.mongo_col.find_one({'md5vector': md5})
         self.mongo_client.close()
-        return jsonify(jsonData)
-
+        if jsonData:
+            del jsonData['_id']
+            return jsonify(jsonData)
+        else:
+            return "{ }"
         
 class MetadataJson(MethodView):
     def __init__(self):
