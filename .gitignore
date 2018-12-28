@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 database.py
-
+.DS_Store
 # C extensions
 *.so
 *.db
