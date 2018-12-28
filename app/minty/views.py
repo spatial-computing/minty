@@ -35,5 +35,18 @@ class MetadataJson(MethodView):
         else:
             return "{ }"
 
+class AutocompleteJson(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_col = self.mongo_db["metadata"]
 
-        
+    def get(self):
+        jsonData = self.mongo_col.find_one({'type': 'mintmap-autocomplete'})
+        self.mongo_client.close()
+        print(jsonData, type(jsonData['_id']))
+        if jsonData:
+            del jsonData['_id']
+            return jsonify(jsonData)
+        else:
+            return "{ }"
