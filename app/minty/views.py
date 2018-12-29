@@ -24,7 +24,7 @@ class DcidJson(MethodView):
         self.mongo_db = self.mongo_client["mintcast"]
         self.mongo_col = self.mongo_db["layer"]
     def get(self, dcid):
-        jsonData = self.mongo_col.find_one({'incre': dcid})
+        jsonData = self.mongo_col.find_one({'incre': int(dcid)})
         self.mongo_client.close()
         if jsonData:
             del jsonData['_id']
