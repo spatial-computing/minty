@@ -5,7 +5,6 @@ import pymongo
     
 class LayerJson(MethodView):
     def __init__(self):
-        print(current_app.config['MONGODB_DATABASE_URI'])
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
         self.mongo_db = self.mongo_client["mintcast"]
         self.mongo_col = self.mongo_db["layer"]
@@ -18,7 +17,21 @@ class LayerJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
-        
+
+class DcidJson(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_col = self.mongo_db["layer"]
+    def get(self, dcid):
+        jsonData = self.mongo_col.find_one({'incre': dcid})
+        self.mongo_client.close()
+        if jsonData:
+            del jsonData['_id']
+            return jsonify(jsonData)
+        else:
+            return "{ }"
+              
 class MetadataJson(MethodView):
     def __init__(self):
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
