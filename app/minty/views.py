@@ -41,7 +41,7 @@ class MetadataJson(MethodView):
     def get(self):
         jsonData = self.mongo_col.find_one({'type': 'mintmap-metadata'})
         self.mongo_client.close()
-        print(jsonData, type(jsonData['_id']))
+        # print(jsonData, type(jsonData['_id']))
         if jsonData:
             del jsonData['_id']
             return jsonify(jsonData)
@@ -57,7 +57,7 @@ class AutocompleteJson(MethodView):
     def get(self):
         jsonData = self.mongo_col.find_one({'type': 'mintmap-autocomplete'})
         self.mongo_client.close()
-        print(jsonData, type(jsonData['_id']))
+        # print(jsonData, type(jsonData['_id']))
         if jsonData:
             del jsonData['_id']
             return jsonify(jsonData)
