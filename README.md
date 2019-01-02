@@ -1,5 +1,6 @@
 # minty
 
+![Directed by Yaoyi Chiang](https://img.shields.io/badge/Yaoyi%20Chiang-Director-blue.svg)
 ![Published by Libo Liu](https://img.shields.io/badge/Libo%20Liu-Author-blue.svg)
 ![Published by Xuan Yang](https://img.shields.io/badge/Xuan%20Yang-Author-blue.svg)
 
