@@ -1,7 +1,7 @@
 # minty
 
 ![Published by Libo Liu](https://img.shields.io/badge/Libo%20Liu-Author-blue.svg)
-![Published by Adam Vaccaro](https://img.shields.io/badge/Xuan%20Yang-Author-blue.svg)
+![Published by Xuan Yang](https://img.shields.io/badge/Xuan%20Yang-Author-blue.svg)
 
 **Beware: Don't put sensitive data like password in `config.py` or any file in this repo**
 
