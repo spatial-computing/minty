@@ -60,6 +60,7 @@ class AutocompleteJson(MethodView):
         # print(jsonData, type(jsonData['_id']))
         if jsonData:
             del jsonData['_id']
+            del jsonData['type']
             return jsonify(jsonData)
         else:
             return "{ }"
