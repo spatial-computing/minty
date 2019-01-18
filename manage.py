@@ -3,7 +3,7 @@ from colorama import Fore, init
 from flask import current_app
 from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
-from app import create_app, db, FinalUser, user_datastore
+from app import create_app, db#, FinalUser, user_datastore
 from config import DevelopmentConfig
 from flask_security import utils
 
