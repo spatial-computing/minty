@@ -84,7 +84,49 @@ class VisualizeAction(MethodView):
 
 class VizType(MethodView):
     def __init__(self):
-        pass
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_viz = self.mongo_db["viztype"]
+        self.pipeline = [
+            {
+                "$match": {
+                    "type" : "type"
+                }
+            },
+            {
+                "$lookup": { 
+                    "from": "viztype", 
+                    "localField":"name", 
+                    "foreignField": "belongto", 
+                    "as": "metadata"
+                }
+            },
+            {
+                "$project": {
+                    "metadata._id": 0,
+                    "_id": 0,
+                    "type": 0,
+                    "metadata.type": 0
+                }
+            }
+        ]
 
     def get(self):
-        pass
+        ret = {
+            "types":[]
+        }
+        for ele in self.mongo_viz.aggregate(self.pipeline):
+            ret["types"].append(ele["name"])
+            ret[ele["name"]] = {
+                "keys":[]
+            }
+            for m in ele["metadata"]:
+                ret[ele["name"]]["keys"].append(m["name"])
+                key_name = m["name"]
+                del m["name"]
+                ret[ele["name"]][key_name] = m
+        
+        return jsonify(ret)
+
+
+

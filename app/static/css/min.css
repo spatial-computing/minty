@@ -6,7 +6,10 @@ html {
 }
 body {
   /* Margin bottom by footer height */
-  margin-bottom: 60px;
+  margin: auto;
+  width: 100vw;
+  padding: 0;
+  position: relative;
 }
 .footer {
   position: absolute;
@@ -22,10 +25,11 @@ body {
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
 
+.close {
+  color: #fff;
+}
 .container {
-  width: auto;
-  max-width: 680px;
-  padding: 0 15px;
+  padding: 15px;
 }
 .container .text-muted {
   margin: 20px 0;
