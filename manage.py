@@ -35,7 +35,7 @@ def createapp():
             with open(os.path.join(folder, file + ".py"), 'w') as temp_file:
                 if i != 4:
                     if file is "routes":
-                        temp_file.write("from flask_via.routers.default import Pluggable\nfrom views import *\nroutes = []")
+                        temp_file.write("from flask_via.routers.default import Pluggable\nfrom .views import *\n\nroutes = [\n\t\n]")
                     if file is "forms":
                         temp_file.write("from wtforms import *\n")
                     if file is "views":
@@ -43,7 +43,7 @@ def createapp():
                                         "url_for, redirect, current_app, render_template, flash, make_response\n"
                                         "from flask.views import MethodView")
                 else:
-                    os.makedirs(folder + "/template/" + path)
+                    os.makedirs(folder + "/templates/" + path)
 
         # Register blueprint in app/route.py
         route_path = os.path.join(current_app.config['APP_FOLDER'], "routes.py")
