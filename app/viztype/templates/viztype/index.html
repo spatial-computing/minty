@@ -2,9 +2,12 @@
 {% block title %}
 Vis Type Management
 {% endblock %}
-
+{% block header %}
+<div class="container">
+  <h5>Vis Type Management</h5>
+</div>
+{% endblock %}
 {% block content %}
-{{ viztype }}
 
 <ul class="list-group">
     {% for viztype in viztypes %}  

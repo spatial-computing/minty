@@ -51,10 +51,14 @@
     });
     $('.type-close').on('click', function (event) {
         event.preventDefault();
+
         let name = $(this).data('name');
         let type = "type";
         let csrf = $(this).data('csrf');
-
+        var r = confirm("Are you sure to delete " + name + " " + type + "? All keys in " + name +" will be deleted!!\n\nNo undo. Are you sure?");
+        if (!r) {
+            return false;
+        }
         $.ajax({
             url: '/viztype',
             type: 'DELETE',
@@ -70,6 +74,11 @@
         let belongto = $(this).data('belongto');
         let csrf = $(this).data('csrf');
         let type = "key";
+
+        var r = confirm("Are you sure to delete " + name + " " + type + " in " + belongto + "?\n\nNo undo. Are you sure?");
+        if (!r) {
+            return false;
+        }
         $.ajax({
             url: '/viztype',
             type: 'DELETE',
