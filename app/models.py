@@ -81,3 +81,61 @@ class Layer(db.Model):
     step = db.Column(db.String(255),server_default='NULL')
     axis = db.Column(db.String(32),server_default='NULL')
     dcid = db.Column(db.Integer,server_default=text('0')) 
+
+
+class Bash(db.Model):
+    __tablename__='bash'
+
+    id = db.Column(db.Integer,nullable=False,primary_key=True)
+    type = db.Column(db.String(255),server_default='')
+    qml = db.Column(db.String(255),server_default='')
+    dir = db.Column(db.String(255),server_default='')
+    md5vector = db.Column(db.String(255),server_default='')
+    structure = db.Column(db.String(255),server_default='')
+    output_dir_structure = db.Column(db.String(255),server_default='')
+    start_time = db.Column(db.String(255),server_default='')
+    end_time = db.Column(db.String(255),server_default='')
+    datatime_format = db.Column(db.String(255),server_default='')
+    single_subdataset = db.Column(db.String(255),server_default='')
+    layer_name = db.Column(db.String(255),server_default='')
+    output = db.Column(db.String(255),server_default='')
+    bounds = db.Column(db.String(255),server_default='')
+    first_file = db.Column(db.Boolean,server_default=text('False'))
+    time_stamp = db.Column(db.String(255),server_default='')
+    time_steps = db.Column(db.String(255),server_default='')
+    time_format = db.Column(db.String(255),server_default='')
+    target_json_path = db.Column(db.String(255),server_default='')
+    server = db.Column(db.String(255),server_default='')
+    port = db.Column(db.String(255),server_default='')
+    bind = db.Column(db.String(255),server_default='')
+    with_shape_file = db.Column(db.String(255),server_default='')
+    dev_mode_off = db.Column(db.Boolean,server_default=text('False'))
+    tile_server_root = db.Column(db.String(255),server_default='')
+    force_restart_tileserver = db.Column(db.String(255),server_default='')
+    target_mbtiles_path = db.Column(db.String(255),server_default='')
+    scp_to_default_server = db.Column(db.String(255),server_default='')
+    scp_to_server = db.Column(db.String(255),server_default='')
+    without_website = db.Column(db.Boolean,server_default=text('False'))
+    tiled_ext = db.Column(db.String(255),server_default='')
+    ith_quality_assessment = db.Column(db.Boolean,server_default=text('False'))
+    disable_clip = db.Column(db.Boolean,server_default=text('False'))
+    disable_new_res = db.Column(db.Boolean,server_default=text('False'))
+    disable_raster_tile = db.Column(db.Boolean,server_default=text('False'))
+    disable_vector_tile = db.Column(db.Boolean,server_default=text('False'))
+    force_proj_first = db.Column(db.Boolean,server_default=text('False'))
+    with_south_sudan_shp = db.Column(db.Boolean,server_default=text('False'))
+    command = db.Column(db.TEXT,server_default='')
+    data_file_path = db.Column(db.String(255),server_default='')
+
+    def __setitem__(self, k, v):
+                self.k = v
+
+
+class DataSet(db.Model):
+    __tablename__='dataset'
+
+    id = db.Column(db.String(255),nullable=False,primary_key=True)
+    name = db.Column(db.String(255),server_default='')
+    standard_variables = db.Column(db.TEXT,server_default='')
+
+    
