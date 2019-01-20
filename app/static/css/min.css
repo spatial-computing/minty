@@ -1,11 +1,14 @@
 /* Sticky footer styles
 -------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css?family=Poppins');
+
 html {
   position: relative;
   min-height: 100%;
 }
 body {
   /* Margin bottom by footer height */
+  font-family: 'Poppins', sans-serif;
   margin: auto;
   width: 100vw;
   padding: 0;
@@ -30,7 +33,18 @@ body {
 }
 .container {
   padding: 15px;
+  font-family: 'Poppins', sans-serif;
 }
 .container .text-muted {
   margin: 20px 0;
+}
+.d-sm {
+  font-size: 12px;
+  padding: 6px 24px;
+}
+.d-sm h5{
+  padding-top: 5px;
+}
+.d-sm .line-btn{
+  font-size:12px;
 }

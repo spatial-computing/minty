@@ -8,74 +8,77 @@ Vis Type Management
 
 <ul class="list-group">
     {% for viztype in viztypes %}  
-      <li class="list-group-item active d-flex justify-content-between align-items-center vistype-title" data-name="{{ viztype.name }}">
-        <h4>
+      <li class="list-group-item active d-sm-flex justify-content-between align-items-center vistype-title font-weight-normal d-sm" data-name="{{ viztype.name }}">
+        <h5>
             {{ viztype.name }}
-        </h4>
+        </h5>
         <div class="btn-group" role="group">
-          <button type="button" data-name="{{ viztype.name }}" class="btn btn-secondary type-modify">Modify</button>
-          <button type="button" data-csrf="{{ csrf_token() }}" data-name="{{ viztype.name }}" class="btn btn-secondary type-close">&times;</button>
+          <button type="button" data-name="{{ viztype.name }}" class="btn-sm btn-secondary type-modify">Modify</button>
+          <button type="button" data-csrf="{{ csrf_token() }}" data-name="{{ viztype.name }}" class="btn-sm btn-secondary type-close">&times;</button>
         </div>
       </li>
       {% set typeloop = loop %}
       <ul class="list-group ml-5 my-1">
         {% for metadata in viztype.metadata %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
+            <li class="list-group-item d-flex justify-content-between align-items-center ">
                 <table class="flex-fill">
                     <tr>
-                        <td>
-                            <span class="badge badge-danger">Metadata Key Name</span>
+                        <td width="50%">
+                            <span class="badge ">Metadata Key Name</span>
                         </td>
                         <td>
-                            <span class="badge badge-dark">{{ metadata.name }}</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="badge badge-danger">Metadata Key Description</span>
-                        </td>
-                        <td>
-                            <span class="badge badge-dark">{{ metadata.description }}</span>
+                            <span class="badge badge-dark text-monospace font-weight-normal">{{ metadata.name }}</span>
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <span class="badge badge-danger">Metadata Key Placeholder</span>
+                            <span class="badge ">Metadata Key Description</span>
                         </td>
                         <td>
-                            <span class="badge badge-dark">{{ metadata.placeholder }}</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="badge badge-danger">Metadata Key htmltag</span>
-                        </td>
-                        <td>
-                            <span class="badge badge-dark">{{ metadata.htmltag }}</span>
+                            <span class="badge badge-dark text-monospace font-weight-normal">{{ metadata.description }}</span>
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <span class="badge badge-danger">Metadata Key Select Tag Options</span>
+                            <span class="badge ">Metadata Key Placeholder</span>
                         </td>
                         <td>
-                            <span class="badge badge-dark">{{ metadata.options }}</span>
+                            <span class="badge badge-dark text-monospace font-weight-normal">{{ metadata.placeholder }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="badge ">Metadata Key HTMLTag</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-dark text-monospace font-weight-normal">{{ metadata.htmltag }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="badge ">Metadata Key Select Tag Options</span>
+                        </td>
+                        <td>
+                            {% set list = metadata.options.split(';') %}
+                            {% for item in list %}
+                                <span class="badge badge-dark text-monospace font-weight-normal">{{ item }}</span>
+                            {% endfor %}
                         </td>
                     </tr>
                 </table>
                 <div class="btn-group" role="group">
-                  <button type="button" data-type-index="{{ typeloop.index }}" data-name="{{ metadata.name }}"  data-belongto="{{ viztype.name }}" data-placeholder="{{ metadata.placeholder }}" data-htmltag="{{ metadata.htmltag }}" data-description="{{ metadata.description }}" data-options="{{ metadata.options }}" class="btn btn-secondary key-modify">Modify</button>
-                  <button type="button" data-csrf="{{ csrf_token() }}" data-name="{{ metadata.name }}"  data-belongto="{{ viztype.name }}" class="btn btn-secondary key-close">&times;</button>
+                  <button type="button" data-type-index="{{ typeloop.index }}" data-name="{{ metadata.name }}"  data-belongto="{{ viztype.name }}" data-placeholder="{{ metadata.placeholder }}" data-htmltag="{{ metadata.htmltag }}" data-description="{{ metadata.description }}" data-options="{{ metadata.options }}" class="btn-sm btn-secondary key-modify ">Modify</button>
+                  <button type="button" data-csrf="{{ csrf_token() }}" data-name="{{ metadata.name }}"  data-belongto="{{ viztype.name }}" class="btn-sm btn-secondary key-close">&times;</button>
                 </div>
             </li>
         {% endfor %}
       </ul>
       <li class="list-group-item ml-5">
-        <div class="d-flex justify-content-between align-items-center">
-            <button class="btn btn-outline-secondary text-left btn-lg btn-block addbtn" type="button" data-toggle="collapse" id="collapseAddNewKeyBtn-{{ typeloop.index }}" data-target="#collapseAddNewKey-{{ typeloop.index }}" aria-expanded="true" aria-controls="collapseAddNewKey-{{ typeloop.index }}">
+        <div class="d-flex justify-content-between align-items-center d-sm">
+            <button class="btn btn-outline-secondary text-left btn-lg btn-block addbtn  text-monospace font-weight-normal line-btn" type="button" data-toggle="collapse" id="collapseAddNewKeyBtn-{{ typeloop.index }}" data-target="#collapseAddNewKey-{{ typeloop.index }}" aria-expanded="true" aria-controls="collapseAddNewKey-{{ typeloop.index }}">
               Add New Key to {{ viztype.name }}
             </button>
-            <button data-name="{{ viztype.name }}" class="btn btn-outline-secondary btn-lg disabled btn-add-key-enable" >Change to Add New Key</button>
+            <button data-name="{{ viztype.name }}" class="btn btn-outline-secondary btn-lg disabled btn-add-key-enable text-monospace font-weight-normal line-btn" >Change to Add New Key</button>
         </div>
         <div id="collapseAddNewKey-{{ typeloop.index }}" class="collapse" data-parent=".list-group-item">
           <div class="card-body">
@@ -100,7 +103,7 @@ Vis Type Management
                       </select>
                     </div>
                     <div class="form-group col-md-6">
-                      <label>Options of HTML Tag (Use space to separate, empty for input)</label>
+                      <label>Options of HTML Tag (Use ; to separate, empty for input)</label>
                       <input type="text" name="options" class="form-control" placeholder="Options for HTML Tag">
                     </div>
                 </div>
