@@ -46,3 +46,7 @@ body {
 .d-sm .line-btn{
   font-size:12px;
 }
+
+.text-wrap{
+  white-space: normal!important;
+}
