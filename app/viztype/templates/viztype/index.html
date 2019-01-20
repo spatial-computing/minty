@@ -30,7 +30,7 @@ Vis Type Management
                             <span class="badge ">Metadata Key Name</span>
                         </td>
                         <td>
-                            <span class="badge badge-dark text-monospace font-weight-normal">{{ metadata.name }}</span>
+                            <span class="badge badge-dark text-monospace font-weight-normal d-block text-wrap text-left">{{ metadata.name }}</span>
                         </td>
                     </tr>
                     <tr>
@@ -38,7 +38,7 @@ Vis Type Management
                             <span class="badge ">Metadata Key Description</span>
                         </td>
                         <td>
-                            <span class="badge badge-dark text-monospace font-weight-normal">{{ metadata.description }}</span>
+                            <span class="badge badge-dark text-monospace font-weight-normal d-block text-wrap text-left">{{ metadata.description }}</span>
                         </td>
                     </tr>
                     <tr>
@@ -46,7 +46,7 @@ Vis Type Management
                             <span class="badge ">Metadata Key Placeholder</span>
                         </td>
                         <td>
-                            <span class="badge badge-dark text-monospace font-weight-normal">{{ metadata.placeholder }}</span>
+                            <span class="badge badge-dark text-monospace font-weight-normal d-block text-wrap text-left">{{ metadata.placeholder }}</span>
                         </td>
                     </tr>
                     <tr>
@@ -54,7 +54,7 @@ Vis Type Management
                             <span class="badge ">Metadata Key HTMLTag</span>
                         </td>
                         <td>
-                            <span class="badge badge-dark text-monospace font-weight-normal">{{ metadata.htmltag }}</span>
+                            <span class="badge badge-dark text-monospace font-weight-normal ">{{ metadata.htmltag }}</span>
                         </td>
                     </tr>
                     <tr>
@@ -64,7 +64,7 @@ Vis Type Management
                         <td>
                             {% set list = metadata.options.split(';') %}
                             {% for item in list %}
-                                <span class="badge badge-dark text-monospace font-weight-normal">{{ item }}</span>
+                                <span class="badge badge-dark text-monospace font-weight-normal d-block text-wrap text-left">{{ item }}</span>
                             {% endfor %}
                         </td>
                     </tr>
