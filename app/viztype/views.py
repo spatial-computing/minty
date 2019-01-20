@@ -101,3 +101,6 @@ class VizType(MethodView):
                 })
         return jsonify({"status": "ok"})
 
+    def __del__(self):
+        self.mongo_client.close()
+        

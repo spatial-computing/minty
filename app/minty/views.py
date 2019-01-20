@@ -17,6 +17,8 @@ class LayerJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
+    def __del__(self):
+        self.mongo_client.close()
 
 class DcidJson(MethodView):
     def __init__(self):
@@ -31,7 +33,9 @@ class DcidJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
-              
+    def __del__(self):
+        self.mongo_client.close()
+           
 class MetadataJson(MethodView):
     def __init__(self):
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
@@ -47,7 +51,9 @@ class MetadataJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
-
+    def __del__(self):
+        self.mongo_client.close()
+        
 class AutocompleteJson(MethodView):
     def __init__(self):
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
@@ -64,7 +70,9 @@ class AutocompleteJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
-
+    def __del__(self):
+        self.mongo_client.close()
+        
 class VisualizeAction(MethodView):
     def __init__(self):
         self.msg = {
@@ -81,7 +89,7 @@ class VisualizeAction(MethodView):
         return "{\"dataset_id\": \"%s\", \"status\": %s, \"msg\": \"%s\"}" \
                 % (dataset_id, status, self.msg[status])
         # return "{testmsg: 'working on %s'}" % (dataset_id)
-
+      
 class VizType(MethodView):
     def __init__(self):
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
@@ -127,7 +135,9 @@ class VizType(MethodView):
                 ret[ele["name"]][key_name] = m
         
         return jsonify(ret)
-
+    def __del__(self):
+        self.mongo_client.close()
+        
 
 
 class ChartData(MethodView):
@@ -137,5 +147,10 @@ class ChartData(MethodView):
         self.mongo_chart = self.mongo_db["chart"]
     def get(self, dataset_id):
         ret = self.mongo_chart.find_one({"dataset_id" : dataset_id}, {"_id": False})
-        return jsonify(dict(ret))
+        if ret:
+            return jsonify(dict(ret))
+        else:
+            return jsonify({'status': 404})
+    def __del__(self):
+        self.mongo_client.close()
         
