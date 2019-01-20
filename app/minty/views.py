@@ -130,3 +130,12 @@ class VizType(MethodView):
 
 
 
+class ChartData(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_chart = self.mongo_db["chart"]
+    def get(self, dataset_id):
+        ret = self.mongo_chart.find_one({"dataset_id" : dataset_id}, {"_id": False})
+        return jsonify(dict(ret))
+        
