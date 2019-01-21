@@ -2,6 +2,7 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 # from .. import app
 import pymongo
+from app.dcwrapper import api
     
 class LayerJson(MethodView):
     def __init__(self):
@@ -85,7 +86,9 @@ class VisualizeAction(MethodView):
     def get(self, dataset_id):
         # TODO: to Shawn
         #    job = start a DCWrapper with dataset_id
-        status = 200 # job.status
+        getdata = api.DCWrapper()
+        
+        status = getdata.findByDatasetId('90db5c2f-ab2d-4086-8e07-72edb43545cd') # job.status
         return "{\"dataset_id\": \"%s\", \"status\": %s, \"msg\": \"%s\"}" \
                 % (dataset_id, status, self.msg[status])
         # return "{testmsg: 'working on %s'}" % (dataset_id)

@@ -6,7 +6,7 @@ import json
 import os 
 import wget
 import zipfile
-from app.models import db
+from app.models import db, DataSet
 
 
 HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': 'mint-data-catalog:e038e64c-c950-4fbc-9070-a3e7138b6c4f:dce8a09a-200e-43ca-b996-810c2c437d3a', 'cache-control': 'no-cache', }
@@ -34,7 +34,11 @@ class DCWrapper(object):
 
         #db
         print(response['dataset'])
-        
+        std = json.dumps(response['dataset']['standard_variables'])
+        print(std)
+        dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
+        db.session.add(dataset)
+        db.session.commit()
         #dowload
         redis_conn = Redis()
         q = Queue(connection=redis_conn)  # no args implies the default queue
