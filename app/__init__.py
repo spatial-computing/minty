@@ -10,6 +10,7 @@ from sqlalchemy import create_engine
 
 from .assets import create_assets
 from .models import db
+from .job import rq
 # from .user.forms import SecurityRegisterForm
 # from .admin import create_security_admin
 
@@ -25,7 +26,9 @@ def create_app(config_name):
     app = Flask(__name__)
 
     app.config.from_object(app_config[config_name])
-
+    #config rq
+    rq.init_app(app)
+    
     csrf = CSRFProtect()
     csrf.init_app(app)
 

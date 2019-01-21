@@ -8,5 +8,8 @@ routes = [
 	Pluggable('/minty/layer/dc/<dcid>', DcidJson, 'findLayerByDataCatalogID'),
 	Pluggable('/minty/metadata', MetadataJson, 'metadata'),
 	Pluggable('/minty/autocomplete', AutocompleteJson, 'autocomplete'),
-	Pluggable('/minty/layer_index', AutocompleteJson, 'layer_index')
+	Pluggable('/minty/layer_index', AutocompleteJson, 'layer_index'),
+	Pluggable('/minty/visualize/<dataset_id>', VisualizeAction, 'visualize_action'),
+	Pluggable('/minty/viz_type', VizType, 'viz_type'),
+	Pluggable('/minty/chart/<dataset_id>', ChartData, 'chart_data')
 ]

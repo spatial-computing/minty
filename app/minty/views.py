@@ -17,6 +17,8 @@ class LayerJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
+    def __del__(self):
+        self.mongo_client.close()
 
 class DcidJson(MethodView):
     def __init__(self):
@@ -31,7 +33,9 @@ class DcidJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
-              
+    def __del__(self):
+        self.mongo_client.close()
+           
 class MetadataJson(MethodView):
     def __init__(self):
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
@@ -47,7 +51,9 @@ class MetadataJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
-
+    def __del__(self):
+        self.mongo_client.close()
+        
 class AutocompleteJson(MethodView):
     def __init__(self):
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
@@ -64,3 +70,87 @@ class AutocompleteJson(MethodView):
             return jsonify(jsonData)
         else:
             return "{ }"
+    def __del__(self):
+        self.mongo_client.close()
+        
+class VisualizeAction(MethodView):
+    def __init__(self):
+        self.msg = {
+            200: 'Task is establised on the server.',            
+            404: 'Metadata or Dataset is not avaliable',
+            415: 'Unsupported visulaization type',
+            500: 'Internal or metadata Error'
+        }
+
+    def get(self, dataset_id):
+        # TODO: to Shawn
+        #    job = start a DCWrapper with dataset_id
+        status = 200 # job.status
+        return "{\"dataset_id\": \"%s\", \"status\": %s, \"msg\": \"%s\"}" \
+                % (dataset_id, status, self.msg[status])
+        # return "{testmsg: 'working on %s'}" % (dataset_id)
+      
+class VizType(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_viz = self.mongo_db["viztype"]
+        self.pipeline = [
+            {
+                "$match": {
+                    "type" : "type"
+                }
+            },
+            {
+                "$lookup": { 
+                    "from": "viztype", 
+                    "localField":"name", 
+                    "foreignField": "belongto", 
+                    "as": "metadata"
+                }
+            },
+            {
+                "$project": {
+                    "metadata._id": 0,
+                    "_id": 0,
+                    "type": 0,
+                    "metadata.type": 0
+                }
+            }
+        ]
+
+    def get(self):
+        ret = {
+            "types":[]
+        }
+        for ele in self.mongo_viz.aggregate(self.pipeline):
+            ret["types"].append(ele["name"])
+            ret[ele["name"]] = {
+                "keys":[]
+            }
+            for m in ele["metadata"]:
+                ret[ele["name"]]["keys"].append(m["name"])
+                key_name = m["name"]
+                del m["name"]
+                ret[ele["name"]][key_name] = m
+        
+        return jsonify(ret)
+    def __del__(self):
+        self.mongo_client.close()
+        
+
+
+class ChartData(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_chart = self.mongo_db["chart"]
+    def get(self, dataset_id):
+        ret = self.mongo_chart.find_one({"dataset_id" : dataset_id}, {"_id": False})
+        if ret:
+            return jsonify(dict(ret))
+        else:
+            return jsonify({'status': 404})
+    def __del__(self):
+        self.mongo_client.close()
+        

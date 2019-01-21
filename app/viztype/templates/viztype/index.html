@@ -1,0 +1,162 @@
+{% extends 'layout/base.html' %}
+{% block title %}
+Vis Type Management
+{% endblock %}
+{% block header %}
+<div class="container">
+  <h5>Vis Type Management</h5>
+</div>
+{% endblock %}
+{% block content %}
+
+<ul class="list-group">
+    {% for viztype in viztypes %}  
+      <li class="list-group-item active d-sm-flex justify-content-between align-items-center vistype-title font-weight-normal d-sm" data-name="{{ viztype.name }}">
+        <h5>
+            {{ viztype.name }}
+        </h5>
+        <div class="btn-group" role="group">
+          <button type="button" data-name="{{ viztype.name }}" class="btn-sm btn-secondary type-modify">Modify</button>
+          <button type="button" data-csrf="{{ csrf_token() }}" data-name="{{ viztype.name }}" class="btn-sm btn-secondary type-close">&times;</button>
+        </div>
+      </li>
+      {% set typeloop = loop %}
+      <ul class="list-group ml-5 my-1">
+        {% for metadata in viztype.metadata %}
+            <li class="list-group-item d-flex justify-content-between align-items-center ">
+                <table class="flex-fill">
+                    <tr>
+                        <td width="50%">
+                            <span class="badge ">Metadata Key Name</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-dark text-monospace font-weight-normal d-inline-block text-wrap text-left">{{ metadata.name }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="badge ">Metadata Key Description</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-dark text-monospace font-weight-normal d-inline-block text-wrap text-left">{{ metadata.description }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="badge ">Metadata Key Placeholder</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-dark text-monospace font-weight-normal d-inline-block text-wrap text-left">{{ metadata.placeholder }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="badge ">Metadata Key HTMLTag</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-dark text-monospace font-weight-normal ">{{ metadata.htmltag }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="badge ">Metadata Key Select Tag Options</span>
+                        </td>
+                        <td>
+                            {% set list = metadata.options.split(';') %}
+                            {% for item in list %}
+                                <span class="badge badge-dark text-monospace font-weight-normal d-inline-block text-wrap text-left">{{ item }}</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </table>
+                <div class="btn-group" role="group">
+                  <button type="button" data-type-index="{{ typeloop.index }}" data-name="{{ metadata.name }}"  data-belongto="{{ viztype.name }}" data-placeholder="{{ metadata.placeholder }}" data-htmltag="{{ metadata.htmltag }}" data-description="{{ metadata.description }}" data-options="{{ metadata.options }}" class="btn-sm btn-secondary key-modify ">Modify</button>
+                  <button type="button" data-csrf="{{ csrf_token() }}" data-name="{{ metadata.name }}"  data-belongto="{{ viztype.name }}" class="btn-sm btn-secondary key-close">&times;</button>
+                </div>
+            </li>
+        {% endfor %}
+      </ul>
+      <li class="list-group-item ml-5">
+        <div class="d-flex justify-content-between align-items-center d-sm">
+            <button class="btn btn-outline-secondary text-left btn-lg btn-block addbtn  text-monospace font-weight-normal line-btn" type="button" data-toggle="collapse" id="collapseAddNewKeyBtn-{{ typeloop.index }}" data-target="#collapseAddNewKey-{{ typeloop.index }}" aria-expanded="true" aria-controls="collapseAddNewKey-{{ typeloop.index }}">
+              Add New Key to {{ viztype.name }}
+            </button>
+            <button data-name="{{ viztype.name }}" class="btn btn-outline-secondary btn-lg disabled btn-add-key-enable text-monospace font-weight-normal line-btn" >Change to Add New Key</button>
+        </div>
+        <div id="collapseAddNewKey-{{ typeloop.index }}" class="collapse" data-parent=".list-group-item">
+          <div class="card-body">
+            <form action="#" class="add-new-key-form">
+                <input type="hidden" name="type_name" value="{{ viztype.name }}">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label>Metadata key name</label>
+                      <input type="text" name="value" class="form-control" placeholder="key name">
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label>placeholder</label>
+                      <input type="text" name="placeholder" class="form-control" placeholder="placeholder for metadata key">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label>Metadata Key HTML Tag</label>
+                      <select class="form-control" name="htmltag">
+                        <option selected value="input">Input</option>
+                        <option value="select">select</option>
+                      </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label>Options of HTML Tag (Use ; to separate, empty for input)</label>
+                      <input type="text" name="options" class="form-control" placeholder="Options for HTML Tag">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label>Description</label>
+                      <input type="text" name="description" class="form-control">
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label>&nbsp;</label>
+                      <input type="hidden" name="former-value">
+                      <input type="hidden" name="is-update" value="no">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                      <input type="submit" class="form-control btn btn-primary" value="Add metadata-key to {{ viztype.name }}">
+                    </div>
+                </div>
+            </form>
+          </div>
+        </div>
+      </li>
+    {% endfor %}
+</ul>
+<br>
+<div class="card" id="add-card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5>New Type Of Visualization</h5>
+    <button class="btn btn-outline-secondary disabled" id="btn-add-enable" >Change to Add New Type</button>
+  </div>
+  <div class="card-body">
+    <form action="#" id="add-new-type-form">
+        <div class="form-row">
+            <div class="col">
+                <input type="text" name="name" class="form-control viz-type-name" placeholder="viz type name">
+                <input type="hidden" class="former-value">
+                <input type="hidden" class="is-update" value="no">
+            </div>
+            <div class="col">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="submit" value="Add new viz type" class="btn btn-primary">
+            </div>
+        </div>
+    </form>
+  </div>
+</div>
+<!-- nav-link ml-3 my-1 -->
+{% endblock %}
+
+
+{% block javascript %}
+{% assets "JS_FRAMEWORS_VIZTYPE" %}
+<script src="{{ ASSET_URL }}"/></script>
+{% endassets %}
+{% endblock %}
