@@ -153,4 +153,24 @@ class ChartData(MethodView):
             return jsonify({'status': 404})
     def __del__(self):
         self.mongo_client.close()
+
+class TileStacheIndex(MethodView):
+    def get(self):
+        return render_template('minty/tilestache_index.html')
+
+class TileStacheConfig(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_metadata = self.mongo_db["metadata"]
+    
+    def get(self):
+        ret = self.mongo_metadata.find_one({"type" : "tilestache-config"}, {"_id": False, "type": False})
+        if ret:
+            return jsonify(dict(ret))
+        else:
+            return jsonify({})
+
+    def __del__(self):
+        self.mongo_client.close()
         

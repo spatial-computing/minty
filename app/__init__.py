@@ -3,7 +3,7 @@ from flask_assets import Environment
 from flask_wtf import CSRFProtect
 from flask_security import Security, SQLAlchemyUserDatastore, utils
 from flask_via import Via
-from flask_restful import Api
+# from flask_restful import Api
 from flask_uploads import configure_uploads
 
 from sqlalchemy_utils import database_exists, create_database
