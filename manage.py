@@ -30,7 +30,7 @@ def createapp():
     if not os.path.exists(folder):
         # Scaffold new blueprint
         os.makedirs(folder)
-        python_files = ["forms", "routes", "utils", "views", "__init__.py"]
+        python_files = ["forms", "routes", "utils", "views", "__init__"]
         for i, file in enumerate(python_files):
             with open(os.path.join(folder, file + ".py"), 'w') as temp_file:
                 if i != 4:

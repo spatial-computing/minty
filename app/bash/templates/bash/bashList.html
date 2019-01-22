@@ -1,0 +1,42 @@
+{% extends 'layout/base.html' %}
+{% block content %}
+<div class="content-section">
+  <div class="outer">
+    <div class="middle">
+      <div class="inner">
+        <div class="container">
+          <table id="dtHorizontalExample" class="table table-striped  table-sm" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                {% for key in th %}
+                  {% if key!="" %}
+                    <th>{{key}}</th>
+                  {% endif %}
+                  <th>run </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for bash in res %}
+                <tr >
+                  {% for key in th %}
+                    <td onclick="window.location.href = '{{ url_for('bash.view_bash',bash_id=bash['id']) }}';" >{{bash[key]}}</td>
+                    <!-- <td></td> -->
+                  {% endfor %}
+                  <td>
+                    <button class="btn btn-primary run-btn" data-csrf="{{ csrf_token() }}" data-command="{{bash['command']}}" data-bashid="{{bash['id']}}">Run</button>
+                  </td>
+                </tr>
+                
+              {% endfor %}   
+            </tbody>
+          </table>
+          <button  class="btn btn-primary" onclick="window.location.href = '{{ url_for('bash.add_bash')}}';">addBash</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+

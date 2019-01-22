@@ -91,12 +91,12 @@ class Bash(db.Model):
     qml = db.Column(db.String(255),server_default='')
     dir = db.Column(db.String(255),server_default='')
     md5vector = db.Column(db.String(255),server_default='')
-    structure = db.Column(db.String(255),server_default='')
+    directory_structure = db.Column(db.String(255),server_default='')
     output_dir_structure = db.Column(db.String(255),server_default='')
     start_time = db.Column(db.String(255),server_default='')
     end_time = db.Column(db.String(255),server_default='')
     datatime_format = db.Column(db.String(255),server_default='')
-    single_subdataset = db.Column(db.String(255),server_default='')
+    netcdf_subdataset = db.Column(db.String(255),server_default='')
     layer_name = db.Column(db.String(255),server_default='')
     output = db.Column(db.String(255),server_default='')
     bounds = db.Column(db.String(255),server_default='')
@@ -126,7 +126,9 @@ class Bash(db.Model):
     with_south_sudan_shp = db.Column(db.Boolean,server_default=text('False'))
     command = db.Column(db.TEXT,server_default='')
     data_file_path = db.Column(db.String(255),server_default='')
-
+    rqids = db.Column(db.TEXT,server_default='')
+    color_map = db.Column(db.String(255),server_default='')
+    file_type = db.Column(db.String(255),server_default='')
     def __setitem__(self, k, v):
                 self.k = v
 
