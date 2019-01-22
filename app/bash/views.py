@@ -5,6 +5,9 @@ from .bash_helper import *
 from app.job import *
 
 import time
+from redis import Redis
+
+
 
 class DeleteBash(MethodView):
 
@@ -103,12 +106,18 @@ class BashList(MethodView):
 
 class Run(MethodView):
 	def post(self):
-		bashid=request.form["bashid"]
-		command=findcommand_by_id(bashid)
-		job = run.queue(command)
-		print(job.id)
-		add_job_id(bashid,jobid)
+		bashid = request.form["bashid"]
+		runbash(bashid)
 		# job=add.queue(1,2,bashid)
-
 		return jsonify({"status": "queued"})
 
+class Status(MethodView):
+	def get(self):
+		# bashid = request.form['bashid']
+		# jobid = requrest.form['rqid']
+		# job=rq.Job.fetch(jobid,connection=redis)
+		return jsonify({"status":"queued"})
+		# ob_id = request.GET.get('job_id')
+		# connection = Redis()
+		# job = rq.Job.fetch(jobid, connection=redis)
+		# return jsonify({"status": "queued"})

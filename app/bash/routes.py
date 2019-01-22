@@ -7,4 +7,5 @@ routes = [
 	Pluggable('/bash/add', AddBash, 'add_bash'),
 	Pluggable('/bash/view/<string:bash_id>', Bash, 'view_bash'),
 	Pluggable('/bash/run', Run, 'run'),
+	Pluggable('/bash/status', Status, 'status'),
 ]

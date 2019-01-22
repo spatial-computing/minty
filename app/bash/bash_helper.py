@@ -4,6 +4,7 @@ import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
 from app.models import Bash,db
+from app.job import run
 
 def combine(args):
 	res=" "
@@ -66,6 +67,11 @@ def updatebash(id,**kwargs):
 
 def add_job_id(bashid,jobid):
 	bash=Bash.query.filter_by(id=bashid).first()
-	setattr(bash,rqids,jobid)
+	setattr(bash,"rqids",jobid)
 	db.session.commit()
 
+def runbash(bashid):
+	command = findcommand_by_id(bashid)
+	job = run.queue(command)
+	print(job.id)
+	add_job_id(bashid,job.id)
