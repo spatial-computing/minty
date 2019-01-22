@@ -7,6 +7,7 @@ import urllib
 import zipfile
 from app.models import db, DataSet, Bash
 from app.job import download
+from rq import Connection, Worker
 
 
 HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': 'mint-data-catalog:e038e64c-c950-4fbc-9070-a3e7138b6c4f:dce8a09a-200e-43ca-b996-810c2c437d3a', 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
@@ -37,8 +38,8 @@ class DCWrapper(object):
         std = json.dumps(response['dataset']['standard_variables'])
         #print(std)
         dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
-        db.session.add(dataset)
-        db.session.commit()
+        #db.session.add(dataset)
+        #db.session.commit()
 
         #dowload
         resources = self.findByDatasetIds(dataset_id)
@@ -47,62 +48,87 @@ class DCWrapper(object):
         #print(resources)
         #if resources == error
         
-        job = download.queue(resources, dataset_id)
-        print(job.id)
-        print(job.status)
-        
-        bash = Bash(md5vector=resource['dataset_id'], type=metadata['viz_type'], dir=os.getcwd() + '/app/static/dowloads/' + dataset_id, directory_structure=metadata['metadata']['directory-structure'], output_dir_structure=metadata['metadata']['directory-structure'], start_time=metadata['metadata']['start-time'], end_time=metadata['metadata']['end-time'], datatime_format=metadata['metadata']['datatime-format'], netcdf_subdataset=metadata['metadata']['netcdf-subdataset'], layer_name=metadata['metadata']['title'], with_shape_file=metadata['metadata']['shapefile'], rqids=job.id, color_map=metadata['metadata']['color-map'], file_type=metadata['metadata']['file-type'])
-        db.session.add(bash)
-        db.session.commit()
-
-        if job.status == 'queued':
+        #job = download.queue(resources, dataset_id)
+        #print(job.id)
+        #print(job.status)
+        download = self._download(resources, dataset_id)
+        if download == 'done' or download == 'file_exists':
             self.status = 200
         else:
-            self.status == 500
+            self.status = 500
         
-        return self.status
+    # "mint-chart", 
+    # "mint-map", 
+    # "mint-map-time-series"
+        command_args = {
+                            "layer_name":metadata['metadata']['title'].strip().replace(' ', '&nbsp;').replace('\t','&nbsp;')
+                        }
+        if metadata['viz_type'] != 'mint-chart':
+            command_args.update({
+                "md5vector": resource['dataset_id'],
+                "file_type": metadata['metadata']['file-type'],
+            })
+        else:
+            # Bar Dot Donut
+            command_args['chart_type'] = metadata['metadata']['chart-type'].lower()
+        # Black2White BuPu YlGnBl
+        # South Sudan Pongo Basin No Clip
 
-    def _download(self, resource_list, dataset_id):
-        print(len(resource_list))
-        print(os.getcwd())
-        dir_path = os.getcwd() + '/app/static/dowloads/' + dataset_id
-        if os.path.exists(dir_path):
-            print('file_exists')
-            return 'file_exists'
+        if metadata['metadata']['shapefile'] == "South Sudan":
+            command_args["with_shape_file"] = "shp/ss.shp"
+        elif metadata['metadata']['shapefile'] == "Pongo Basin":
+            command_args["with_shape_file"] = "shp/WBD.shp"
         
-        os.mkdir(dir_path)
-        index = 1
-        for resource in resource_list:
-            is_zip = False
-            if resource['resource_metadata'].get('is_zip') is not None:
-                if resource['resource_metadata']['is_zip'] == 'true':
-                    is_zip = True
+        command_args["color_map"] = "shp/colortable.txt"
+        if metadata['metadata']['color-map'] == "Black2White":
+            command_args["color_map"] = "shp/colortable.txt"
+        elif metadata['metadata']['color-map'] == "BuPu":
+            command_args["color_map"] = "shp/bupu_colormap.txt"
+        elif metadata['metadata']['color-map'] == "YlGnBl":
+            command_args["color_map"] = "shp/ylgnbl_colormap.txt"
 
+        viz_type = 'tiff'
+        if metadata['metadata']['file-type'] == 'netcdf':
+            command_args['netcdf_subdataset'] = metadata['metadata']['netcdf-subdataset']
+            if metadata['viz_type'] == 'mint-map':
+                command_args['type'] = 'single-netcdf'
+            elif metadata['viz_type'] == 'mint-map-time-series':
+                command_args['type'] = 'netcdf'
+        elif metadata['metadata']['file-type'] == 'tiff':
+            if metadata['viz_type'] == 'mint-map':
+                command_args['type'] = 'tiff'
+            elif metadata['viz_type'] == 'mint-map-time-series':
+                command_args['type'] = 'tiff-time'
+        elif metadata['metadata']['file-type'] == 'csv':
+                command_args['type'] = 'csv'
+        
+        if metadata['viz_type'] == 'mint-map-time-series':
+            command_args.update({
+                "output_dir_structure": metadata['metadata']['directory-structure'],
+                "directory_structure":metadata['metadata']['directory-structure'],
+                "start_time": metadata['metadata']['start-time'],
+                "end_time": metadata['metadata']['end-time'],
+                "datatime_format": metadata['metadata']['datatime-format'],
+                "dir": '/tmp/' + dataset_id,
+            })
+        else:
             file = resource['resource_data_url'].split('/')
             file_name = file[len(file) - 1]
-            file_path = dir_path + '/' + file_name
+            command_args['data_file_path'] = '/tmp/' + dataset_id + '/' +  file_name
+        
+        self._buildBash(**command_args)
+        # TODO try to run
+        return self.status
 
-            if is_zip:
-                (name, header) = urllib.request.urlretrieve(resource['resource_data_url'], file_path)
-                zip_ref = zipfile.ZipFile(file_path, 'r')
-                zip_ref.extractall(dir_path)
-                zip_ref.close()
-                os.remove(file_path)
-            else:
-                (name, header) = urllib.request.urlretrieve(resource['resource_data_url'], file_path)
-            
-            print("download file %d" %(index))
-            index += 1
-
-        print('done download')
-        return 'done'
-
-
-
+    def _buildBash(self, **kwargs):
+        bash = Bash(**kwargs)
+        db.session.add(bash)
+        db.session.commit()
+        
     def findByDatasetIds(self, dataset_id):
         req = None
 
-        self.payload = {'dataset_ids__in': [dataset_id]}
+        self.payload = {'dataset_ids__in': [dataset_id], 'limit': 10000}
         req = requests.post(API_URL + '/find', headers = HEADERS, data = json.dumps(self.payload))
         response = req.json()
         
@@ -111,6 +137,27 @@ class DCWrapper(object):
             return 'error'
         
         return response['resources']
+
+    def _download(self, resource_list, dataset_id):
+        print(len(resource_list))
+        print(os.getcwd())
+        dir_path = '/tmp/' + dataset_id
+        if os.path.exists(dir_path):
+            print('file_exists')
+            return 'file_exists'
+        
+        os.mkdir(dir_path)
+        index = 0
+        queue_list = ['download_q1', 'download_q2', 'download_q3', 'download_q4']
+        
+        for resource in resource_list:
+            q = queue_list[index % 4]
+            job = download.queue(resource, dataset_id, index, queue=q)
+            index += 1
+
+        print('done download queue')
+        return 'done'
+
 
 
 """
