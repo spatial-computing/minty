@@ -38,8 +38,11 @@ class DCWrapper(object):
         std = json.dumps(response['dataset']['standard_variables'])
         #print(std)
         dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
-        #db.session.add(dataset)
-        #db.session.commit()
+        check = db.session.query(DataSet).filter_by(id=response['dataset']['id']).all()
+        if len(check) == 0:
+            db.session.add(dataset)
+            db.session.commit()
+            print('test')
 
         #dowload
         resources = self.findByDatasetIds(dataset_id)
@@ -51,7 +54,7 @@ class DCWrapper(object):
         #job = download.queue(resources, dataset_id)
         #print(job.id)
         #print(job.status)
-        download = self._download(resources, dataset_id)
+        #download = self._download(resources, dataset_id)
         if download == 'done' or download == 'file_exists':
             self.status = 200
         else:
@@ -61,7 +64,8 @@ class DCWrapper(object):
     # "mint-map", 
     # "mint-map-time-series"
         command_args = {
-                            "layer_name":metadata['metadata']['title'].strip().replace(' ', '&nbsp;').replace('\t','&nbsp;')
+                            "layer_name":metadata['metadata']['title'].strip().replace(' ', '&nbsp;').replace('\t','&nbsp;'),
+                            "viz_config":'viz_config_1'
                         }
         if metadata['viz_type'] != 'mint-chart':
             command_args.update({
@@ -118,12 +122,15 @@ class DCWrapper(object):
         
         self._buildBash(**command_args)
         # TODO try to run
+        #if ()
         return self.status
 
     def _buildBash(self, **kwargs):
         bash = Bash(**kwargs)
-        db.session.add(bash)
-        db.session.commit()
+        print(bash)
+        #db.session.add(bash)
+        #db.session.commit()
+        return True
         
     def findByDatasetIds(self, dataset_id):
         req = None
