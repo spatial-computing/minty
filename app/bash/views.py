@@ -1,9 +1,10 @@
 from flask import jsonify, request, url_for, redirect, current_app, render_template, flash, make_response
 from flask.views import MethodView
-from flask_restful import Resource
 
 from .bash_helper import *
 from app.job import *
+
+import time
 
 class DeleteBash(MethodView):
 
@@ -38,10 +39,13 @@ class AddBash(MethodView):
 				newbash[key]=True
 			else:
 				newbash[key]=result[key]
+
+		# add command to new added bash
+		newbash.pop('csrf_token', None)
 		if newbash['command']=='':
 			newbash['command']=combine(newbash)
 		addbash(**newbash)
-	   
+	 
 		return redirect(url_for('bash.bash_list'))
 
 class Bash(MethodView):
@@ -99,10 +103,12 @@ class BashList(MethodView):
 
 class Run(MethodView):
 	def post(self):
-		command=request.form["command"]
 		bashid=request.form["bashid"]
-		print(bashid)
-		print(command)
-		# job = run.queue(command)
-		return jsonify({"status": "ok"})
+		command=findcommand_by_id(bashid)
+		job = run.queue(command)
+		print(job.id)
+		add_job_id(bashid,jobid)
+		# job=add.queue(1,2,bashid)
+
+		return jsonify({"status": "queued"})
 
