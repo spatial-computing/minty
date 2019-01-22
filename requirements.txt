@@ -1,7 +1,5 @@
 alembic==1.0.5
-aniso8601==4.1.0
 appdirs==1.4.3
-arrow==0.13.0
 Babel==2.6.0
 blinker==1.4
 certifi==2017.4.17
@@ -40,6 +38,7 @@ psycopg2==2.7.6.1
 psycopg2-binary==2.7.6.1
 pymongo==3.7.2
 pyparsing==2.2.0
+pyspark==2.3.1
 python-dateutil==2.6.0
 python-editor==1.0.3
 pytz==2018.7
@@ -47,7 +46,6 @@ rauth==0.7.3
 redis==3.0.1
 requests==2.16.5
 rq==0.13.0
-rq-dashboard==0.3.12
 rq-scheduler==0.9
 selenium==3.4.2
 six==1.10.0
@@ -60,3 +58,4 @@ views==0.3
 webassets==0.12.1
 Werkzeug==0.14.1
 WTForms==2.1
+Flask-RESTful==0.3.7

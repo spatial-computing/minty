@@ -44,4 +44,16 @@
         }
     });
 
+    $('.status-btn').on('click',function(evnet){
+        $.ajax({
+            url:'/bash/status',
+            type:'GET',
+            dataType:'josn',
+            data:{jobid:$(this).data('rqid'),bashid:$(this).data('bashid')},
+            success:function(server_response){
+                console.log(server_response)
+            }
+        })
+    });
+
 }());

@@ -5,7 +5,7 @@ import os
 import urllib
 import zipfile
 from .models import *
-from .bash.bash_helper import *
+
 import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
@@ -16,8 +16,7 @@ rq = RQ()
 @rq.job
 def add(x, y, id ):
 	print(id)
-	command=findcommand_by_id(id)
-	print(command)
+
 	# bash=Bash.query.filter_by(id=id).first()
 	# updatebash(id,bind="3")
 	return x+y
@@ -29,8 +28,8 @@ def run(command):
 	todir="cd "+"{}".format(MINTCAST_PATH)+"&&"
 	pre="./bin/mintcast.sh"
 	command=todir+pre+command
-	# out=subprocess.call(command,shell=True)
-	return command
+	out=subprocess.call(command,shell=True)
+	return out
 
 @rq.job(timeout=1800)
 def download(resource, dataset_id, index):
