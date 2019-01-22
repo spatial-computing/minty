@@ -56,6 +56,7 @@ class DevelopmentConfig(object):
     
     #redis localhost
     RQ_REDIS_URL="redis://127.0.0.1:6379/0"  
+    
     #OAUTH LOGIN
 
     # OAUTH_CREDENTIALS = {

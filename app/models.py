@@ -81,7 +81,9 @@ class Layer(db.Model):
     stepoption_format = db.Column(db.String(16),server_default='NULL')
     step = db.Column(db.String(255),server_default='NULL')
     axis = db.Column(db.String(32),server_default='NULL')
-    dcid = db.Column(db.Integer,server_default=text('0')) 
+    dcid = db.Column(db.Integer,server_default=text('0'))
+    styletype =  db.Column(db.String(32),server_default='fill')
+    legend_type = db.Column(db.String(16),server_default='linear')
 
 
 class Bash(db.Model):
@@ -126,9 +128,8 @@ class Bash(db.Model):
     with_south_sudan_shp = db.Column(db.Boolean,server_default=text('False'))
     command = db.Column(db.TEXT,server_default='')
     data_file_path = db.Column(db.String(255),server_default='')
-    
-    chart_type = db.Column(db.String(255),server_default='')
 
+    chart_type = db.Column(db.String(255),server_default='')
     rqids = db.Column(db.TEXT,server_default='')
     color_map = db.Column(db.String(255),server_default='')
     file_type = db.Column(db.String(255),server_default='')

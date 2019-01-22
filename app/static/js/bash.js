@@ -13,7 +13,7 @@
             url: '/bash/run',
             type: 'POST',
             dataType: 'json',
-            data: {command:command, csrf_token:$('.run-btn').data('csrf'),bashid:$('.run-btn').data('bashid')}
+            data: {command:command, csrf_token:$('.run-btn').data('csrf'),bashid:$(this).data('bashid')}
         }).done(function (json) {
             window.location.reload();
         });

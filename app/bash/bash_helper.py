@@ -1,17 +1,22 @@
-import sys
-sys.path.append("..")
+# import sys
+# sys.path.append("..")
+import os
+MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
+
 from app.models import Bash,db
 
 def combine(args):
 	res=" "
 	for key in args:
-		if(args[key]!='' and args[key]!=False and key!="id" and key!="_sa_instance_state"):
+		if(args[key]!='' and args[key]!=None and args[key]!=False and key!="id" and key!="_sa_instance_state" and key!="rqids" and key!="status"):
 			param=key.replace("_","-")
 			if(args[key]==True):
 				res+="--"+param+" "
 			else:
-				res+="--"+param+" "+"{}".format(args[key])+" "
-			
+				if key=="with_shape_file" or key =="color_map":
+					res+="--"+param+" "+"{} {}".format(MINTCAST_PATH,args[key])+" "
+				else:
+					res+="--"+param+" "+"{}".format(args[key])+" "
 	return res
 
 #find one by id 
@@ -58,3 +63,9 @@ def updatebash(id,**kwargs):
 		setattr(bash,key,kwargs[key])
 	
 	db.session.commit()
+
+def add_job_id(bashid,jobid):
+	bash=Bash.query.filter_by(id=bashid).first()
+	setattr(bash,rqids,jobid)
+	db.session.commit()
+

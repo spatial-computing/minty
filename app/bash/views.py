@@ -104,12 +104,12 @@ class BashList(MethodView):
 
 class Run(MethodView):
 	def post(self):
-		# bashid=request.form["bashid"]
-		# command=findcommand_by_id(bashid)
-		# print(bashid)
-		# print(command)
-		# job = run.queue(command)
-		# job=add.queue(1,2,bashid) 
+		bashid=request.form["bashid"]
+		command=findcommand_by_id(bashid)
+		job = run.queue(command)
+		print(job.id)
+		add_job_id(bashid,jobid)
+		# job=add.queue(1,2,bashid)
 
 		return jsonify({"status": "queued"})
 
