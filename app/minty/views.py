@@ -88,9 +88,8 @@ class VisualizeAction(MethodView):
         #    job = start a DCWrapper with dataset_id
         getdata = api.DCWrapper()
         
-        status, job_id = getdata.findByDatasetId(dataset_id) # job.status
-        return "{\"dataset_id\": \"%s\", \"RQ job_id\": \"%s\", \"status\": %s, \"msg\": \"%s\"}" \
-                % (dataset_id, job_id, status, self.msg[status])
+        status = getdata.findByDatasetId(dataset_id) # job.status
+        return "{dataset_id: %s, status: %s, msg: %s}" % (dataset_id, status, self.msg[status])
         # return "{testmsg: 'working on %s'}" % (dataset_id)
       
 class VizType(MethodView):

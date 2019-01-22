@@ -1,12 +1,12 @@
 import requests
-from rq import *
-from redis import Redis
+from app.job import rq
 import time
 import json
 import os 
 import urllib
 import zipfile
-from app.models import db, DataSet
+from app.models import db, DataSet, Bash
+from app.job import download
 
 
 HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': 'mint-data-catalog:e038e64c-c950-4fbc-9070-a3e7138b6c4f:dce8a09a-200e-43ca-b996-810c2c437d3a', 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
@@ -37,25 +37,30 @@ class DCWrapper(object):
         std = json.dumps(response['dataset']['standard_variables'])
         #print(std)
         dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
-        #db.session.add(dataset)
-        #db.session.commit()
+        db.session.add(dataset)
+        db.session.commit()
 
         #dowload
         resources = self.findByDatasetIds(dataset_id)
+        resource = resources[0]
+        metadata = resource['dataset_metadata']['viz_config_1']
         #print(resources)
         #if resources == error
-        redis_conn = Redis()
-        q = Queue(connection=redis_conn)  # no args implies the default queue
-        job = q.enqueue(self._download, resources, dataset_id)
+        
+        job = download.queue(resources, dataset_id)
         print(job.id)
         print(job.status)
+        
+        bash = Bash(md5vector=resource['dataset_id'], type=metadata['viz_type'], dir=os.getcwd() + '/app/static/dowloads/' + dataset_id, directory_structure=metadata['metadata']['directory-structure'], output_dir_structure=metadata['metadata']['directory-structure'], start_time=metadata['metadata']['start-time'], end_time=metadata['metadata']['end-time'], datatime_format=metadata['metadata']['datatime-format'], netcdf_subdataset=metadata['metadata']['netcdf-subdataset'], layer_name=metadata['metadata']['title'], with_shape_file=metadata['metadata']['shapefile'], rqids=job.id, color_map=metadata['metadata']['color-map'], file_type=metadata['metadata']['file-type'])
+        db.session.add(bash)
+        db.session.commit()
 
         if job.status == 'queued':
             self.status = 200
         else:
             self.status == 500
         
-        return self.status, job.id
+        return self.status
 
     def _download(self, resource_list, dataset_id):
         print(len(resource_list))
