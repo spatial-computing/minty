@@ -11,5 +11,7 @@ routes = [
 	Pluggable('/minty/layer_index', AutocompleteJson, 'layer_index'),
 	Pluggable('/minty/visualize/<dataset_id>', VisualizeAction, 'visualize_action'),
 	Pluggable('/minty/viz_type', VizType, 'viz_type'),
-	Pluggable('/minty/chart/<dataset_id>', ChartData, 'chart_data')
+	Pluggable('/minty/chart/<dataset_id>', ChartData, 'chart_data'),
+	Pluggable('/minty/tilestache/index', TileStacheIndex, 'tilestache_index'),
+	Pluggable('/minty/tilestache/config', TileStacheConfig, 'tilestache_config'),
 ]
