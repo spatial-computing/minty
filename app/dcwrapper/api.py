@@ -4,12 +4,12 @@ from redis import Redis
 import time
 import json
 import os 
-import wget
+import urllib
 import zipfile
 from app.models import db, DataSet
 
 
-HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': 'mint-data-catalog:e038e64c-c950-4fbc-9070-a3e7138b6c4f:dce8a09a-200e-43ca-b996-810c2c437d3a', 'cache-control': 'no-cache', }
+HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': 'mint-data-catalog:e038e64c-c950-4fbc-9070-a3e7138b6c4f:dce8a09a-200e-43ca-b996-810c2c437d3a', 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
 API_URL = 'http://api.mint-data-catalog.org/datasets'
 class DCWrapper(object):
     def __init__(self):
@@ -29,58 +29,67 @@ class DCWrapper(object):
         
         if isinstance(response, dict) and 'error' in response:
             print(response['error'])
-            self.status = 500
+            self.status = 404
             return self.status
 
         #db
         print(response['dataset'])
         std = json.dumps(response['dataset']['standard_variables'])
-        print(std)
+        #print(std)
         dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
-        db.session.add(dataset)
-        db.session.commit()
+        #db.session.add(dataset)
+        #db.session.commit()
+
         #dowload
+        resources = self.findByDatasetIds(dataset_id)
+        #print(resources)
+        #if resources == error
         redis_conn = Redis()
         q = Queue(connection=redis_conn)  # no args implies the default queue
-        job = q.enqueue(self._download, dataset_id)
+        job = q.enqueue(self._download, resources, dataset_id)
         print(job.id)
         print(job.status)
 
         if job.status == 'queued':
             self.status = 200
         else:
-            self.status == 404
+            self.status == 500
         
-        return self.status
+        return self.status, job.id
 
-    def _download(self, dataset_id):
-        data = self.findByDatasetIds(dataset_id)
-        #if data == 'error'
-        print(data)
+    def _download(self, resource_list, dataset_id):
+        print(len(resource_list))
         print(os.getcwd())
-        if os.path.exists(os.getcwd() + '/app/static/dowloads/' + dataset_id):
-            return 'file_exists'
-
-        is_zip = False
-        if data[0]['resource_metadata'].get('is_zip') is not None:
-            if data[0]['resource_metadata']['is_zip'] == 'true':
-                is_zip = True
-
-        file = data[0]['resource_data_url'].split('/')
-        file_name = file[len(file) - 1]
         dir_path = os.getcwd() + '/app/static/dowloads/' + dataset_id
+        if os.path.exists(dir_path):
+            print('file_exists')
+            return 'file_exists'
+        
         os.mkdir(dir_path)
-        file_path = dir_path + '/' + file_name
+        index = 1
+        for resource in resource_list:
+            is_zip = False
+            if resource['resource_metadata'].get('is_zip') is not None:
+                if resource['resource_metadata']['is_zip'] == 'true':
+                    is_zip = True
 
-        if is_zip:
-            wget.download(data[0]['resource_data_url'], file_path)
-            zip_ref = zipfile.ZipFile(file_path, 'r')
-            zip_ref.extractall(dir_path)
-            zip_ref.close()
-            os.remove(file_path)
-        else:
-            wget.download(data[0]['resource_data_url'], file_path)
+            file = resource['resource_data_url'].split('/')
+            file_name = file[len(file) - 1]
+            file_path = dir_path + '/' + file_name
 
+            if is_zip:
+                (name, header) = urllib.request.urlretrieve(resource['resource_data_url'], file_path)
+                zip_ref = zipfile.ZipFile(file_path, 'r')
+                zip_ref.extractall(dir_path)
+                zip_ref.close()
+                os.remove(file_path)
+            else:
+                (name, header) = urllib.request.urlretrieve(resource['resource_data_url'], file_path)
+            
+            print("download file %d" %(index))
+            index += 1
+
+        print('done download')
         return 'done'
 
 
