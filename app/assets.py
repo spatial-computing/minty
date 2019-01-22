@@ -6,7 +6,12 @@ def create_assets(assets):
     #     output='js/viztype_libs.js'
     # )
     # assets.register('JS_FRAMEWORS', js)
-
+    js = Bundle(
+        'js/bash.js',
+        output='js/bash_libs.js'
+    )
+    assets.register('JS_FRAMEWORS_BASH', js)
+    
     js = Bundle(
         'js/viztype.js',
         output='js/viztype_libs.js'

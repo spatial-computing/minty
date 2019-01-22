@@ -5,6 +5,8 @@ from flask_restful import Resource
 from .bash_helper import *
 from app.job import *
 
+import time
+
 class DeleteBash(MethodView):
 
 	def get(self,bash_id):
@@ -38,10 +40,13 @@ class AddBash(MethodView):
 				newbash[key]=True
 			else:
 				newbash[key]=result[key]
+
+		# add command to new added bash
+		newbash.pop('csrf_token', None)
 		if newbash['command']=='':
 			newbash['command']=combine(newbash)
 		addbash(**newbash)
-	   
+	 
 		return redirect(url_for('bash.bash_list'))
 
 class Bash(MethodView):
@@ -99,10 +104,12 @@ class BashList(MethodView):
 
 class Run(MethodView):
 	def post(self):
-		command=request.form["command"]
-		bashid=request.form["bashid"]
-		print(bashid)
-		print(command)
+		# bashid=request.form["bashid"]
+		# command=findcommand_by_id(bashid)
+		# print(bashid)
+		# print(command)
 		# job = run.queue(command)
-		return jsonify({"status": "ok"})
+		# job=add.queue(1,2,bashid) 
+
+		return jsonify({"status": "queued"})
 

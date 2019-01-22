@@ -3,7 +3,7 @@ sys.path.append("..")
 from app.models import Bash,db
 
 def combine(args):
-	res=""
+	res=" "
 	for key in args:
 		if(args[key]!='' and args[key]!=False and key!="id" and key!="_sa_instance_state"):
 			param=key.replace("_","-")

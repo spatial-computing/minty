@@ -4,9 +4,9 @@
       <div class="container">
 
         {% if 'id' in bash%}
-        <form class="bashform" action = '{{ url_for('bash.bash_list',bash_id=bash['id']) }}'  method = "POST">
+        <form class="bashform">
         {% else %}
-        <form class="bashform" action = '{{ url_for('bash.add_bash') }}'  method = "POST"> 
+        <form class="bashform" > 
         {% endif %}
 
           {% for key in txt %}
@@ -26,11 +26,11 @@
             <label class="form-check-label" ckecked="true">{{key}}</label>
           </div>
           {% endfor %}
-
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           {% if 'id' in bash %}
-          <button  type = "submit" class="btn btn-primary">update</button>
+          <button  type = "submit" class="btn btn-primary submit" data-action="update">update</button>
           {% else %}
-           <button  type = "submit" class="btn btn-primary">addbash</button>
+           <button  type = "submit" class="btn btn-primary submit" data-action="add" data-bashid="{{bash['id']}}">addbash</button>
           {% endif %}
         </form>
         <div style="padding-left: 90px;">
@@ -38,4 +38,12 @@
         </div>
       </div>
 
+{% endblock %}
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/bash.js') }}"></script>
+
+{% block javascript %}
+{% assets "JS_FRAMEWORS_BASH" %}
+<script src="{{ ASSET_URL }}"/></script>
+{% endassets %}
 {% endblock %}
