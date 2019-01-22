@@ -1,0 +1,13 @@
+{% extends 'layout/base.html' %}
+{% block content %}
+
+<table border = 1>
+         {% for key, value in res.items() %}
+            <tr>
+               <th> {{ key }} </th>
+               <td> {{ value }} </td>
+            </tr>
+         {% endfor %}
+      </table>
+
+{% endblock %}

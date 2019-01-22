@@ -1,0 +1,41 @@
+{% extends 'layout/base.html' %}
+{% block content %}
+        
+      <div class="container">
+
+        {% if 'id' in bash%}
+        <form class="bashform" action = '{{ url_for('bash.bash_list',bash_id=bash['id']) }}'  method = "POST">
+        {% else %}
+        <form class="bashform" action = '{{ url_for('bash.add_bash') }}'  method = "POST"> 
+        {% endif %}
+
+          {% for key in txt %}
+          <div class="form-group ">
+            <label >{{key}}</label>
+            <input type="txt" class="form-control" name={{key}} value={{bash[key]}} >
+          </div>
+          {% endfor %}
+
+          {% for key in boolean%}
+          <div class="form-check">
+            {% if bash[key] %}
+              <input type="checkbox" class="form-check-input" checked name={{key}}>
+            {% else %}
+              <input type="checkbox" class="form-check-input" name={{key}}>
+            {% endif %}
+            <label class="form-check-label" ckecked="true">{{key}}</label>
+          </div>
+          {% endfor %}
+
+          {% if 'id' in bash %}
+          <button  type = "submit" class="btn btn-primary">update</button>
+          {% else %}
+           <button  type = "submit" class="btn btn-primary">addbash</button>
+          {% endif %}
+        </form>
+        <div style="padding-left: 90px;">
+          <button onclick="window.location.href = '{{ url_for('bash.delete_bash',bash_id=bash['id']) }}';" class="btn btn-danger ">delete</button>
+        </div>
+      </div>
+
+{% endblock %}
