@@ -127,13 +127,13 @@ class Bash(db.Model):
     command = db.Column(db.TEXT,server_default='')
     data_file_path = db.Column(db.String(255),server_default='')
     
-    # chart_type = db.Column(db.String(255),server_default='')
+    chart_type = db.Column(db.String(255),server_default='')
 
-    # rqids = db.Column(db.TEXT,server_default='')
-    # color_map = db.Column(db.String(255),server_default='')
-    # file_type = db.Column(db.String(255),server_default='')
-    # directory_structure = db.Column(db.String(255),server_default='')
-    # netcdf_subdataset = db.Column(db.String(255),server_default='')
+    rqids = db.Column(db.TEXT,server_default='')
+    color_map = db.Column(db.String(255),server_default='')
+    file_type = db.Column(db.String(255),server_default='')
+    directory_structure = db.Column(db.String(255),server_default='')
+    netcdf_subdataset = db.Column(db.String(255),server_default='')
     def __setitem__(self, k, v):
                 self.k = v
 
