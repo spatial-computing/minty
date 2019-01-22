@@ -7,15 +7,17 @@ import urllib
 import zipfile
 from app.models import db, DataSet, Bash
 from app.job import download
+from app.bash import bash_helper
 from rq import Connection, Worker
 
 
 HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': 'mint-data-catalog:e038e64c-c950-4fbc-9070-a3e7138b6c4f:dce8a09a-200e-43ca-b996-810c2c437d3a', 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
 API_URL = 'http://api.mint-data-catalog.org/datasets'
 class DCWrapper(object):
-    def __init__(self):
+    def __init__(self, bash_autorun=True):
         self.payload = {}
         self.status = 0
+        self.bash_autorun = bash_autorun
 
     def findByDatasetId(self, dataset_id):
         req = None
@@ -51,10 +53,7 @@ class DCWrapper(object):
         #print(resources)
         #if resources == error
         
-        #job = download.queue(resources, dataset_id)
-        #print(job.id)
-        #print(job.status)
-        #download = self._download(resources, dataset_id)
+        download = self._download(resources, dataset_id)
         if download == 'done' or download == 'file_exists':
             self.status = 200
         else:
@@ -63,6 +62,7 @@ class DCWrapper(object):
     # "mint-chart", 
     # "mint-map", 
     # "mint-map-time-series"
+        
         command_args = {
                             "layer_name":metadata['metadata']['title'].strip().replace(' ', '&nbsp;').replace('\t','&nbsp;'),
                             "viz_config":'viz_config_1'
@@ -120,16 +120,20 @@ class DCWrapper(object):
             file_name = file[len(file) - 1]
             command_args['data_file_path'] = '/tmp/' + dataset_id + '/' +  file_name
         
-        self._buildBash(**command_args)
-        # TODO try to run
-        #if ()
+        if self._buildBash(**command_args):
+            if self.bash_autorun:
+                bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
+                bash_helper.runbash(bash[0].id)
+
         return self.status
 
     def _buildBash(self, **kwargs):
         bash = Bash(**kwargs)
-        print(bash)
-        #db.session.add(bash)
-        #db.session.commit()
+        bashcheck = db.session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).all()
+        if len(bashcheck) == 0:
+            db.session.add(bash)
+            db.session.commit()
+            return False
         return True
         
     def findByDatasetIds(self, dataset_id):

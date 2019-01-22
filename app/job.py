@@ -29,6 +29,7 @@ def run(command):
 	pre="./bin/mintcast.sh"
 	command=todir+pre+command
 	out=subprocess.call(command,shell=True)
+	print(command)
 	return out
 
 @rq.job(timeout=1800)
