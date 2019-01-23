@@ -4,13 +4,6 @@ import os
 import zipfile
 import requests
 from .models import *
-<<<<<<< HEAD
-
-MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
-=======
-import os
->>>>>>> master
-
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
