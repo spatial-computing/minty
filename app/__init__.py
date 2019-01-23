@@ -33,8 +33,7 @@ def create_app(config_name):
 
     app.config.from_object(app_config[config_name])
 
-    #config rq
-    rq.init_app(app)
+
     
     csrf = CSRFProtect()
     csrf.init_app(app)
@@ -77,7 +76,9 @@ def create_app(config_name):
     # mongodb.init_app(app)
 
     csrf.exempt(rq_dashboard.blueprint)
-
+    #config rq
+    rq.init_app(app)
+    print(app.config['RQ_REDIS_URL'])
     app.config.from_object(rq_dashboard.default_settings)
     app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rq")
 
