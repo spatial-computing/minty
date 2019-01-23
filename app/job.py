@@ -2,7 +2,7 @@
 from flask_rq2 import RQ
 import subprocess
 from .models import *
-
+import time
 import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
@@ -13,6 +13,7 @@ rq = RQ()
 @rq.job
 def add(x, y, id ):
 	print(id)
+	time.sleep(10)
 	return x+y
 
 @rq.job

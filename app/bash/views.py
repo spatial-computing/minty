@@ -108,7 +108,6 @@ class Run(MethodView):
 	def post(self):
 		bashid = request.form["bashid"]
 		runbash(bashid)
-		# job=add.queue(1,2,bashid)
 		return jsonify({"status": "queued"})
 
 class Status(MethodView):
@@ -118,5 +117,5 @@ class Status(MethodView):
 		print(jobid)
 		redis = Redis()
 		job = Job.fetch(jobid,connection=redis)
-		return jsonify({"job_status":job.get_status(), "result": job.result, "exe_info": job.exc_info})
+		return jsonify({"job_status":job.get_status(), "result": job.result, "exe_info": job.exc_info,"result":job.result})
 
