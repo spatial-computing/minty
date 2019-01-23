@@ -137,6 +137,7 @@ class Bash(db.Model):
     directory_structure = db.Column(db.String(255), server_default='')
     netcdf_subdataset = db.Column(db.String(255), server_default='')
     viz_config = db.Column(db.TEXT, server_default='')
+    status = db.Column(db.String(255),server_default='not enqueued')
     def __setitem__(self, k, v):
                 self.k = v
 
