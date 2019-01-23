@@ -47,12 +47,12 @@
     $('.status-btn').on('click',function(evnet){
         $.ajax({
             url:'/bash/status',
-            type:'GET',
-            dataType:'josn',
-            data:{jobid:$(this).data('rqid'),bashid:$(this).data('bashid')},
-            success:function(server_response){
-                console.log(server_response)
-            }
+            type:'POST',
+            dataType:'json',
+            data:{jobid:$(this).data('rqid'),bashid:$(this).data('bashid'),csrf_token:$(this).data('csrf')},
+        }).done(function(json){
+            $('.modal-body').html(json.job_status);
+            console.log("json.job_status")
         })
     });
 
