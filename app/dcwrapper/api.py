@@ -6,7 +6,6 @@ import os
 import zipfile
 from app.models import db, DataSet, Bash
 from app.job import download
-from app.bash import bash_helper
 from rq import Connection, Worker
 
 X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
@@ -61,10 +60,10 @@ class DCWrapper(object):
 
         metadata = resource['dataset_metadata'][arr[0]]
         
-        download = self._download(resources, dataset_id)
-        if download == 'file_exists':
+        download_status = self._download(resources, dataset_id)
+        if download_status == 'file_exists':
             self.status = 301
-        elif download == 'done_queue':
+        elif download_status == 'done_queue':
             self.status = 200
         else:
             self.status = 500
@@ -134,8 +133,11 @@ class DCWrapper(object):
             print('new bash commit')
         else:
             print('bash already exists')
-            #if self.bash_autorun:
-            #bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
+            
+        if self.bash_autorun:
+            bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
+            job = download.queue(resource, dataset_id, 0, bash[0].id, self.bash_autorun, queue='low')
+            
 
         return self.status
 
@@ -190,7 +192,7 @@ class DCWrapper(object):
         for resource in resource_list:
             job = download.queue(resource, dataset_id, index, queue='low')
             index += 1
-
+        
         print('done download enqueue')
         return 'done_queue'
 
