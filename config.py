@@ -56,7 +56,18 @@ class DevelopmentConfig(object):
     
     #redis localhost
     RQ_REDIS_URL="redis://127.0.0.1:6379/1"  
-    
+    REDIS_URL = "redis://127.0.0.1:6379/1"
+
+    REDIS_HOST = '127.0.0.1'
+    REDIS_PORT = 6379
+    REDIS_PASSWORD = None
+    REDIS_DB = 1
+
+    RQ_POLL_INTERVAL = 10000  #: Web interface poll period for updates in ms
+    DEBUG = False
+    WEB_BACKGROUND = "black"
+    DELETE_JOBS = False
+
     #OAUTH LOGIN
 
     # OAUTH_CREDENTIALS = {
