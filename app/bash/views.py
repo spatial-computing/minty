@@ -3,7 +3,7 @@ from flask.views import MethodView
 
 from .bash_helper import *
 from app.job import *
-
+from rq.job import Job
 import time
 from redis import Redis
 
@@ -112,12 +112,11 @@ class Run(MethodView):
 		return jsonify({"status": "queued"})
 
 class Status(MethodView):
-	def get(self):
-		# bashid = request.form['bashid']
-		# jobid = requrest.form['rqid']
-		# job=rq.Job.fetch(jobid,connection=redis)
-		return jsonify({"status":"queued"})
-		# ob_id = request.GET.get('job_id')
-		# connection = Redis()
-		# job = rq.Job.fetch(jobid, connection=redis)
-		# return jsonify({"status": "queued"})
+	def post(self):
+		bashid = request.form['bashid']
+		jobid = request.form['jobid']
+		print(jobid)
+		redis = Redis()
+		job = Job.fetch(jobid,connection=redis)
+		return jsonify({"job_status":job.get_status(), "result": job.result, "exe_info": job.exc_info})
+

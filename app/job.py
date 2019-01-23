@@ -16,9 +16,6 @@ rq = RQ()
 @rq.job
 def add(x, y, id ):
 	print(id)
-
-	# bash=Bash.query.filter_by(id=id).first()
-	# updatebash(id,bind="3")
 	return x+y
 
 @rq.job
@@ -30,6 +27,11 @@ def run(command):
 	command=todir+pre+command
 	out=subprocess.call(command,shell=True)
 	print(command)
+	return out
+
+@rq.job
+def excep():
+	out=subprocess.call("python /Users/xuanyang/Downloads/rai.py",shell=True)
 	return out
 
 @rq.job(timeout=1800)
@@ -55,3 +57,4 @@ def download(resource, dataset_id, index):
     print("download file %d" %(index+1))
     
     return 'done'
+
