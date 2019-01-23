@@ -10,7 +10,7 @@ class LayerJson(MethodView):
         self.mongo_col = self.mongo_db["layer"]
 
     def get(self, md5):
-        jsonData = self.mongo_col.find_one({'$or': [{'md5vector': md5}, {'dcid': dcid}]})
+        jsonData = self.mongo_col.find_one({'$or': [{'md5vector': md5}, {'dcid': md5}]})
         self.mongo_client.close()
         if jsonData:
             del jsonData['_id']
