@@ -3,15 +3,15 @@ from app.job import rq
 import time
 import json
 import os 
-import urllib
 import zipfile
 from app.models import db, DataSet, Bash
 from app.job import download
 from app.bash import bash_helper
 from rq import Connection, Worker
 
-
-HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': 'mint-data-catalog:e038e64c-c950-4fbc-9070-a3e7138b6c4f:dce8a09a-200e-43ca-b996-810c2c437d3a', 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
+X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
+X_API_KEY = X_API_KEY.json()['X-Api-Key']
+HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': X_API_KEY, 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
 API_URL = 'http://api.mint-data-catalog.org/datasets'
 class DCWrapper(object):
     def __init__(self, bash_autorun=True):
@@ -36,7 +36,6 @@ class DCWrapper(object):
             return self.status
 
         #db
-        print(response['dataset'])
         std = json.dumps(response['dataset']['standard_variables'])
         #print(std)
         dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
@@ -44,17 +43,28 @@ class DCWrapper(object):
         if len(check) == 0:
             db.session.add(dataset)
             db.session.commit()
-            print('test')
 
+        resources = self.findByDatasetIds([dataset_id])
+        if resources == 'error':
+            resources = self.findDatasets([dataset_id])
+            if resources == 'error':
+                self.status = 404
+                return self.status
+            
         #dowload
-        resources = self.findByDatasetIds(dataset_id)
         resource = resources[0]
-        metadata = resource['dataset_metadata']['viz_config_1']
-        #print(resources)
-        #if resources == error
+        arr = []
+        for k, v in resource['dataset_metadata'].items():
+            if k.startswith('viz_config_'):
+                arr.append(k)
+        arr.sort()
+
+        metadata = resource['dataset_metadata'][arr[0]]
         
         download = self._download(resources, dataset_id)
-        if download == 'done' or download == 'file_exists':
+        if download == 'file_exists':
+            self.status = 301
+        elif download == 'done_queue':
             self.status = 200
         else:
             self.status = 500
@@ -121,9 +131,11 @@ class DCWrapper(object):
             command_args['data_file_path'] = '/tmp/' + dataset_id + '/' +  file_name
         
         if self._buildBash(**command_args):
-            if self.bash_autorun:
-                bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
-                bash_helper.runbash(bash[0].id)
+            print('new bash commit')
+        else:
+            print('bash already exists')
+            #if self.bash_autorun:
+            #bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
 
         return self.status
 
@@ -131,15 +143,17 @@ class DCWrapper(object):
         bash = Bash(**kwargs)
         bashcheck = db.session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).all()
         if len(bashcheck) == 0:
+            bash = Bash(**kwargs)
             db.session.add(bash)
             db.session.commit()
-            return False
-        return True
+            return True
+        return False
         
-    def findByDatasetIds(self, dataset_id):
+    def findByDatasetIds(self, dataset_ids):
+        if isinstance(dataset_ids, str):
+            return 'error'
         req = None
-
-        self.payload = {'dataset_ids__in': [dataset_id], 'limit': 10000}
+        self.payload = {'dataset_ids__in': dataset_ids, 'limit': 10000}
         req = requests.post(API_URL + '/find', headers = HEADERS, data = json.dumps(self.payload))
         response = req.json()
         
@@ -149,25 +163,36 @@ class DCWrapper(object):
         
         return response['resources']
 
+    def findDatasets(self, dataset_ids):
+        if isinstance(dataset_ids, str):
+            return 'error'
+        req = None
+        self.payload = {'dataset_ids__in': dataset_ids}
+        req = requests.post('http://api.mint-data-catalog.org/find_datasets', headers = HEADERS, data = json.dumps(self.payload))
+        response = req.json()
+        
+        if isinstance(response, dict) and 'error' in response:
+            print(response['error'])
+            return 'error'
+        
+        return response['datasets']
+
     def _download(self, resource_list, dataset_id):
-        print(len(resource_list))
-        print(os.getcwd())
+        #print(len(resource_list))
+        #print(os.getcwd())
         dir_path = '/tmp/' + dataset_id
         if os.path.exists(dir_path):
             print('file_exists')
             return 'file_exists'
         
         os.mkdir(dir_path)
-        index = 0
-        queue_list = ['download_q1', 'download_q2', 'download_q3', 'download_q4']
-        
+        index = 0        
         for resource in resource_list:
-            q = queue_list[index % 4]
-            job = download.queue(resource, dataset_id, index, queue=q)
+            job = download.queue(resource, dataset_id, index, queue='low')
             index += 1
 
-        print('done download queue')
-        return 'done'
+        print('done download enqueue')
+        return 'done_queue'
 
 
 

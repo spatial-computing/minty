@@ -79,6 +79,7 @@ class VisualizeAction(MethodView):
         self.msg = {
             200: 'Task is establised on the server.',            
             404: 'Metadata or Dataset is not avaliable',
+            301: 'File is being downloaded',
             415: 'Unsupported visulaization type',
             500: 'Internal or metadata Error'
         }
@@ -87,7 +88,6 @@ class VisualizeAction(MethodView):
         # TODO: to Shawn
         #    job = start a DCWrapper with dataset_id
         getdata = api.DCWrapper()
-        
         status = getdata.findByDatasetId(dataset_id) # job.status
         return "{dataset_id: %s, status: %s, msg: %s}" % (dataset_id, status, self.msg[status])
         # return "{testmsg: 'working on %s'}" % (dataset_id)

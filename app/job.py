@@ -2,11 +2,10 @@
 from flask_rq2 import RQ
 import subprocess
 import os
-import urllib
 import zipfile
+import requests
 from .models import *
 
-import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
 rq = RQ()
@@ -43,15 +42,20 @@ def download(resource, dataset_id, index):
     file = resource['resource_data_url'].split('/')
     file_name = file[len(file) - 1]
     file_path = dir_path + '/' + file_name
+
+    response = requests.get(resource['resource_data_url'])
+    if response.status_code == 200:
+    	with open(file_path, 'wb') as f:
+            f.write(response.content)
+
     if is_zip:
-        (name, header) = urllib.request.urlretrieve(resource['resource_data_url'], file_path)
         zip_ref = zipfile.ZipFile(file_path, 'r')
         zip_ref.extractall(dir_path)
         zip_ref.close()
         os.remove(file_path)
-    else:
-        (name, header) = urllib.request.urlretrieve(resource['resource_data_url'], file_path)
-            
+    
     print("download file %d" %(index+1))
     
     return 'done'
+
+
