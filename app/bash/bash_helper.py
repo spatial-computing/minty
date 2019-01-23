@@ -71,8 +71,8 @@ def add_job_id(bashid,jobid):
 	db.session.commit()
 
 def runbash(bashid):
-	# command = findcommand_by_id(bashid)
-	# job = run.queue(command)
+	command = findcommand_by_id(bashid)
+	job = run.queue(command)
 	# job = excep.queue()
-	job = add.queue(1,2,bashid)
+	#job = add.queue(1,2,bashid)
 	add_job_id(bashid,job.id)

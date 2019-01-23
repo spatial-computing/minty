@@ -4,7 +4,6 @@ import os
 import zipfile
 import requests
 from .models import *
-from app.bash import bash_helper
 
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
@@ -27,38 +26,34 @@ def run(command):
 	todir = "cd " + "{}".format( MINTCAST_PATH ) + "&&"
 	pre = "./bin/mintcast.sh"
 	command = todir + pre + command
+    #print(command)
 	return command
 
 @rq.job(timeout=1800)
-def download(resource, dataset_id, index, bashid, runbash=False):
-    if runbash:
-        bash_helper.runbash(bashid)
-        print('run bash')
-        return 'run bash'
-    else:
-        dir_path = '/tmp/' + dataset_id
-        is_zip = False
-        if resource['resource_metadata'].get('is_zip') is not None:
-            if resource['resource_metadata']['is_zip'] == 'true':
-                is_zip = True
+def download(resource, dataset_id, index):
+    dir_path = '/tmp/' + dataset_id
+    is_zip = False
+    if resource['resource_metadata'].get('is_zip') is not None:
+        if resource['resource_metadata']['is_zip'] == 'true':
+            is_zip = True
 
-        file = resource['resource_data_url'].split('/')
-        file_name = file[len(file) - 1]
-        file_path = dir_path + '/' + file_name
+    file = resource['resource_data_url'].split('/')
+    file_name = file[len(file) - 1]
+    file_path = dir_path + '/' + file_name
 
-        response = requests.get(resource['resource_data_url'])
-        if response.status_code == 200:
-    	    with open(file_path, 'wb') as f:
-                f.write(response.content)
+    response = requests.get(resource['resource_data_url'])
+    if response.status_code == 200:
+    	with open(file_path, 'wb') as f:
+            f.write(response.content)
 
-        if is_zip:
-            zip_ref = zipfile.ZipFile(file_path, 'r')
-            zip_ref.extractall(dir_path)
-            zip_ref.close()
-            os.remove(file_path)
+    if is_zip:
+        zip_ref = zipfile.ZipFile(file_path, 'r')
+        zip_ref.extractall(dir_path)
+        zip_ref.close()
+        os.remove(file_path)
     
-        print("download file %d" %(index+1))
-        return 'download done'
+    print("download file %d" %(index+1))
+    return 'download done'
 
 @rq.job
 def excep():

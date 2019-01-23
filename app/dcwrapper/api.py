@@ -5,8 +5,9 @@ import json
 import os 
 import zipfile
 from app.models import db, DataSet, Bash
-from app.job import download
-from rq import Connection, Worker
+from app.job import download, run
+from app.bash import bash_helper
+from rq import Connection, Worker, Queue
 
 X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
 X_API_KEY = X_API_KEY.json()['X-Api-Key']
@@ -50,23 +51,15 @@ class DCWrapper(object):
                 self.status = 404
                 return self.status
             
-        #dowload
         resource = resources[0]
+        #print(resource)
         arr = []
         for k, v in resource['dataset_metadata'].items():
             if k.startswith('viz_config_'):
                 arr.append(k)
         arr.sort()
-
+        #print(arr)
         metadata = resource['dataset_metadata'][arr[0]]
-        
-        download_status = self._download(resources, dataset_id)
-        if download_status == 'file_exists':
-            self.status = 301
-        elif download_status == 'done_queue':
-            self.status = 200
-        else:
-            self.status = 500
         
     # "mint-chart", 
     # "mint-map", 
@@ -129,15 +122,20 @@ class DCWrapper(object):
             file_name = file[len(file) - 1]
             command_args['data_file_path'] = '/tmp/' + dataset_id + '/' +  file_name
         
+        
+        
         if self._buildBash(**command_args):
             print('new bash commit')
         else:
             print('bash already exists')
             
-        if self.bash_autorun:
-            bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
-            job = download.queue(resource, dataset_id, 0, bash[0].id, self.bash_autorun, queue='low')
-            
+        download_status = self._download(resources, dataset_id)
+        if download_status == 'file_exists':
+            self.status = 301
+        elif download_status == 'done_queue':
+            self.status = 200
+        else:
+            self.status = 500
 
         return self.status
 
@@ -155,7 +153,7 @@ class DCWrapper(object):
         if isinstance(dataset_ids, str):
             return 'error'
         req = None
-        self.payload = {'dataset_ids__in': dataset_ids, 'limit': 10000}
+        self.payload = {'dataset_ids__in': dataset_ids, 'limit': 20}
         req = requests.post(API_URL + '/find', headers = HEADERS, data = json.dumps(self.payload))
         response = req.json()
         
@@ -188,10 +186,19 @@ class DCWrapper(object):
             return 'file_exists'
         
         os.mkdir(dir_path)
-        index = 0        
+        index = 0
+        job = 0 
         for resource in resource_list:
             job = download.queue(resource, dataset_id, index, queue='low')
             index += 1
+        
+        if len(resource_list) == index:
+            bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
+            command = bash_helper.findcommand_by_id(bash[0].id)
+            bashjob = run.queue(command, queue='low', depends_on=job)
+            bash_helper.add_job_id(bash[0].id,bashjob.id)
+            print('bash run enqueue')
+
         
         print('done download enqueue')
         return 'done_queue'
