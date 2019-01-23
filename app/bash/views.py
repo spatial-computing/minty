@@ -4,8 +4,9 @@ from flask.views import MethodView
 from .bash_helper import *
 from app.job import *
 from rq.job import Job
-import time
 from redis import Redis
+from rq import Connection, exceptions
+import time
 
 
 
@@ -112,10 +113,29 @@ class Run(MethodView):
 
 class Status(MethodView):
 	def post(self):
-		bashid = request.form['bashid']
-		jobid = request.form['jobid']
-		print(jobid)
-		redis = Redis()
-		job = Job.fetch(jobid,connection=redis)
-		return jsonify({"job_status":job.get_status(), "result": job.result, "exe_info": job.exc_info,"result":job.result})
+		if 'type' in request.form and request.form['type'] == 'batch':
+			bash_ids = list(map(int, filter(lambda x: x != '',request.form['bashid'].split(',') ) ))
+			job_ids = request.form['jobid'].split(',')
+			status = []
+			results = []
+			for idx, job_id in enumerate(job_ids):
+				try:
+					job = Job.fetch(job_id, connection=Redis(db=1))
+				except exceptions.NoSuchJobError as e:
+					print(e)
+					status.append('')
+					results.append('')
+				else:
+					status.append(job.get_status())
+					results.append(job.result)
+
+			return jsonify({ "job_status": status, "job_result": results })
+
+
+		else:
+			bashid = request.form['bashid']
+			jobid = request.form['jobid']
+			print(jobid)
+			job = Job.fetch(jobid,connection=Redis(db=1))
+			return jsonify({"job_status":job.get_status(), "result": job.result, "exe_info": job.exc_info,"result":job.result})
 

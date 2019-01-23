@@ -26,7 +26,6 @@ import os.path
 #flask.via.routers.restful  Resource not works.
 from .bash.views import *
 
-
 def create_app(config_name):
     # global user_datastore
     app = Flask(__name__)
@@ -80,6 +79,10 @@ def create_app(config_name):
     rq.init_app(app)
     # app.config.from_object(rq_dashboard.default_settings)
     app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rq")
+    
+
+
+    app.jinja_env.add_extension('jinja2.ext.do')
 
     with app.app_context():
         db.init_app(app)

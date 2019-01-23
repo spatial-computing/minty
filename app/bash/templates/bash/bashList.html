@@ -1,42 +1,57 @@
 {% extends 'layout/base.html' %}
 {% block content %}
+
+<input id="csrf_token_hidden" type="hidden" name="csrf_token" value="{{csrf_token()}}">
 <div class="content-section">
   <div class="outer">
     <div class="middle">
       <div class="inner">
-        <div class="container">
+        
           <table id="dtHorizontalExample" class="table table-striped  table-sm" cellspacing="0" width="100%">
             <thead>
               <tr>
+                <th width="10%">status</th>
                 {% for key in th %}
                   {% if key!="" %}
-                    <th>{{key}}</th>
+                    <th width="60%">{{key}}</th>
                   {% endif %}
-                  <th>run </th>
-                  <th>status</th>
                 {% endfor %}
+                <th width="10%">run </th>
+                <th width="10%">console</th>
+                <th width="10%">edit</th>
               </tr>
             </thead>
             <tbody>
+              {% set bash_rqids = [] %}
+              {% set bash_ids = [] %}
               {% for bash in res %}
                 <tr >
+                  <td class="bash-status">
+
+                  </td>
                   {% for key in th %}
-                    <td onclick="window.location.href = '{{ url_for('bash.view_bash',bash_id=bash['id']) }}';" >{{bash[key]}}</td>
+                    <td >{{bash[key]}}</td>
                     <!-- <td></td> -->
                   {% endfor %}
                   <td>
                     <button class="btn btn-primary run-btn" data-csrf="{{ csrf_token() }}" data-command="{{bash['command']}}" data-bashid="{{bash['id']}}">Run</button>
                   </td>
                   <td>
-                    <button class="btn btn-primary status-btn" data-csrf="{{ csrf_token() }}" data-rqid="{{bash['rqids']}}" data-bashid="{{bash['id']}}" data-toggle="modal" data-target="#exampleModal">get status</button>
+                    <button class="btn btn-primary status-btn" data-csrf="{{ csrf_token() }}" data-rqid="{{ bash['rqids'] }}" data-bashid="{{bash['id']}}" data-toggle="modal" data-target="#exampleModal">get status</button>
+                  </td>
+                  <td>
+                    <a class="btn btn-primary" href='{{ url_for('bash.view_bash',bash_id=bash['id']) }}'>edit</a>
                   </td>
                 </tr>
-                
-              {% endfor %}   
+
+                {% do bash_rqids.append(bash['rqids']) %}
+                {% do bash_ids.append(bash['id']) %}
+              {% endfor %}
+              <input id="bash_rqids" type="hidden" name="rqids" value="{{ bash_rqids|join(',') }}">
+              <input id="bash_ids" type="hidden" name="bashids" value="{{ bash_ids|join(',') }}">
             </tbody>
           </table>
           <button  class="btn btn-primary" onclick="window.location.href = '{{ url_for('bash.add_bash')}}';">addBash</button>
-        </div>
       </div>
     </div>
 
