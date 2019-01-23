@@ -78,7 +78,7 @@ def create_app(config_name):
     csrf.exempt(rq_dashboard.blueprint)
     #config rq
     rq.init_app(app)
-    app.config.from_object(rq_dashboard.default_settings)
+    # app.config.from_object(rq_dashboard.default_settings)
     app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rq")
 
     with app.app_context():
