@@ -94,7 +94,8 @@ class DCWrapper(object):
         
         command_args = {
             "layer_name": metadata['metadata']['title'].strip().replace(' ', '&nbsp;').replace('\t','&nbsp;'),
-            "viz_config": the_first_viz_config
+            "viz_config": the_first_viz_config,
+            "viz_type": metadata['viz_type']
         }
         if metadata['viz_type'] != 'mint-chart':
             command_args.update({
@@ -114,13 +115,13 @@ class DCWrapper(object):
         elif metadata['metadata']['shapefile'] == "Gel-Aliab":
             command_args["with_shape_file"] = "shp/GelAliab.shp"
         
-        command_args["color_map"] = "shp/colortable.txt"
+        command_args["load_colormap"] = "shp/colortable.txt"
         if metadata['metadata']['color-map'] == "Black2White":
-            command_args["color_map"] = "shp/colortable.txt"
+            command_args["load_colormap"] = "shp/colortable.txt"
         elif metadata['metadata']['color-map'] == "BuPu":
-            command_args["color_map"] = "shp/bupu_colormap.txt"
+            command_args["load_colormap"] = "shp/bupu_colormap.txt"
         elif metadata['metadata']['color-map'] == "YlGnBl":
-            command_args["color_map"] = "shp/ylgnbl_colormap.txt"
+            command_args["load_colormap"] = "shp/ylgnbl_colormap.txt"
 
         viz_type = 'tiff'
         if metadata['metadata']['file-type'] == 'netcdf':
@@ -235,20 +236,21 @@ class DCWrapper(object):
             db_session.add(bash)
             db_session.commit()
             return bash
-        return bash_check
-
+        else:
+            bash_helper.update_bash(bash_check.id, db_session=db_session, **kwargs)
+            return bash
     def _after_download(self, rq_connection):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
         bash = self._buildBash(db_session, **self.command_args)
         if self.bash_autorun:
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
-            command = bash_helper.find_command_by_id(bash.id, db_session)
+            command = bash_helper.find_command_by_id(bash.id, db_session=db_session)
+            from app.job import queue_job_with_connection
 
-            rq_run_job.connection = rq_connection
-            bashjob = rq_run_job.queue(command)
+            bash_job = queue_job_with_connection(rq_run_job, rq_connection, command)
             
-            bash_helper.add_job_id_to_bash_db(bash.id, bashjob.id)
+            bash_helper.add_job_id_to_bash_db(bash.id, bash_job.id, db_session=db_session)
             print('bash run enqueue')
 
 """

@@ -11,9 +11,10 @@ from app.job import rq_instance
 
 import ast
 class DeleteBash(MethodView):
-	def get(self, bash_id):
-		deletebash(bash_id)
-		return redirect(url_for('bash.bash_list'))
+
+    def get(self, bash_id):
+        delete_bash(bash_id)
+        return redirect(url_for('bash.bash_list'))
 
 class AddBash(MethodView):
 	def get(self):
@@ -32,23 +33,25 @@ class AddBash(MethodView):
 		boolean.sort()
 		return make_response(render_template('bash/bash.html',txt = txt,boolean = boolean,bash = {}),200,headers)
  
-	def post(self):
-		headers = {'Content-Type': 'text/html'}
-		result = request.form
-		newbash = {}
-		for key in result:
-			if result[key]=='on':
-				newbash[key]=True
-			else:
-				newbash[key]=result[key]
 
-		# add command to new added bash
-		newbash.pop('csrf_token', None)
-		if newbash['command']=='':
-			newbash['command']=combine(newbash)
-		addbash(**newbash)
-	 
-		return redirect(url_for('bash.bash_list'))
+    def post(self):
+        headers = {'Content-Type': 'text/html'}
+        result = request.form
+        newbash = {}
+        for key in result:
+            if result[key]=='on':
+                newbash[key]=True
+            else:
+                newbash[key]=result[key]
+
+        # add command to new added bash
+        newbash.pop('csrf_token', None)
+        if newbash['command']=='':
+            newbash['command']=combine(newbash)
+        add_bash(**newbash)
+     
+        return redirect(url_for('bash.bash_list'))
+
 
 class Bash(MethodView):
 
@@ -74,19 +77,21 @@ class Bash(MethodView):
 	
 
 # infact it is a put method to update the bash
-	def post(self,bash_id):
-		headers = {'Content-Type': 'text/html'}
-		result = request.form
-		newbash = {}
-		for key in result:
-			if result[key]=='on':
-				newbash[key]=True
-			else:
-				newbash[key]=result[key]
-		updatebash(bash_id,**newbash)
-	   
-		return redirect(url_for('bash.bash_list'))
-		#return make_response(render_template('bash/bashres.html',res = newbash),200,headers)
+
+    def post(self,bash_id):
+        headers = {'Content-Type': 'text/html'}
+        result = request.form
+        newbash = {}
+        for key in result:
+            if result[key]=='on':
+                newbash[key]=True
+            else:
+                newbash[key]=result[key]
+        update_bash(bash_id, **newbash)
+       
+        return redirect(url_for('bash.bash_list'))
+        #return make_response(render_template('bash/bashres.html',res = newbash),200,headers)
+
 
 class BashList(MethodView):
 	def get(self):
@@ -126,7 +131,7 @@ class Run(MethodView):
 		bash = findbash_by_id(bashid)
 		bash = vars(bash)
 		if (bash[data_file_path]=='' and os.path.exists(bash[dir])) or (os.path.isfile(bash[data_file_path])):
-			runbash(bashid)
+			run_bash(bashid)
 		else:
 			r = requests.get(url_for('minty.visualize_action',bash_id=bash['md5vector']))
 		return jsonify({"status": "queued"})
@@ -172,3 +177,4 @@ class Status(MethodView):
 				"result": result, 
 				"exc_info": exc_info if exc_info else 'No Log'
 				})
+
