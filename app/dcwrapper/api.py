@@ -94,7 +94,8 @@ class DCWrapper(object):
         
         command_args = {
             "layer_name": metadata['metadata']['title'].strip().replace(' ', '&nbsp;').replace('\t','&nbsp;'),
-            "viz_config": the_first_viz_config
+            "viz_config": the_first_viz_config,
+            "viz_type": metadata['viz_type']
         }
         if metadata['viz_type'] != 'mint-chart':
             command_args.update({
