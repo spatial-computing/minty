@@ -14,25 +14,15 @@ from .assets import create_assets
 from .models import db
 from config import app_config
 
-from .job import rq_instance
 import rq_dashboard
-from rq.job import Job
-from rq.exceptions import NoSuchJobError
-from flask_rq2 import RQ
+
+from .job import rq_instance
 
 # from flask_mongoengine import MongoEngine
 # user_datastore = SQLAlchemyUserDatastore(db)
 
 #flask.via.routers.restful  Resource not works.
-def job_fetch(self, id):
-    job = False, None
-    try:
-        job = True, Job.fetch(id, connection=rq_instance.connection)
-    except NoSuchJobError as e:
-        job = False, str(e)
-    except Exception as e:
-        job = False, str(e)
-    return job
+
 
 def create_app(config_name):
     # global user_datastore
@@ -77,22 +67,23 @@ def create_app(config_name):
     # mongodb.init_app(app)
 
     csrf.exempt(rq_dashboard.blueprint)
-    #config rq
+    
+    db.init_app(app)
+    # config flask_rq2
     rq_instance.init_app(app)
     # app.config.from_object(rq_dashboard.default_settings)
     app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rq")
     
-    RQ.job_fetch = job_fetch
 
     app.jinja_env.add_extension('jinja2.ext.do')
 
-    with app.app_context():
-        db.init_app(app)
-        db.create_all()
+    
+
+        # db.create_all()
         # user_datastore.find_or_create_role(name='admin', description='Administrator')
         # db.session.commit()
         # user_datastore.find_or_create_role(name='end-user', description='End user')
-        db.session.commit()
+        # db.session.commit()
 
     @app.route('/', methods=['GET'])
     @app.route('/home', methods=['GET'])

@@ -5,35 +5,89 @@ import zipfile
 import tarfile
 import requests
 from .models import *
+from rq import get_current_job
+from rq.utils import parse_timeout
 
+from rq.job import Job
+from rq.exceptions import NoSuchJobError
+from redis import Redis
+from rq_scheduler import Scheduler
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
+def job_fetch(self, id):
+    job = False, None
+    try:
+        job = True, Job.fetch(id, connection=rq_instance.connection)
+    except NoSuchJobError as e:
+        job = False, str(e)
+    except Exception as e:
+        job = False, str(e)
+    return job
+
+
+# class method injection
+RQ.job_fetch = job_fetch
+
 rq_instance = RQ()
 
-RESUTL_TTL=-1 # '7d'
+RESUTL_TTL = '7d' # -1 for never expire, clean up result key manually
+
 
 @rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_add_job(x, y, id):
-	print(id)
-	raise Exception("EF")
-	import time
-	time.sleep(10)
-	return x+y
+    print(id)
+    raise Exception("EF")
+    import time
+    time.sleep(10)
+    return x+y
 
 @rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_run_job(command):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
-	# command = pre + command
-	todir = "cd " + "{}".format( MINTCAST_PATH ) + "&&"
-	pre = "./bin/mintcast.sh"
-	command = todir + pre + command
-	out=subprocess.call(command, shell = True)
-	return out
+    # command = pre + command
+    todir = "cd " + "{}".format( MINTCAST_PATH ) + "&&"
+    pre = "./bin/mintcast.sh"
+    command = todir + pre + command
+    out = subprocess.call(command, shell = True)
+    return out
 
 @rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
-def rq_create_bash_job(DcInstance, **command_args):
-	ret = DcInstance._buildBash(**command_args)
+def rq_create_bash_job(dc_instance, **command_args):
+    ret = dc_instance._buildBash(**command_args)
+
+@rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=parse_timeout(RESUTL_TTL))
+def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redis_url):
+    jobs = []
+    try:
+        status = True
+        for jid in job_ids:
+            try:
+                _j = Job.fetch(jid, connection=Redis.from_url(redis_url))
+                jobs.append(_j)
+                print('Checking job', _j.id)
+            except NoSuchJobError as e:
+                status = False
+                break
+            except Exception as e:
+                status = False
+                break
+        print(jobs)
+        if status:
+            for job in jobs:
+                if job.status != 'finished':
+                    print('not finished yet')
+                    return 
+            register_following_job_callback()
+        else:
+            raise Exception('One or more downloads failed')
+    except Exception as e:
+        print(e)
+        print("Canceling scheduler", get_current_job().id)
+        scheduler = Scheduler('high', connection=Redis.from_url(redis_url)) # Get a scheduler for the "foo" queue
+        scheduler.cancel(get_current_job())
+        # get_current_job().cancel()
+        # requests.post('http://127.0.0.1:65522/rq/cancel_scheduler',  data = json.dumps({job_id: get_current_job()}))
 
 @rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_download_job(resource, dataset_id, index, dir_path):
@@ -53,7 +107,7 @@ def rq_download_job(resource, dataset_id, index, dir_path):
 
     response = requests.get(resource['resource_data_url'])
     if response.status_code == 200:
-    	with open(file_path, 'wb') as f:
+        with open(file_path, 'wb') as f:
             f.write(response.content)
 
     if is_zip:
@@ -73,5 +127,5 @@ def rq_download_job(resource, dataset_id, index, dir_path):
 
 @rq_instance.job(func_or_queue='low', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_excep_job():
-	out = subprocess.call("python /Users/xuanyang/Downloads/rai.py", shell = True)
-	return out
+    out = subprocess.call("python /Users/xuanyang/Downloads/rai.py", shell = True)
+    return out
