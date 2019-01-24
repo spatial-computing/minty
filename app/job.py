@@ -2,6 +2,7 @@ from flask_rq2 import RQ
 import subprocess
 import os
 import zipfile
+import tarfile
 import requests
 from .models import *
 
@@ -33,6 +34,7 @@ def run(command):
 def download(resource, dataset_id, index):
     dir_path = '/tmp/' + dataset_id
     is_zip = False
+    is_tar = False
     if resource['resource_metadata'].get('is_zip') is not None:
         if resource['resource_metadata']['is_zip'] == 'true':
             is_zip = True
@@ -40,6 +42,9 @@ def download(resource, dataset_id, index):
     file = resource['resource_data_url'].split('/')
     file_name = file[len(file) - 1]
     file_path = dir_path + '/' + file_name
+
+    if file_name.find('.tar') != -1:
+        is_tar = True
 
     response = requests.get(resource['resource_data_url'])
     if response.status_code == 200:
@@ -50,6 +55,11 @@ def download(resource, dataset_id, index):
         zip_ref = zipfile.ZipFile(file_path, 'r')
         zip_ref.extractall(dir_path)
         zip_ref.close()
+        os.remove(file_path)
+    elif is_tar:
+        tar_ref = tarfile.open(file_path, 'r')
+        tar_ref.extractall(dir_path)
+        tar_ref.close()
         os.remove(file_path)
     
     print("download file %d" %(index+1))

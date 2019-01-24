@@ -52,7 +52,7 @@ class DCWrapper(object):
                 return self.status
             
         resource = resources[0]
-        #print(resource)
+        print(resource)
         arr = []
         for k, v in resource['dataset_metadata'].items():
             if k.startswith('viz_config_'):
@@ -192,7 +192,7 @@ class DCWrapper(object):
             job = download.queue(resource, dataset_id, index, queue='normal')
             index += 1
         
-        if len(resource_list) == index:
+        if len(resource_list) == index and self.bash_autorun:
             bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
             command = bash_helper.findcommand_by_id(bash[0].id)
             bashjob = run.queue(command, queue='low', depends_on=job)
