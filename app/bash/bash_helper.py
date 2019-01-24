@@ -12,7 +12,8 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
 	'_sa_instance_state', 
 	'file_type',
 	'dev_mode_off',
-	'viz_type'
+	'viz_type',
+	'command'
 }
 MINTCAST_PATH_NEEDED_IN_COMMAND = {
 	'with_shape_file',
@@ -106,3 +107,7 @@ def run_bash(bashid):
 	# job = excep.queue()
 	#job = add.queue(1, 2, bashid)
 	add_job_id(bashid, job.id)
+
+def find_one(db_session=db.session):
+	return db_session.query(Bash).first()
+

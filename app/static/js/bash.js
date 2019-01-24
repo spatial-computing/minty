@@ -32,15 +32,18 @@
                 window.location.reload()
             });
         }
-        else {
-            // $.ajax({
-            //     url:'/bash/view/',
-            //     type:'POST',
-            //     dataType: 'json',
-            //     data: bash
-            // }).done(function(json){
-            //     window.location.reload()
-            // });           
+        else {  
+
+            let updata_bash_id = $('#updata_bash_id').val()
+            let url='/bash/view/'+updata_bash_id
+            $.ajax({
+                url:url,
+                type:'POST',
+                dataType: 'json',
+                data: bash
+            }).done(function(json){
+               
+            });           
         }
     });
 
@@ -105,6 +108,7 @@
     $('.setting-form').on('submit',function(event){
         event.preventDefault();
         let setting = $( this ).serialize();
+        console.log(setting)
         $.ajax({
             url: '/bash',
             type: 'POST',

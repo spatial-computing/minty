@@ -12,14 +12,14 @@ from app.job import rq_instance
 import ast
 class DeleteBash(MethodView):
 
-    def get(self, bash_id):
-        delete_bash(bash_id)
-        return redirect(url_for('bash.bash_list'))
+	def get(self, bash_id):
+		delete_bash(bash_id)
+		return redirect(url_for('bash.bash_list'))
 
 class AddBash(MethodView):
 	def get(self):
 		headers = {'Content-Type': 'text/html'}
-		bash = find_all()[0]
+		bash = find_one()
 		bash = vars(bash)
 		txt = []
 		boolean = []
@@ -33,24 +33,23 @@ class AddBash(MethodView):
 		boolean.sort()
 		return make_response(render_template('bash/bash.html',txt = txt,boolean = boolean,bash = {}),200,headers)
  
+	def post(self):
+		headers = {'Content-Type': 'text/html'}
+		result = request.form
+		newbash = {}
+		for key in result:
+			if result[key]=='on':
+				newbash[key]=True
+			else:
+				newbash[key]=result[key]
 
-    def post(self):
-        headers = {'Content-Type': 'text/html'}
-        result = request.form
-        newbash = {}
-        for key in result:
-            if result[key]=='on':
-                newbash[key]=True
-            else:
-                newbash[key]=result[key]
-
-        # add command to new added bash
-        newbash.pop('csrf_token', None)
-        if newbash['command']=='':
-            newbash['command']=combine(newbash)
-        add_bash(**newbash)
-     
-        return redirect(url_for('bash.bash_list'))
+		# add command to new added bash
+		newbash.pop('csrf_token', None)
+		if newbash['command']=='':
+			newbash['command']=combine(newbash)
+		add_bash(**newbash)
+	 
+		return redirect(url_for('bash.bash_list'))
 
 
 class Bash(MethodView):
@@ -78,19 +77,20 @@ class Bash(MethodView):
 
 # infact it is a put method to update the bash
 
-    def post(self,bash_id):
-        headers = {'Content-Type': 'text/html'}
-        result = request.form
-        newbash = {}
-        for key in result:
-            if result[key]=='on':
-                newbash[key]=True
-            else:
-                newbash[key]=result[key]
-        update_bash(bash_id, **newbash)
-       
-        return redirect(url_for('bash.bash_list'))
-        #return make_response(render_template('bash/bashres.html',res = newbash),200,headers)
+	def post(self,bash_id):
+		headers = {'Content-Type': 'text/html'}
+		result = request.form
+		newbash = {}
+		for key in result:
+			if key != 'csrf_token':
+				if result[key]=='on':
+					newbash[key]=True
+				else:
+					newbash[key]=result[key]
+		update_bash(bash_id, **newbash)
+	   
+		return redirect(url_for('bash.bash_list'))
+		#return make_response(render_template('bash/bashres.html',res = newbash),200,headers)
 
 
 class BashList(MethodView):
@@ -121,7 +121,7 @@ class BashList(MethodView):
 				setting[key] = True
 		bash_ids = ast.literal_eval(bash_ids)
 		for bash_id in bash_ids:
-			updatebash(bash_id,**setting)
+			update_bash(bash_id,**setting)
 		return jsonify({"status": "success"})
 
 
@@ -148,7 +148,7 @@ class Status(MethodView):
 				if no_exception:
 					status.append(job.get_status())
 					results.append(job.result)
-					updatebash(bash_ids[idx],status = job.get_status())
+					update_bash(bash_ids[idx],status = job.get_status())
 				else:
 					status.append('')
 					results.append(find_bash_attr(bash_ids[idx],'status'))
