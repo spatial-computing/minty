@@ -189,7 +189,7 @@ class DCWrapper(object):
         index = 0
         job = 0 
         for resource in resource_list:
-            job = download.queue(resource, dataset_id, index, queue='low')
+            job = download.queue(resource, dataset_id, index, queue='normal')
             index += 1
         
         if len(resource_list) == index:
