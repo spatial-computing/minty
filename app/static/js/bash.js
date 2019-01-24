@@ -34,7 +34,7 @@
         }
         else {
             // $.ajax({
-            //     url:'/bash/add',
+            //     url:'/bash/view/',
             //     type:'POST',
             //     dataType: 'json',
             //     data: bash
@@ -67,10 +67,16 @@
         }).done(function(json){
             for (var i = json.job_status.length - 1; i >= 0; i--) {
                 $($(document).find('.bash-status')[i]).html(badge[json.job_status[i]])
+                if(json.job_status[i]==='queued' || json.job_status[i]==='started'){
+                   $($(document).find('.run-btn')[i]).prop('disabled', true);
+                }
+                else {
+                   $($(document).find('.run-btn')[i]).prop('disabled', false); 
+                }
             }
             
         })
-    }, 1000);
+    }, 5000);
 
     $('.status-btn').on('click',function(evnet){
         $.ajax({
@@ -79,7 +85,7 @@
             dataType:'json',
             data:{jobid:$(this).data('rqid'),bashid:$(this).data('bashid'),csrf_token:$(this).data('csrf')},
         }).done(function(json){
-            $('.modal-body').html(json.job_status);
+            $('.modal-body').html(json.exe_info);
             console.log("json.job_status")
         })
     });

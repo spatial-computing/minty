@@ -13,7 +13,7 @@ rq = RQ()
 @rq.job
 def add(x, y, id):
 	print(id)
-
+	raise Exception("EF")
 	import time
 	time.sleep(10)
 	return x+y
@@ -26,8 +26,8 @@ def run(command):
 	todir = "cd " + "{}".format( MINTCAST_PATH ) + "&&"
 	pre = "./bin/mintcast.sh"
 	command = todir + pre + command
-    #print(command)
-	return command
+	out=subprocess.call(command, shell = True)
+	return out
 
 @rq.job(timeout=1800)
 def download(resource, dataset_id, index):
@@ -54,6 +54,7 @@ def download(resource, dataset_id, index):
     
     print("download file %d" %(index+1))
     return 'download done'
+
 
 @rq.job
 def excep():
