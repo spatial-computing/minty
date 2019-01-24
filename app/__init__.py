@@ -17,13 +17,22 @@ from config import app_config
 from .job import rq_instance
 import rq_dashboard
 from rq.job import Job
+from rq.exceptions import NoSuchJobError
 from flask_rq2 import RQ
+
 # from flask_mongoengine import MongoEngine
 # user_datastore = SQLAlchemyUserDatastore(db)
 
 #flask.via.routers.restful  Resource not works.
 def job_fetch(self, id):
-    return Job.fetch(id, connection=rq_instance.connection)
+    job = False, None
+    try:
+        job = True, Job.fetch(id, connection=rq_instance.connection)
+    except NoSuchJobError as e:
+        job = False, str(e)
+    except Exception as e:
+        job = False, str(e)
+    return job
 
 def create_app(config_name):
     # global user_datastore

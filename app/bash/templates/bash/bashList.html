@@ -2,45 +2,67 @@
 {% block content %}
 
 <input id="csrf_token_hidden" type="hidden" name="csrf_token" value="{{csrf_token()}}">
+<div class="default-setting-panel">
+  <h5>Default Value Setting Panel</h5>
+  <form class="setting-form" action="">
+    <div class="custom-control custom-switch">
+      <input type="checkbox" class="custom-control-input" checked id="dev-mode-off">
+      <label class="custom-control-label" for="dev-mode-off">Dev Mode Off</label>
+    </div>
+    <div class="custom-control custom-switch">
+      <input type="checkbox" class="custom-control-input" id="disabled-new-res">
+      <label class="custom-control-label" for="disabled-new-res">Disable new resolution</label>
+    </div>
+    <div class="custom-control custom-switch">
+      <input type="checkbox" class="custom-control-input" id="scp-to-default-server">
+      <label class="custom-control-label" for="scp-to-default-server">Copy to server path</label>
+    </div>
+    <input class="btn btn-outline-primary btn-sm" type="submit" name="Update">
+  </form>
+</div>
+<hr>
+<h5>Mintcast Tasks</h5>
 <div class="content-section">
   <div class="outer">
     <div class="middle">
       <div class="inner">
         
-          <table id="dtHorizontalExample" class="table table-striped  table-sm" cellspacing="0" width="100%">
+          <table id="mintcast-command-list" class="table table-sm" cellspacing="0" width="100%">
             <thead>
               <tr>
-                <th width="10%">status</th>
+                <th width="10%" class="center">Status</th>
                 {% for key in th %}
                   {% if key!="" %}
-                    <th width="60%">{{key}}</th>
+                    <th width="72%">{{key}}</th>
                   {% endif %}
                 {% endfor %}
-                <th width="10%">run </th>
-                <th width="10%">console</th>
-                <th width="10%">edit</th>
+                <th width="6%" class="center">Action</th>
+                <th width="6%" class="center">Logger</th>
+                <th width="6%" class="center">Edit</th>
               </tr>
             </thead>
             <tbody>
               {% set bash_rqids = [] %}
               {% set bash_ids = [] %}
               {% for bash in res %}
-                <tr >
-                  <td class="bash-status">
-
-                  </td>
+                <tr>
+                  <td class="bash-status vcenter"></td>
                   {% for key in th %}
-                    <td >{{bash[key]}}</td>
+                  {% if key == 'command' %}
+                      <td><pre>{{bash[key]}}</pre></td>
+                  {% else %}
+                      <td >{{bash[key]}}</td>
+                  {% endif %}
                     <!-- <td></td> -->
                   {% endfor %}
-                  <td>
-                    <button class="btn btn-primary run-btn" data-csrf="{{ csrf_token() }}" data-command="{{bash['command']}}" data-bashid="{{bash['id']}}">Run</button>
+                  <td class="center">
+                    <button class="btn btn-outline-danger btn-sm run-btn" data-csrf="{{ csrf_token() }}" data-command="{{bash['command']}}" data-bashid="{{bash['id']}}">Run</button>
                   </td>
-                  <td>
-                    <button class="btn btn-primary status-btn" data-csrf="{{ csrf_token() }}" data-rqid="{{ bash['rqids'] }}" data-bashid="{{bash['id']}}" data-toggle="modal" data-target="#exampleModal">get status</button>
+                  <td class="center">
+                    <button class="btn btn-outline-info btn-sm status-btn" data-csrf="{{ csrf_token() }}" data-rqid="{{ bash['rqids'] }}" data-bashid="{{bash['id']}}" data-toggle="modal" data-target="#bash-modal">Log</button>
                   </td>
-                  <td>
-                    <a class="btn btn-primary" href='{{ url_for('bash.view_bash',bash_id=bash['id']) }}'>edit</a>
+                  <td class="center">
+                    <a class="btn btn-outline-primary btn-sm" href='{{ url_for('bash.view_bash',bash_id=bash['id']) }}'>Edit</a>
                   </td>
                 </tr>
 
@@ -56,20 +78,17 @@
     </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+  <div class="modal fade" id="bash-modal" tabindex="-1" role="dialog" aria-labelledby="bash-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Status</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <h5 class="modal-title" id="bash-modal-label">Log</h5>
+          <div class="bash-modal-status"></div>
         </div>
         <div class="modal-body">
           
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
       </div>
     </div>

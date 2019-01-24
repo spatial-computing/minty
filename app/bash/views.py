@@ -4,7 +4,6 @@ from flask.views import MethodView
 from .bash_helper import *
 
 from app.job import rq_instance
-from rq.exceptions import NoSuchJobError
 
 class DeleteBash(MethodView):
     def get(self, bash_id):
@@ -113,18 +112,15 @@ class Status(MethodView):
             status = []
             results = []
             for idx, job_id in enumerate(job_ids):
-                try:
-                    job = rq_instance.job_fetch(job_id)
-                except NoSuchJobError as e:
-                    # print(e)
-                    status.append('')
-                    results.append('')
-                    print(findbashattr(bash_ids[idx],status))
-                else:
+                no_exception, job = rq_instance.job_fetch(job_id)
+                if no_exception:
                     status.append(job.get_status())
                     results.append(job.result)
                     updatebash(bash_ids[idx],status=job.get_status())
-
+                else:
+                    status.append('')
+                    results.append('')
+                    # print(findbashattr(bash_ids[idx],status))
             return jsonify({ "job_status": status, "job_result": results })
         else:
             bashid = request.form['bashid']
@@ -133,16 +129,19 @@ class Status(MethodView):
             status = ''
             result = ''
             exc_info = ''
-            try:
-                job = rq_instance.job_fetch(job_id)
-            except NoSuchJobError as e:
-                print(e)
-                status = '' 
-                result = ''
-                exe_info = ''
-            else:
+
+            no_exception, job = rq_instance.job_fetch(job_id)
+            if no_exception:
                 status = job.get_status()
                 result = job.result
-                exe_info = job.exc_info
+                exc_info = job.exc_info
+            else:
+                status = '' 
+                result = ''
+                exc_info = job
 
-            return jsonify({"job_status": status, "result": result, "exe_info": exc_info})
+            return jsonify({
+                "job_status": status, 
+                "result": result, 
+                "exc_info": exc_info if exc_info else 'No Log'
+                })
