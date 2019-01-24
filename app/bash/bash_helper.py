@@ -65,14 +65,20 @@ def updatebash(id,**kwargs):
 	
 	db.session.commit()
 
+def findbashattr(id,attr):
+	bash = Bash.query.filter_by(id = id).first()
+
+	return bash._asdict()
+
+
 def add_job_id(bashid,jobid):
 	bash = Bash.query.filter_by(id = bashid).first()
 	setattr(bash,"rqids",jobid)
 	db.session.commit()
 
 def runbash(bashid):
-	# command = findcommand_by_id(bashid)
-	# job = run.queue(command)
+	command = findcommand_by_id(bashid)
+	job = run.queue(command)
 	# job = excep.queue()
-	job = add.queue(1,2,bashid)
+	#job = add.queue(1,2,bashid)
 	add_job_id(bashid,job.id)

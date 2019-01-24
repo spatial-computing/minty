@@ -125,9 +125,11 @@ class Status(MethodView):
 					print(e)
 					status.append('')
 					results.append('')
+					print(findbashattr(bash_ids[idx],status))
 				else:
 					status.append(job.get_status())
 					results.append(job.result)
+					updatebash(bash_ids[idx],status=job.get_status())
 
 			return jsonify({ "job_status": status, "job_result": results })
 
