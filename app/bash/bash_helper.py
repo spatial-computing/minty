@@ -11,30 +11,40 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
 	'status', 
 	'rqids', 
 	'_sa_instance_state', 
-	'file-type',
-	'dev-mode-off'
+	'file_type',
+	'dev_mode_off',
+	'viz_type'
 }
 MINTCAST_PATH_NEEDED_IN_COMMAND = {
 	'with_shape_file',
 	'load_colormap'
 }
+VIZ_TYPE_OF_TIMESERISE = {
+	'mint-map-time-series'
+}
+VIZ_TYPE_OF_SINGLE_FILE = {
+	'mint-map',
+	'mint-chart'
+}
 COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
-COLUMN_NAME_FILE_TYPE = 'file_type'
-def combine(args):
+COLUMN_NAME_VIZ_TYPE = 'viz_type'
+
+
+def combine( args ):
 	res = " "
 	for key in args:
-		if( key not in IGNORED_KEY_AS_PARAMETER_IN_COMMAND and args[key] not in ('', None, False)):
+		if( key not in IGNORED_KEY_AS_PARAMETER_IN_COMMAND and args[key] not in {'', None, False}):
 			param = key.replace("_", "-")
 
 			if( args[key] == True ):
 				res += "--%s " % (param)
 			else:
 				if key in MINTCAST_PATH_NEEDED_IN_COMMAND:
-					res += "--%s '%s%s' " % (param, MINTCAST_PATH.rstrip('/') + '/', args[key])
+					res += "--%s '%s%s' " % (param, MINTCAST_PATH.strip().rstrip('/') + '/', args[key])
 				else:
 					res += "--%s '%s' " % (param, args[key])
-	if args[DATA_FILE_PATH_COLUMN_NAME]:
-		pass
+	if args[COLUMN_NAME_VIZ_TYPE] in VIZ_TYPE_OF_TIMESERISE:
+		res += args[DATA_FILE_PATH_COLUMN_NAME] or '/tmp/tmp.tiff'
 	return res
 
 #find one by id 
@@ -67,7 +77,7 @@ def add_bash(db_session=db.session, **bash):
 	#print (bash)
 
 #delete this bash
-def delete_bash(id, db_session=db_session):
+def delete_bash(id, db_session=db.session):
     bash = db_session.query(Bash).filter_by(id = id).first()
     db_session.delete(bash)
     db_session.commit()
