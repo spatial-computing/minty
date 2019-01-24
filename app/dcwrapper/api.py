@@ -60,8 +60,8 @@ class DCWrapper(object):
         std = json.dumps(response['dataset']['standard_variables'])
         #print(std)
         dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
-        check = db.session.query(DataSet).filter_by(id=response['dataset']['id']).all()
-        if len(check) == 0:
+        check = db.session.query(DataSet).filter_by(id=response['dataset']['id']).first()
+        if not check:
             db.session.add(dataset)
             db.session.commit()
 
@@ -228,22 +228,27 @@ class DCWrapper(object):
         print('done download enqueue')
         return 'done_queue'
 
-    def _buildBash(self, **kwargs):
+    def _buildBash(self, db_session, **kwargs):
         bash = Bash(**kwargs)
-        bashcheck = db.session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).all()
-        if len(bashcheck) == 0:
-            bash = Bash(**kwargs)
-            db.session.add(bash)
-            db.session.commit()
-            return True
-        return False
-    def _after_download(self):
-        ret = self._buildBash(**self.command_args)
+        bash_check = db_session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).first()
+        if not bash_check:
+            db_session.add(bash)
+            db_session.commit()
+            return bash
+        return bash_check
+
+    def _after_download(self, rq_connection):
+        from app.models import get_db_session_instance
+        db_session = get_db_session_instance()
+        bash = self._buildBash(db_session, **self.command_args)
         if self.bash_autorun:
-            bash = db.session.query(Bash).filter_by(md5vector=dataset_id).first()
-            command = bash_helper.findcommand_by_id(bash.id)
+            bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
+            command = bash_helper.find_command_by_id(bash.id, db_session)
+
+            rq_run_job.connection = rq_connection
             bashjob = rq_run_job.queue(command)
-            bash_helper.add_job_id(bash.id, bashjob.id)
+            
+            bash_helper.add_job_id_to_bash_db(bash.id, bashjob.id)
             print('bash run enqueue')
 
 """

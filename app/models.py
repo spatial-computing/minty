@@ -5,6 +5,16 @@ from sqlalchemy.ext.hybrid import hybrid_property , hybrid_method
 
 db = SQLAlchemy()
 
+def get_db_session_instance():
+    from database import PostgresConfig
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    engine = create_engine(PostgresConfig.POSTGRES_CONNECTION).connect()
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    return session
+
 class Original(db.Model):
     __tablename__='original'
 

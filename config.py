@@ -92,7 +92,7 @@ class DevelopmentConfig(object):
 
 class TestingConfig(DevelopmentConfig):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(os.path.join(BASE_DIR, 'testing.db'))
+    # SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(os.path.join(BASE_DIR, 'testing.db'))
 
 app_config = {
     'development': DevelopmentConfig,

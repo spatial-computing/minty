@@ -67,8 +67,8 @@ def create_app(config_name):
     # mongodb.init_app(app)
 
     csrf.exempt(rq_dashboard.blueprint)
-    
-    db.init_app(app)
+    with app.app_context():
+        db.init_app(app)
     # config flask_rq2
     rq_instance.init_app(app)
     # app.config.from_object(rq_dashboard.default_settings)

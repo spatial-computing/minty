@@ -25,7 +25,6 @@ def job_fetch(self, id):
         job = False, str(e)
     return job
 
-
 # class method injection
 RQ.job_fetch = job_fetch
 
@@ -59,30 +58,34 @@ def rq_create_bash_job(dc_instance, **command_args):
 @rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=parse_timeout(RESUTL_TTL))
 def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redis_url):
     jobs = []
+    status = True
+    rq_connection = Redis.from_url(redis_url)
     try:
-        status = True
         for jid in job_ids:
-            try:
-                _j = Job.fetch(jid, connection=Redis.from_url(redis_url))
+                _j = Job.fetch(jid, connection=rq_connection)
                 jobs.append(_j)
                 print('Checking job', _j.id)
-            except NoSuchJobError as e:
-                status = False
-                break
-            except Exception as e:
-                status = False
-                break
-        print(jobs)
+    except NoSuchJobError as e:
+        status = False
+    except Exception as e:
+        status = False
+
+    print(jobs)
+    try:
         if status:
             for job in jobs:
                 if job.status != 'finished':
                     print('not finished yet')
                     return 
-            register_following_job_callback()
+
+            register_following_job_callback(rq_connection)
+
         else:
             raise Exception('One or more downloads failed')
     except Exception as e:
         print(e)
+        import traceback
+        traceback.print_tb(e.__traceback__)
         print("Canceling scheduler", get_current_job().id)
         scheduler = Scheduler('high', connection=Redis.from_url(redis_url)) # Get a scheduler for the "foo" queue
         scheduler.cancel(get_current_job())

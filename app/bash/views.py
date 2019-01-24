@@ -13,24 +13,24 @@ class DeleteBash(MethodView):
 class AddBash(MethodView):
     def get(self):
         headers = {'Content-Type': 'text/html'}
-        bash=find_all()[0]
-        bash=vars(bash)
-        txt=[]
-        boolean=[]
+        bash = find_all()[0]
+        bash = vars(bash)
+        txt = []
+        boolean = []
         for key in bash:
-            if(key!="_sa_instance_state" and key!='id'):
+            if(key != "_sa_instance_state" and key != 'id'):
                 if type(bash[key]) == type(True):
                     boolean.append(key)
                 else:
                     txt.append(key)
         txt.sort()
         boolean.sort()
-        return make_response(render_template('bash/bash.html',txt=txt,boolean=boolean,bash={}),200,headers)
+        return make_response(render_template('bash/bash.html',txt = txt,boolean = boolean,bash = {}),200,headers)
  
     def post(self):
         headers = {'Content-Type': 'text/html'}
         result = request.form
-        newbash={}
+        newbash = {}
         for key in result:
             if result[key]=='on':
                 newbash[key]=True
@@ -47,24 +47,24 @@ class AddBash(MethodView):
 
 class Bash(MethodView):
 
-    def get(self,bash_id=None):
+    def get(self,bash_id = None):
         headers = {'Content-Type': 'text/html'}
         if bash_id is None:
             return "none"
         else:
-            bash=findbash_by_id(bash_id)
-            bash=vars(bash)
-            txt=[]
-            boolean=[]
+            bash = find_bash_by_id(bash_id)
+            bash = vars(bash)
+            txt = []
+            boolean = []
             for key in bash:
-                if(key!="_sa_instance_state" and key!='id'):
+                if(key != "_sa_instance_state" and key != 'id'):
                     if type(bash[key]) == type(True):
                         boolean.append(key)
                     else:
                         txt.append(key)
             txt.sort()
             boolean.sort()
-            return make_response(render_template('bash/bash.html',txt=txt,boolean=boolean,bash=bash),200,headers)
+            return make_response(render_template('bash/bash.html',txt = txt,boolean = boolean,bash = bash),200,headers)
 
     
 
@@ -72,7 +72,7 @@ class Bash(MethodView):
     def post(self,bash_id):
         headers = {'Content-Type': 'text/html'}
         result = request.form
-        newbash={}
+        newbash = {}
         for key in result:
             if result[key]=='on':
                 newbash[key]=True
@@ -81,22 +81,22 @@ class Bash(MethodView):
         updatebash(bash_id,**newbash)
        
         return redirect(url_for('bash.bash_list'))
-        #return make_response(render_template('bash/bashres.html',res=newbash),200,headers)
+        #return make_response(render_template('bash/bashres.html',res = newbash),200,headers)
 
 class BashList(MethodView):
     def get(self):
-        bashes=find_all()
-        res=[]
+        bashes = find_all()
+        res = []
         for bash in bashes:
             res.append(vars(bash))
-        th=[]
+        th = []
         # for key in vars(bashes[0]):
-        #     if(key!="_sa_instance_state"):
+        #     if(key != "_sa_instance_state"):
         #         th.append(key)
         th.append("command")
         th.sort()
         headers = {'Content-Type': 'text/html'}
-        return make_response(render_template('bash/bashList.html',th=th,res=res),200,headers)
+        return make_response(render_template('bash/bashList.html',th = th,res = res),200,headers)
 
 class Run(MethodView):
     def post(self):
@@ -107,7 +107,7 @@ class Run(MethodView):
 class Status(MethodView):
     def post(self):
         if 'type' in request.form and request.form['type'] == 'batch':
-            bash_ids = list(map(int, filter(lambda x: x != '',request.form['bashid'].split(',') ) ))
+            bash_ids = list(map(int, filter(lambda x: x  !=  '',request.form['bashid'].split(',') ) ))
             job_ids = request.form['jobid'].split(',')
             status = []
             results = []
@@ -116,7 +116,7 @@ class Status(MethodView):
                 if no_exception:
                     status.append(job.get_status())
                     results.append(job.result)
-                    updatebash(bash_ids[idx],status=job.get_status())
+                    updatebash(bash_ids[idx],status = job.get_status())
                 else:
                     status.append('')
                     results.append('')
