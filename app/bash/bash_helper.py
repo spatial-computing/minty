@@ -1,5 +1,4 @@
-# import sys
-# sys.path.append("..")
+
 import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
@@ -13,7 +12,8 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
 	'_sa_instance_state', 
 	'file_type',
 	'dev_mode_off',
-	'viz_type'
+	'viz_type',
+	'command'
 }
 MINTCAST_PATH_NEEDED_IN_COMMAND = {
 	'with_shape_file',
@@ -52,8 +52,8 @@ def find_command_by_id(id, db_session=db.session):
 	bash = db_session.query(Bash).filter_by(id = id).first()
 	if bash is None:
 		return "no bash"
-	if bash.command != '':
-		return bash.command
+	# if bash.command != '':
+	# 	return bash.command
 	return combine(vars(bash))
 
 def find_bash_by_id(id):
@@ -91,10 +91,11 @@ def update_bash(id, db_session=db.session, **kwargs):
 		setattr(bash, key, kwargs[key])
 	db_session.commit()
 
-def find_bash_attr(id, attr):
-	bash = Bash.query.filter_by(id = id).first()
-
-	return bash._asdict()
+def find_bash_attr(id, attr,db_session=db.session):
+	bash = db_session.query(Bash).filter_by(id = id).first()
+	bash = vars(bash)
+	value = bash[attr] 
+	return value
 
 
 def add_job_id_to_bash_db(bashid, jobid, db_session=db.session):
@@ -108,3 +109,7 @@ def run_bash(bashid):
 	# job = excep.queue()
 	#job = add.queue(1, 2, bashid)
 	add_job_id(bashid, job.id)
+
+def find_one(db_session=db.session):
+	return db_session.query(Bash).first()
+

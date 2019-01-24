@@ -6,8 +6,7 @@
     
 
     $('.run-btn').on('click',function (event) {
-        event.preventDefault();
-        console.log('sss');    
+        event.preventDefault();   
         let command = $(this).data('command');
         $.ajax({
             url: '/bash/run',
@@ -22,6 +21,7 @@
     $('.bashform').on('submit', function (event){
         event.preventDefault();
         let bash=$( this ).serialize();
+        console.log(bash)
         if ($('.submit').data('action')=='add'){
             $.ajax({
                 url:'/bash/add',
@@ -32,15 +32,18 @@
                 window.location.reload()
             });
         }
-        else {
-            // $.ajax({
-            //     url:'/bash/view/',
-            //     type:'POST',
-            //     dataType: 'json',
-            //     data: bash
-            // }).done(function(json){
-            //     window.location.reload()
-            // });           
+        else {  
+
+            let updata_bash_id = $('#updata_bash_id').val()
+            let url='/bash/view/'+updata_bash_id
+            $.ajax({
+                url:url,
+                type:'POST',
+                dataType: 'json',
+                data: bash
+            }).done(function(json){
+               
+            });           
         }
     });
 
@@ -100,5 +103,22 @@
             // console.log("json.job_status")
         })
     });
+
+
+    $('.setting-form').on('submit',function(event){
+        event.preventDefault();
+        let setting = $( this ).serialize();
+        console.log(setting)
+        $.ajax({
+            url: '/bash',
+            type: 'POST',
+            dataType: 'json',
+            data: setting
+        }).done(function (json) {
+            window.location.reload();
+        });       
+
+
+    })
 
 }());

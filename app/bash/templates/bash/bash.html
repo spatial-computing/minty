@@ -22,6 +22,7 @@
           {% endfor %}
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           {% if 'id' in bash %}
+          <input type="hidden" value="{{bash['id']}}" id="updata_bash_id">
           <button  type = "submit" class="btn btn-primary submit" data-action="update">update</button>
           {% else %}
            <button  type = "submit" class="btn btn-primary submit" data-action="add" data-bashid="{{bash['id']}}">addbash</button>

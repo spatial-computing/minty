@@ -6,18 +6,20 @@
   <h5>Default Value Setting Panel</h5>
   <form class="setting-form" action="">
     <div class="custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" checked id="dev-mode-off">
+      <input type="checkbox" class="custom-control-input" checked id="dev-mode-off" name="dev_mode_off">
       <label class="custom-control-label" for="dev-mode-off">Dev Mode Off</label>
     </div>
     <div class="custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="disabled-new-res">
+      <input type="checkbox" class="custom-control-input" id="disabled-new-res" name="disable_new_res">
       <label class="custom-control-label" for="disabled-new-res">Disable new resolution</label>
     </div>
     <div class="custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="scp-to-default-server">
+      <input type="checkbox" class="custom-control-input" id="scp-to-default-server" name="scp_to_default_server">
       <label class="custom-control-label" for="scp-to-default-server">Copy to server path</label>
     </div>
-    <input class="btn btn-outline-primary btn-sm" type="submit" name="Update">
+    <input class="btn btn-outline-primary btn-sm" type="submit" name="update" >
+    <input id="csrf_token_hidden" type="hidden" name="csrf_token" value="{{csrf_token()}}">
+    <input type="hidden" name="bash_ids" value="{{ids}}">
   </form>
 </div>
 <hr>
