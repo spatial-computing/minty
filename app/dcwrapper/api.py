@@ -5,7 +5,7 @@ import json
 import os 
 import zipfile
 from app.models import db, DataSet, Bash
-from app.job import download, run
+from app.job import rq_download_job, rq_run_job
 from app.bash import bash_helper
 from rq import Connection, Worker, Queue
 
@@ -65,7 +65,7 @@ class DCWrapper(object):
         if resources == 'error':
             self.status = 404
             return self.status
-            
+
         arr = []
         for k, v in dataset['dataset_metadata'].items():
             if k.startswith('viz_config_'):

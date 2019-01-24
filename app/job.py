@@ -11,16 +11,18 @@ MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
 rq = RQ()
 
-@rq.job(func_or_queue='high', timeout='30m', result_ttl=-1)
-def add(x, y, id):
+RESUTL_TTL=-1 # '7d'
+
+@rq.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
+def rq_add_job(x, y, id):
 	print(id)
 	raise Exception("EF")
 	import time
 	time.sleep(10)
 	return x+y
 
-@rq.job(func_or_queue='high', timeout='30m', result_ttl=-1)
-def run(command):
+@rq.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
+def rq_run_job(command):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
 	# command = pre + command
 	todir = "cd " + "{}".format( MINTCAST_PATH ) + "&&"
@@ -29,8 +31,8 @@ def run(command):
 	out=subprocess.call(command, shell = True)
 	return out
 
-@rq.job(func_or_queue='normal', timeout='30m', result_ttl=-1)
-def download(resource, dataset_id, index):
+@rq.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
+def rq_download_job(resource, dataset_id, index):
     dir_path = '/tmp/' + dataset_id
     is_zip = False
     is_tar = False
@@ -65,7 +67,7 @@ def download(resource, dataset_id, index):
     return 'download done'
 
 
-@rq.job(func_or_queue='low', timeout='30m', result_ttl=-1)
-def excep():
+@rq.job(func_or_queue='low', timeout='30m', result_ttl=RESUTL_TTL)
+def rq_excep_job():
 	out = subprocess.call("python /Users/xuanyang/Downloads/rai.py", shell = True)
 	return out
