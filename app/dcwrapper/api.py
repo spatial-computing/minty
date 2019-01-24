@@ -63,20 +63,9 @@ class DCWrapper(object):
 
         resources = self.findResourcesById(dataset_id)
         if resources == 'error':
-<<<<<<< HEAD
             self.status = 404
             return self.status
-        
-        #print(resource)
-=======
-            resources = self.findDatasets([dataset_id])
-            if resources == 'error':
-                self.status = 404
-                return self.status
             
-        resource = resources[0]
-        print(resource)
->>>>>>> 1a5120d47722fbc3c03953d6f3b0da9822550d25
         arr = []
         for k, v in dataset['dataset_metadata'].items():
             if k.startswith('viz_config_'):
