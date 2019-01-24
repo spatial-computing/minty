@@ -66,8 +66,9 @@ def updatebash(id,**kwargs):
 
 def findbashattr(id,attr):
 	bash = Bash.query.filter_by(id = id).first()
-
-	return bash._asdict()[attr]
+	bash = vars(bash)
+	value = bash[attr] 
+	return value
 
 
 def add_job_id(bashid,jobid):

@@ -3,12 +3,13 @@ from flask.views import MethodView
 
 from .bash_helper import *
 from app.job import *
-
-from app.job import rq
-from rq.job import Job
 from redis import Redis
+import requests
+import os
+
+
+from rq.job import Job
 from rq import Connection, exceptions
-import time
 
 import flask_rq2
 
@@ -109,7 +110,12 @@ class BashList(MethodView):
 class Run(MethodView):
 	def post(self):
 		bashid = request.form["bashid"]
-		runbash(bashid)
+		bash = findbash_by_id(bashid)
+		bash = vars(bash)
+		if (bash[data_file_path]=='' and os.path.exists(bash[dir])) or (os.path.isfile(bash[data_file_path])):
+			runbash(bashid)
+		else:
+			r = requests.get(url_for('minty.visualize_action',bash_id=bash['md5vector']))
 		return jsonify({"status": "queued"})
 
 class Status(MethodView):
@@ -125,8 +131,8 @@ class Status(MethodView):
 				except exceptions.NoSuchJobError as e:
 					print(e)
 					status.append('')
-					results.append('')
-					print(findbashattr(bash_ids[idx],status))
+					results.append(findbashattr(bash_ids[idx],'status'))
+					
 				else:
 					status.append(job.get_status())
 					results.append(job.result)
