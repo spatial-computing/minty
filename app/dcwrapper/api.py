@@ -230,11 +230,10 @@ class DCWrapper(object):
         return 'done_queue'
 
     def _buildBash(self, db_session, **kwargs):
-        bash = Bash(**kwargs)
-        bash_check = db_session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).first()
+        # bash = Bash(**kwargs)
+        bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector'], viz_config=kwargs['viz_config']).first()
         if not bash_check:
-            db_session.add(bash)
-            db_session.commit()
+            bash_helper.add_bash(db_session=db_session, **kwargs)
             return bash
         else:
             bash_helper.update_bash(bash_check.id, db_session=db_session, **kwargs)

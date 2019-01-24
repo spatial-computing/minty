@@ -71,6 +71,7 @@ def find_all():
 
 # argument is a dic
 def add_bash(db_session=db.session, **bash):
+	bash['command'] = combine(bash)
 	newbash = Bash(**bash)
 	db_session.add(newbash)
 	db_session.commit()
@@ -84,6 +85,7 @@ def delete_bash(id, db_session=db.session):
 
 #update bash
 def update_bash(id, db_session=db.session, **kwargs):
+	bash['command'] = combine(bash)
 	bash = db_session.query(Bash).filter_by(id = id).first()
 	for key in kwargs:
 		setattr(bash, key, kwargs[key])
