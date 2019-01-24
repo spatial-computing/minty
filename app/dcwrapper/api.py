@@ -22,7 +22,7 @@ RQ_SCHEDULER_REPEAT_TIMES = parse_timeout('1d') / 60  # Repeat this number of ti
 RQ_SCHEDULER_INTERVAL = 5
 
 class DCWrapper(object):
-    def __init__(self, bash_autorun=True, download_dist='/tmp/mint_datasets'):
+    def __init__(self, bash_autorun=False, download_dist='/tmp/mint_datasets'):
         self.bash_autorun = bash_autorun
         X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
         X_API_KEY = X_API_KEY.json()
@@ -144,13 +144,12 @@ class DCWrapper(object):
                 "start_time": metadata['metadata']['start-time'],
                 "end_time": metadata['metadata']['end-time'],
                 "datatime_format": metadata['metadata']['datatime-format'],
-                "dir": download_dist + dataset_id,
+                "dir": self.download_dist + '/' + dataset_id,
             })
-        # else:
-            # resource = resources[0]
-            # file = resource['resource_data_url'].split('/')
-            # file_name = file[len(file) - 1]
-            # command_args['data_file_path'] = '/tmp/' + dataset_id + '/' +  file_name
+        else:
+            if len(resources) == 1:
+                command_args['data_file_path'] = 'single file tag'
+        #print(command_args)
         self.command_args = command_args
 
         download_status = self._download(resources, dataset_id, **command_args)
@@ -207,7 +206,7 @@ class DCWrapper(object):
     def _download(self, resource_list, dataset_id, **commmand_args):
         #print(len(resource_list))
         #print(os.getcwd())
-        dir_path = self.download_dist + dataset_id
+        dir_path = self.download_dist + '/' + dataset_id
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         jobs = []
@@ -231,6 +230,12 @@ class DCWrapper(object):
     def _buildBash(self, db_session, **kwargs):
         bash = Bash(**kwargs)
         bash_check = db_session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).first()
+        if bash.data_file_path == 'single file tag':
+            single_file_dir = self.download_dist + '/' + bash.md5vector
+            root, dirs, files = os.walk(single_file_dir).__next__()
+            if len(files) == 1:
+                #print('only 1 file name: %s' % files[0])
+                bash.data_file_path = single_file_dir + '/' + files[0]
         if not bash_check:
             db_session.add(bash)
             db_session.commit()
