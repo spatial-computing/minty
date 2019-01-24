@@ -11,7 +11,7 @@ rq = RQ()
 @rq.job
 def add(x, y, id):
 	print(id)
-
+	raise Exception("EF")
 	import time
 	time.sleep(10)
 	return x+y
@@ -24,6 +24,7 @@ def run(command):
 	todir = "cd " + "{}".format( MINTCAST_PATH ) + "&&"
 	pre = "./bin/mintcast.sh"
 	command = todir + pre + command
+	out=subprocess.call(command, shell = True)
 	return out
 
 @rq.job
