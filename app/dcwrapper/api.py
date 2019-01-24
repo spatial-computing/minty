@@ -63,10 +63,20 @@ class DCWrapper(object):
 
         resources = self.findResourcesById(dataset_id)
         if resources == 'error':
+<<<<<<< HEAD
             self.status = 404
             return self.status
         
         #print(resource)
+=======
+            resources = self.findDatasets([dataset_id])
+            if resources == 'error':
+                self.status = 404
+                return self.status
+            
+        resource = resources[0]
+        print(resource)
+>>>>>>> 1a5120d47722fbc3c03953d6f3b0da9822550d25
         arr = []
         for k, v in dataset['dataset_metadata'].items():
             if k.startswith('viz_config_'):
@@ -218,7 +228,7 @@ class DCWrapper(object):
             job = download.queue(resource, dataset_id, index, queue='normal')
             index += 1
         
-        if len(resource_list) == index:
+        if len(resource_list) == index and self.bash_autorun:
             bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
             command = bash_helper.findcommand_by_id(bash[0].id)
             bashjob = run.queue(command, queue='low', depends_on=job)
