@@ -142,7 +142,7 @@ class Bash(db.Model):
 
     chart_type = db.Column(db.String(255), server_default='')
     rqids = db.Column(db.TEXT, server_default='')
-    color_map = db.Column(db.String(255), server_default='')
+    load_colormap = db.Column(db.String(255), server_default='')
     file_type = db.Column(db.String(255), server_default='')
     directory_structure = db.Column(db.String(255), server_default='')
     netcdf_subdataset = db.Column(db.String(255), server_default='')
