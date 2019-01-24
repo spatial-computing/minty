@@ -3,6 +3,8 @@ from flask.views import MethodView
 
 from .bash_helper import *
 from app.job import *
+
+from app.job import rq
 from rq.job import Job
 from redis import Redis
 from rq import Connection, exceptions

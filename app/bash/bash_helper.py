@@ -1,5 +1,4 @@
-# import sys
-# sys.path.append("..")
+
 import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
@@ -68,7 +67,7 @@ def updatebash(id,**kwargs):
 def findbashattr(id,attr):
 	bash = Bash.query.filter_by(id = id).first()
 
-	return bash._asdict()
+	return bash._asdict()[attr]
 
 
 def add_job_id(bashid,jobid):
