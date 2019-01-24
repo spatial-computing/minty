@@ -5,9 +5,9 @@ import zipfile
 import tarfile
 import requests
 from .models import *
+
 from rq import get_current_job
 from rq.utils import parse_timeout
-
 from rq.job import Job
 from rq.exceptions import NoSuchJobError
 from redis import Redis
@@ -31,6 +31,33 @@ RQ.job_fetch = job_fetch
 rq_instance = RQ()
 
 RESUTL_TTL = '7d' # -1 for never expire, clean up result key manually
+
+
+def queue_job_with_connection(job, connection, *args, **kwargs):
+    if not connection:
+        return job
+
+    from rq import Queue
+    rq_queue = Queue(
+        name=job.helper.queue_name,
+        connection=connection,
+        is_async=True
+        # job_class='flask_rq2.job.FlaskJob'
+    )
+    
+    job = rq_queue.enqueue(
+        job.helper.wrapped,
+        args=args,
+        timeout=job.helper.timeout,
+        result_ttl=job.helper.result_ttl,
+        ttl=job.helper.ttl,
+        depends_on=job.helper._depends_on,
+        at_front=job.helper._at_front,
+        meta=job.helper._meta,
+        description=job.helper._description
+    )
+    
+    return job
 
 
 @rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
@@ -62,9 +89,9 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
     rq_connection = Redis.from_url(redis_url)
     try:
         for jid in job_ids:
-                _j = Job.fetch(jid, connection=rq_connection)
-                jobs.append(_j)
-                print('Checking job', _j.id)
+            _j = Job.fetch(jid, connection=rq_connection)
+            jobs.append(_j)
+            print('Checking job', _j.id)
     except NoSuchJobError as e:
         status = False
     except Exception as e:
@@ -79,7 +106,8 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
                     return 
 
             register_following_job_callback(rq_connection)
-
+            scheduler = Scheduler('high', connection=rq_connection) # Get a scheduler for the "foo" queue
+            scheduler.cancel(get_current_job())
         else:
             raise Exception('One or more downloads failed')
     except Exception as e:
@@ -87,7 +115,7 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
         import traceback
         traceback.print_tb(e.__traceback__)
         print("Canceling scheduler", get_current_job().id)
-        scheduler = Scheduler('high', connection=Redis.from_url(redis_url)) # Get a scheduler for the "foo" queue
+        scheduler = Scheduler('high', connection=rq_connection) # Get a scheduler for the "foo" queue
         scheduler.cancel(get_current_job())
         # get_current_job().cancel()
         # requests.post('http://127.0.0.1:65522/rq/cancel_scheduler',  data = json.dumps({job_id: get_current_job()}))

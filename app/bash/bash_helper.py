@@ -5,19 +5,46 @@ MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
 from app.models import Bash, db
 from app.job import rq_run_job, rq_excep_job, rq_add_job
+IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
+	'id', 
+	'viz_config', 
+	'status', 
+	'rqids', 
+	'_sa_instance_state', 
+	'file_type',
+	'dev_mode_off',
+	'viz_type'
+}
+MINTCAST_PATH_NEEDED_IN_COMMAND = {
+	'with_shape_file',
+	'load_colormap'
+}
+VIZ_TYPE_OF_TIMESERISE = {
+	'mint-map-time-series'
+}
+VIZ_TYPE_OF_SINGLE_FILE = {
+	'mint-map',
+	'mint-chart'
+}
+COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
+COLUMN_NAME_VIZ_TYPE = 'viz_type'
 
-def combine(args):
-	res=" "
+
+def combine( args ):
+	res = " "
 	for key in args:
-		if(args[key]!='' and args[key]!=None and args[key]!=False and key!="id" and key!="_sa_instance_state" and key!="rqids" and key!="status"):
+		if( key not in IGNORED_KEY_AS_PARAMETER_IN_COMMAND and args[key] not in {'', None, False}):
 			param = key.replace("_", "-")
-			if(args[key]==True):
-				res+="--"+param+" "
+
+			if( args[key] == True ):
+				res += "--%s " % (param)
 			else:
-				if key=="with_shape_file" or key =="color_map":
-					res+="--"+param+" "+"{} {}".format(MINTCAST_PATH, args[key])+" "
+				if key in MINTCAST_PATH_NEEDED_IN_COMMAND:
+					res += "--%s '%s%s' " % (param, MINTCAST_PATH.strip().rstrip('/') + '/', args[key])
 				else:
-					res+="--"+param+" "+"{}".format(args[key])+" "
+					res += "--%s '%s' " % (param, args[key])
+	if args[COLUMN_NAME_VIZ_TYPE] in VIZ_TYPE_OF_TIMESERISE:
+		res += args[DATA_FILE_PATH_COLUMN_NAME] or '/tmp/tmp.tiff'
 	return res
 
 #find one by id 
@@ -43,25 +70,24 @@ def find_all():
 	return bashes
 
 # argument is a dic
-def addbash(**bash):
+def add_bash(db_session=db.session, **bash):
 	newbash = Bash(**bash)
-	db.session.add(newbash)
-	db.session.commit()
+	db_session.add(newbash)
+	db_session.commit()
 	#print (bash)
 
 #delete this bash
-def deletebash(id):
-    bash = Bash.query.filter_by(id = id).first()
-    db.session.delete(bash)
-    db.session.commit()
+def delete_bash(id, db_session=db.session):
+    bash = db_session.query(Bash).filter_by(id = id).first()
+    db_session.delete(bash)
+    db_session.commit()
 
 #update bash
-def updatebash(id, **kwargs):
-	bash = Bash.query.filter_by(id = id).first()
+def update_bash(id, db_session=db.session, **kwargs):
+	bash = db_session.query(Bash).filter_by(id = id).first()
 	for key in kwargs:
 		setattr(bash, key, kwargs[key])
-	
-	db.session.commit()
+	db_session.commit()
 
 def find_bash_attr(id, attr):
 	bash = Bash.query.filter_by(id = id).first()
@@ -74,7 +100,7 @@ def add_job_id_to_bash_db(bashid, jobid, db_session=db.session):
 	setattr(bash, "rqids", jobid)
 	db_session.commit()
 
-def runbash(bashid):
+def run_bash(bashid):
 	command = find_command_by_id(bashid)
 	job = add_job_id_to_bash_db.queue(command)
 	# job = excep.queue()

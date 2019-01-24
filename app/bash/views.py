@@ -7,7 +7,7 @@ from app.job import rq_instance
 
 class DeleteBash(MethodView):
     def get(self, bash_id):
-        deletebash(bash_id)
+        delete_bash(bash_id)
         return redirect(url_for('bash.bash_list'))
 
 class AddBash(MethodView):
@@ -41,7 +41,7 @@ class AddBash(MethodView):
         newbash.pop('csrf_token', None)
         if newbash['command']=='':
             newbash['command']=combine(newbash)
-        addbash(**newbash)
+        add_bash(**newbash)
      
         return redirect(url_for('bash.bash_list'))
 
@@ -78,7 +78,7 @@ class Bash(MethodView):
                 newbash[key]=True
             else:
                 newbash[key]=result[key]
-        updatebash(bash_id,**newbash)
+        update_bash(bash_id, **newbash)
        
         return redirect(url_for('bash.bash_list'))
         #return make_response(render_template('bash/bashres.html',res = newbash),200,headers)
@@ -101,7 +101,7 @@ class BashList(MethodView):
 class Run(MethodView):
     def post(self):
         bashid = request.form["bashid"]
-        runbash(bashid)
+        run_bash(bashid)
         return jsonify({"status": "queued"})
 
 class Status(MethodView):
@@ -116,7 +116,7 @@ class Status(MethodView):
                 if no_exception:
                     status.append(job.get_status())
                     results.append(job.result)
-                    updatebash(bash_ids[idx],status = job.get_status())
+                    update_bash(bash_ids[idx],status = job.get_status())
                 else:
                     status.append('')
                     results.append('')
