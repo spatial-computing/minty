@@ -78,7 +78,7 @@ class Bash(MethodView):
                 newbash[key]=True
             else:
                 newbash[key]=result[key]
-        update_bash(bash_id,**newbash)
+        update_bash(bash_id, **newbash)
        
         return redirect(url_for('bash.bash_list'))
         #return make_response(render_template('bash/bashres.html',res = newbash),200,headers)

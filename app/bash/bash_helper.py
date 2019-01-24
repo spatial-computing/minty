@@ -85,9 +85,8 @@ def delete_bash(id, db_session=db.session):
 #update bash
 def update_bash(id, db_session=db.session, **kwargs):
 	bash = db_session.query(Bash).filter_by(id = id).first()
-	# for key in kwargs:
-	# 	setattr(bash, key, kwargs[key])
-	bash.update(kwargs)
+	for key in kwargs:
+		setattr(bash, key, kwargs[key])
 	db_session.commit()
 
 def find_bash_attr(id, attr):

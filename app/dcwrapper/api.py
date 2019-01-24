@@ -115,13 +115,13 @@ class DCWrapper(object):
         elif metadata['metadata']['shapefile'] == "Gel-Aliab":
             command_args["with_shape_file"] = "shp/GelAliab.shp"
         
-        command_args["color_map"] = "shp/colortable.txt"
+        command_args["load_colormap"] = "shp/colortable.txt"
         if metadata['metadata']['color-map'] == "Black2White":
-            command_args["color_map"] = "shp/colortable.txt"
+            command_args["load_colormap"] = "shp/colortable.txt"
         elif metadata['metadata']['color-map'] == "BuPu":
-            command_args["color_map"] = "shp/bupu_colormap.txt"
+            command_args["load_colormap"] = "shp/bupu_colormap.txt"
         elif metadata['metadata']['color-map'] == "YlGnBl":
-            command_args["color_map"] = "shp/ylgnbl_colormap.txt"
+            command_args["load_colormap"] = "shp/ylgnbl_colormap.txt"
 
         viz_type = 'tiff'
         if metadata['metadata']['file-type'] == 'netcdf':
@@ -237,7 +237,7 @@ class DCWrapper(object):
             db_session.commit()
             return bash
         else:
-            bash_helper.update_bash(bash_check.id, kwargs, db_session)
+            bash_helper.update_bash(bash_check.id, db_session=db_session, **kwargs)
             return bash
     def _after_download(self, rq_connection):
         from app.models import get_db_session_instance
