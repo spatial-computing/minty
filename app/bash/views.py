@@ -2,7 +2,6 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 
 from .bash_helper import *
-<<<<<<< HEAD
 from app.job import *
 from redis import Redis
 import requests
