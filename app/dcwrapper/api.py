@@ -9,15 +9,20 @@ from app.job import download, run
 from app.bash import bash_helper
 from rq import Connection, Worker, Queue
 
-X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
-X_API_KEY = X_API_KEY.json()['X-Api-Key']
-HEADERS = {'Content-Type': 'application/json', 'X-Api-Key': X_API_KEY, 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
+HEADERS = {'Content-Type': 'application/json', 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
 API_URL = 'http://api.mint-data-catalog.org/datasets'
 class DCWrapper(object):
     def __init__(self, bash_autorun=True):
         self.payload = {}
         self.status = 0
         self.bash_autorun = bash_autorun
+        X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
+        X_API_KEY = X_API_KEY.json()
+        if 'X-Api-Key' in X_API_KEY:
+            X_API_KEY = X_API_KEY['X-Api-Key']
+        else:
+            X_API_KEY = ""
+        HEADERS['X-Api-Key'] = X_API_KEY
 
     def findByDatasetId(self, dataset_id):
         req = None
@@ -84,6 +89,8 @@ class DCWrapper(object):
             command_args["with_shape_file"] = "shp/ss.shp"
         elif metadata['metadata']['shapefile'] == "Pongo Basin":
             command_args["with_shape_file"] = "shp/WBD.shp"
+        elif metadata['metadata']['shapefile'] == "Gel-Aliab":
+            command_args["with_shape_file"] = "shp/GelAliab.shp"
         
         command_args["color_map"] = "shp/colortable.txt"
         if metadata['metadata']['color-map'] == "Black2White":
