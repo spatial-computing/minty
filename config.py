@@ -55,14 +55,19 @@ class DevelopmentConfig(object):
     APP_FOLDER = "app/"
     
     #redis localhost
-    RQ_REDIS_URL="redis://127.0.0.1:6379/1"  
-    REDIS_URL = "redis://127.0.0.1:6379/1"
-
-    REDIS_HOST = '127.0.0.1'
-    REDIS_PORT = 6379
-    REDIS_PASSWORD = None
-    REDIS_DB = 1
-
+    # flask_rq
+    RQ_REDIS_URL="redis://127.0.0.1:6379/1"
+    
+    RQ_QUEUES=["high", "normal", "low"]
+    RQ_SCHEDULER_QUEUE = "high" # because check first
+    RQ_SCHEDULER_INTERVAL = 60
+    
+    # rq_dashboard
+    REDIS_URL = RQ_REDIS_URL
+    # REDIS_HOST = '127.0.0.1'
+    # REDIS_PORT = 6379
+    # REDIS_PASSWORD = None
+    # REDIS_DB = 1
     RQ_POLL_INTERVAL = 10000  #: Web interface poll period for updates in ms
     DEBUG = False
     WEB_BACKGROUND = "black"
@@ -87,7 +92,7 @@ class DevelopmentConfig(object):
 
 class TestingConfig(DevelopmentConfig):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(os.path.join(BASE_DIR, 'testing.db'))
+    # SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(os.path.join(BASE_DIR, 'testing.db'))
 
 app_config = {
     'development': DevelopmentConfig,

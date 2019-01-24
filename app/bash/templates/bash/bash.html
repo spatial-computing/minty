@@ -2,13 +2,7 @@
 {% block content %}
         
       <div class="container">
-
-        {% if 'id' in bash%}
         <form class="bashform">
-        {% else %}
-        <form class="bashform" > 
-        {% endif %}
-
           {% for key in txt %}
           <div class="form-group ">
             <label >{{key}}</label>

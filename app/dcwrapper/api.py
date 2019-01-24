@@ -1,13 +1,14 @@
 import requests
-from app.job import rq
-import time
 import json
-import os 
-import zipfile
+import os
+from datetime import timedelta
+
 from app.models import db, DataSet, Bash
-from app.job import rq_download_job, rq_run_job
+from app.job import rq_instance, rq_download_job, rq_run_job, rq_create_bash_job, rq_check_job_status_scheduler
 from app.bash import bash_helper
 from rq import Connection, Worker, Queue
+from rq.utils import parse_timeout
+
 
 HEADERS = {'Content-Type': 'application/json', 'cache-control': 'no-cache', 'Postman-Token': '3084e843-b082-4bfb-be1a-bb4ac72c865'}
 API_URL = 'http://api.mint-data-catalog.org/datasets'
@@ -15,10 +16,13 @@ API_STANDARD_NAME = API_URL + '/dataset_standard_variables'
 API_FIND_RESOURCES = API_URL + '/find'
 API_FIND_DATASETS = 'http://api.mint-data-catalog.org/find_datasets'
 
+# Scheduler
+RQ_SCHEDULER_START_IN_SECONDS = 5
+RQ_SCHEDULER_REPEAT_TIMES = parse_timeout('1d') / 60  # Repeat this number of times (None means repeat forever)
+RQ_SCHEDULER_INTERVAL = 5
+
 class DCWrapper(object):
     def __init__(self, bash_autorun=True, download_dist='/tmp/mint_datasets'):
-        self.payload = {}
-        self.status = 0
         self.bash_autorun = bash_autorun
         X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
         X_API_KEY = X_API_KEY.json()
@@ -30,46 +34,54 @@ class DCWrapper(object):
         self.download_dist = download_dist
         if not os.path.exists(self.download_dist):
             os.mkdir(self.download_dist)
+        self.command_args = {}
 
     def findByDatasetId(self, dataset_id):
+        status = 200
         req = None
         if not isinstance(dataset_id, str):
             print('invalid input')
-            self.status = 404
-            return self.status
+            status = 404
+            return status
 
-        self.payload = {'dataset_id': dataset_id}
-        req = requests.post(API_STANDARD_NAME, headers = HEADERS, data = json.dumps(self.payload))
+        payload = {'dataset_id': dataset_id}
+        req = requests.post(API_STANDARD_NAME, headers = HEADERS, data = json.dumps(payload))
+        if req.status_code != 200:
+            status = 404
+            return status
+
         response = req.json()
-        
         if isinstance(response, dict) and 'error' in response:
             print(response['error'])
-            self.status = 404
-            return self.status
+            status = 404
+            return status
 
         #db
         std = json.dumps(response['dataset']['standard_variables'])
         #print(std)
         dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
-        check = db.session.query(DataSet).filter_by(id=response['dataset']['id']).all()
-        if len(check) == 0:
+        check = db.session.query(DataSet).filter_by(id=response['dataset']['id']).first()
+        if not check:
             db.session.add(dataset)
             db.session.commit()
 
         dataset = self.findDatasetById(dataset_id)
         if dataset == 'error':
-            self.status = 404
-            return self.status
+            status = 404
+            return status
 
         resources = self.findResourcesById(dataset_id)
         if resources == 'error':
-            self.status = 404
-            return self.status
+            status = 404
+            return status
 
         arr = []
         for k, v in dataset['dataset_metadata'].items():
             if k.startswith('viz_config_'):
                 arr.append(k)
+        if len(arr) == 0:
+            status = 404
+            return status
         arr.sort()
 
         #print(arr)
@@ -117,7 +129,7 @@ class DCWrapper(object):
                 command_args['type'] = 'single-netcdf'
             elif metadata['viz_type'] == 'mint-map-time-series':
                 command_args['type'] = 'netcdf'
-        elif metadata['metadata']['file-type'] == 'tiff':
+        elif metadata['metadata']['file-type'] == 'geotiff':
             if metadata['viz_type'] == 'mint-map':
                 command_args['type'] = 'tiff'
             elif metadata['viz_type'] == 'mint-map-time-series':
@@ -139,46 +151,30 @@ class DCWrapper(object):
             # file = resource['resource_data_url'].split('/')
             # file_name = file[len(file) - 1]
             # command_args['data_file_path'] = '/tmp/' + dataset_id + '/' +  file_name
-        
-        download_status = self._download(resources, dataset_id)
+        self.command_args = command_args
+
+        download_status = self._download(resources, dataset_id, **command_args)
         if download_status == 'done_queue':
-            self.status = 200
+            status = 200
         else:
-            self.status = 500
+            status = 500
 
-        if self._buildBash(**command_args):
-            print('new bash commit')
-        else:
-            print('bash already exists')
-
-        return self.status
-
-
-    def _buildBash(self, **kwargs):
-        bash = Bash(**kwargs)
-        bashcheck = db.session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).all()
-        if len(bashcheck) == 0:
-            bash = Bash(**kwargs)
-            db.session.add(bash)
-            db.session.commit()
-            return True
-        return False
+        return status
         
     def findResourcesById(self, dataset_id):
-        self.payload = {'dataset_ids__in': dataset_ids, 'limit': 20}
-        req = requests.post(API_FIND_RESOURCES, headers = HEADERS, data = json.dumps(self.payload))
+        payload = {'dataset_ids__in': [dataset_id], 'limit': 20}
+        req = requests.post(API_FIND_RESOURCES, headers = HEADERS, data = json.dumps(payload))
 
-        if ret.status_code != 200:
+        if req.status_code != 200:
             return 'error'
 
+        response = req.json()
         if not isinstance(response, dict):
             return 'error'
 
         if 'error' in response:
             print(response['error'])
             return 'error'
-
-        response = req.json()
 
         if len(response['resources']) == 0 :
             return 'error'
@@ -186,12 +182,15 @@ class DCWrapper(object):
         return response['resources']
 
     def findDatasetById(self, dataset_id):
-        self.payload = {'dataset_ids__in': dataset_ids}
-        req = requests.post(API_FIND_DATASETS, headers = HEADERS, data = json.dumps(self.payload))
+        if isinstance(dataset_id, str):
+            dataset_id = [dataset_id]
+        payload = {'dataset_ids__in': dataset_id}
+        req = requests.post(API_FIND_DATASETS, headers = HEADERS, data = json.dumps(payload))
         
-        if ret.status_code != 200:
+        if req.status_code != 200:
             return 'error'
-
+        
+        response = req.json()
         if not isinstance(response, dict):
             return 'error'
 
@@ -199,36 +198,58 @@ class DCWrapper(object):
             print(response['error'])
             return 'error'
 
-        response = req.json()
+        
         if len(response['datasets']) == 0:
             return 'error'
 
         return response['datasets'][0]
 
-    def _download(self, resource_list, dataset_id):
+    def _download(self, resource_list, dataset_id, **commmand_args):
         #print(len(resource_list))
         #print(os.getcwd())
         dir_path = self.download_dist + dataset_id
-        
-        os.mkdir(dir_path)
-        index = 0
-        job = 0 
-        for resource in resource_list:
-            job = download.queue(resource, dataset_id, index, queue='normal')
-            index += 1
-        
-        if len(resource_list) == index and self.bash_autorun:
-            bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
-            command = bash_helper.findcommand_by_id(bash[0].id)
-            bashjob = run.queue(command, queue='low', depends_on=job)
-            bash_helper.add_job_id(bash[0].id,bashjob.id)
-            print('bash run enqueue')
-
-        
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+        jobs = []
+        for index, resource in enumerate(resource_list):
+            _j = rq_download_job.queue(resource, dataset_id, index, dir_path)
+            jobs.append(_j.id)
+        # scheduler = rq_instance.get_scheduler()
+        schedule = rq_check_job_status_scheduler.schedule(
+                timedelta(seconds=RQ_SCHEDULER_START_IN_SECONDS), # queue job in seconds
+                jobs,
+                self._after_download,
+                rq_instance.redis_url,
+                description="Download status checking scheduler",
+                repeat=RQ_SCHEDULER_REPEAT_TIMES, # The number of times the job needs to be repeatedly queued. Requires setting the interval parameter.
+                interval=RQ_SCHEDULER_INTERVAL # The interval of repetition as defined by the repeat parameter in seconds.
+                )
+        # bash_create_job = rq_create_bash_job.queue(self, **command_args)
         print('done download enqueue')
         return 'done_queue'
 
+    def _buildBash(self, db_session, **kwargs):
+        bash = Bash(**kwargs)
+        bash_check = db_session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).first()
+        if not bash_check:
+            db_session.add(bash)
+            db_session.commit()
+            return bash
+        return bash_check
 
+    def _after_download(self, rq_connection):
+        from app.models import get_db_session_instance
+        db_session = get_db_session_instance()
+        bash = self._buildBash(db_session, **self.command_args)
+        if self.bash_autorun:
+            bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
+            command = bash_helper.find_command_by_id(bash.id, db_session)
+
+            rq_run_job.connection = rq_connection
+            bashjob = rq_run_job.queue(command)
+            
+            bash_helper.add_job_id_to_bash_db(bash.id, bashjob.id)
+            print('bash run enqueue')
 
 """
 def getNews(self, offset):

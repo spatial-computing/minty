@@ -45,15 +45,20 @@
     });
 
     var badge = {
-        finished: '<span class="badge badge-success">Finished</span>',
-        queued: '<span class="badge badge-info">Queued</span>',
-        started: '<span class="badge badge-warning">Started</span>',
-        failed: '<span class="badge badge-danger">Failed</span>',
-        '': '<span class="badge badge-dark">Not running</span>'
+        finished: '<span class="badge badge-success text-wrap">Finished</span>',
+        queued: '<span class="badge badge-info text-wrap">Queued</span>',
+        started: '<span class="badge badge-warning text-wrap">Started</span>',
+        failed: '<span class="badge badge-danger text-wrap">Failed</span>',
+        '': '<span class="badge badge-dark text-wrap">Not running</span>'
     }
-    var handle = setInterval(function () {
-        console.log($(document).find('#bash_rqids').val())
-        console.log($(document).find('#bash_ids').val())
+    var job_status_tr_class = {
+        finished: 'table-success',
+        queued: 'table-info',
+        started: 'table-info',
+        failed: 'table-warning',
+        '': 'table-light'   
+    }
+    function updateStatus() {
         $.ajax({
             url:'/bash/status',
             type:'POST',
@@ -66,7 +71,8 @@
             },
         }).done(function(json){
             for (var i = json.job_status.length - 1; i >= 0; i--) {
-                $($(document).find('.bash-status')[i]).html(badge[json.job_status[i]])
+                $($(document).find('.bash-status')[i]).html( badge[json.job_status[i]] )
+                $($(document).find('.bash-status')[i]).parents('tr').removeClass().addClass(job_status_tr_class[json.job_status[i]]);
                 if(json.job_status[i]==='queued' || json.job_status[i]==='started'){
                    $($(document).find('.run-btn')[i]).prop('disabled', true);
                 }
@@ -75,8 +81,12 @@
                 }
             }
             
-        })
-    }, 5000);
+        });
+    }
+    updateStatus();
+    var handle = setInterval(function () {
+        updateStatus();
+    }, 10000);
 
     $('.status-btn').on('click',function(evnet){
         $.ajax({
@@ -85,8 +95,9 @@
             dataType:'json',
             data:{jobid:$(this).data('rqid'),bashid:$(this).data('bashid'),csrf_token:$(this).data('csrf')},
         }).done(function(json){
-            $('.modal-body').html(json.exe_info);
-            console.log("json.job_status")
+            $('#bash-modal .modal-body').html(json.exc_info);
+            $('#bash-modal .bash-modal-status').html(badge[json.job_status]);
+            // console.log("json.job_status")
         })
     });
 
