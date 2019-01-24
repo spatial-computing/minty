@@ -1,11 +1,9 @@
 import requests
-from app.job import rq
-import time
 import json
-import os 
-import zipfile
+import os
+
 from app.models import db, DataSet, Bash
-from app.job import rq_download_job, rq_run_job
+from app.job import rq_instance, rq_download_job, rq_run_job, rq_create_bash_job
 from app.bash import bash_helper
 from rq import Connection, Worker, Queue
 
@@ -140,16 +138,11 @@ class DCWrapper(object):
             # file_name = file[len(file) - 1]
             # command_args['data_file_path'] = '/tmp/' + dataset_id + '/' +  file_name
         
-        download_status = self._download(resources, dataset_id)
+        download_status = self._download(resources, dataset_id, **command_args)
         if download_status == 'done_queue':
             self.status = 200
         else:
             self.status = 500
-
-        if self._buildBash(**command_args):
-            print('new bash commit')
-        else:
-            print('bash already exists')
 
         return self.status
 
@@ -205,22 +198,26 @@ class DCWrapper(object):
 
         return response['datasets'][0]
 
-    def _download(self, resource_list, dataset_id):
+    def _download(self, resource_list, dataset_id, **commmand_args):
         #print(len(resource_list))
         #print(os.getcwd())
         dir_path = self.download_dist + dataset_id
         
         os.mkdir(dir_path)
         index = 0
-        job = 0 
+        jobs = []
         for resource in resource_list:
-            job = download.queue(resource, dataset_id, index, queue='normal')
+            _j = rq_download_job.queue(resource, dataset_id, index)
+            jobs.append(_j.id)
             index += 1
-        
-        if len(resource_list) == index and self.bash_autorun:
+
+
+        bash_create_job = rq_create_bash_job.queue(self, **command_args)
+
+        if self.bash_autorun:
             bash = db.session.query(Bash).filter_by(md5vector=dataset_id).all()
             command = bash_helper.findcommand_by_id(bash[0].id)
-            bashjob = run.queue(command, queue='low', depends_on=job)
+            bashjob = rq_run_job.queue(command, queue='low', depends_on=job)
             bash_helper.add_job_id(bash[0].id,bashjob.id)
             print('bash run enqueue')
 

@@ -9,11 +9,11 @@ from .models import *
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
-rq = RQ()
+rq_instance = RQ()
 
 RESUTL_TTL=-1 # '7d'
 
-@rq.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
+@rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_add_job(x, y, id):
 	print(id)
 	raise Exception("EF")
@@ -21,7 +21,7 @@ def rq_add_job(x, y, id):
 	time.sleep(10)
 	return x+y
 
-@rq.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
+@rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_run_job(command):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
 	# command = pre + command
@@ -31,9 +31,13 @@ def rq_run_job(command):
 	out=subprocess.call(command, shell = True)
 	return out
 
-@rq.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
-def rq_download_job(resource, dataset_id, index):
-    dir_path = '/tmp/' + dataset_id
+@rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
+def rq_create_bash_job(DcInstance, **command_args):
+	ret = DcInstance._buildBash(**command_args)
+
+@rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
+def rq_download_job(resource, dataset_id, index, dir_path):
+     # = '/tmp/' + dataset_id
     is_zip = False
     is_tar = False
     if resource['resource_metadata'].get('is_zip') is not None:
@@ -67,7 +71,7 @@ def rq_download_job(resource, dataset_id, index):
     return 'download done'
 
 
-@rq.job(func_or_queue='low', timeout='30m', result_ttl=RESUTL_TTL)
+@rq_instance.job(func_or_queue='low', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_excep_job():
 	out = subprocess.call("python /Users/xuanyang/Downloads/rai.py", shell = True)
 	return out

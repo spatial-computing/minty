@@ -1,30 +1,29 @@
 from flask import Flask, render_template, current_app
 from flask_assets import Environment
 from flask_wtf import CSRFProtect
-from flask_security import Security, SQLAlchemyUserDatastore, utils
+# from flask_security import Security, SQLAlchemyUserDatastore, utils
 from flask_via import Via
 # from flask_restful import Api
-from flask_uploads import configure_uploads
+# from flask_uploads import configure_uploads
 
-from sqlalchemy_utils import database_exists, create_database
-from sqlalchemy import create_engine
-
-from .assets import create_assets
-from .models import db
-from .job import *
-
-import rq_dashboard
+# from sqlalchemy_utils import database_exists, create_database
+# from sqlalchemy import create_engine
 # from .user.forms import SecurityRegisterForm
 # from .admin import create_security_admin
-
+from .assets import create_assets
+from .models import db
 from config import app_config
 
-import os.path
+from .job import rq_instance
+import rq_dashboard
+from rq.job import Job
+from flask_rq2 import RQ
 # from flask_mongoengine import MongoEngine
 # user_datastore = SQLAlchemyUserDatastore(db)
 
 #flask.via.routers.restful  Resource not works.
-from .bash.views import *
+def job_fetch(self, id):
+    return Job.fetch(id, connection=rq_instance.connection)
 
 def create_app(config_name):
     # global user_datastore
@@ -48,15 +47,9 @@ def create_app(config_name):
     # via.init_app(app, restful_api=api)
     via.init_app(app)
 
-
     # api = Api(app)
     # via.init_app(app, restful_api=api)
     # # add restful api for bash
-    # api.add_resource(Bash, '/bash/<string:bash_id>')
-    # api.add_resource(DeleteBash, '/bash/delete/<string:bash_id>')
-    # api.add_resource(AddBash, '/bash/add')
-    # api.add_resource(BashList, '/bashlist')
-    # Code for desmostration the flask upload in several models - - - -
 
     # from .user import user_photo
     # from .restaurant import restaurant_photo
@@ -76,11 +69,11 @@ def create_app(config_name):
 
     csrf.exempt(rq_dashboard.blueprint)
     #config rq
-    rq.init_app(app)
+    rq_instance.init_app(app)
     # app.config.from_object(rq_dashboard.default_settings)
     app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rq")
     
-
+    RQ.job_fetch = job_fetch
 
     app.jinja_env.add_extension('jinja2.ext.do')
 

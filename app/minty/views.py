@@ -3,7 +3,7 @@ from flask.views import MethodView
 # from .. import app
 import pymongo
 from app.dcwrapper import api
-    
+
 class LayerJson(MethodView):
     def __init__(self):
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])

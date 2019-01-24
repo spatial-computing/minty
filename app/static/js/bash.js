@@ -51,9 +51,8 @@
         failed: '<span class="badge badge-danger">Failed</span>',
         '': '<span class="badge badge-dark">Not running</span>'
     }
-    var handle = setInterval(function () {
-        console.log($(document).find('#bash_rqids').val())
-        console.log($(document).find('#bash_ids').val())
+
+    function updateStatus() {
         $.ajax({
             url:'/bash/status',
             type:'POST',
@@ -75,8 +74,12 @@
                 }
             }
             
-        })
-    }, 5000);
+        });
+    }
+    updateStatus();
+    var handle = setInterval(function () {
+        updateStatus();
+    }, 10000);
 
     $('.status-btn').on('click',function(evnet){
         $.ajax({
