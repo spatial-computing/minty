@@ -10,16 +10,15 @@ from redis import Redis
 from rq import Connection, exceptions
 import time
 
+import flask_rq2
 
 
 class DeleteBash(MethodView):
-
-	def get(self,bash_id):
+	def get(self, bash_id):
 		deletebash(bash_id)
 		return redirect(url_for('bash.bash_list'))
 
 class AddBash(MethodView):
-	
 	def get(self):
 		headers = {'Content-Type': 'text/html'}
 		bash=find_all()[0]
@@ -140,6 +139,6 @@ class Status(MethodView):
 			bashid = request.form['bashid']
 			jobid = request.form['jobid']
 			print(jobid)
-			job = Job.fetch(jobid,connection=Redis(db=1))
+			job = Job.fetch(jobid, connection=Redis(db=1))
 			return jsonify({"job_status":job.get_status(), "result": job.result, "exe_info": job.exc_info,"result":job.result})
 

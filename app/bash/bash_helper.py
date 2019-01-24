@@ -3,7 +3,7 @@ import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
 from app.models import Bash,db
-from app.job import run, excep,add
+from app.job import rq_run_job, rq_excep_job, rq_add_job
 
 def combine(args):
 	res=" "
@@ -76,8 +76,8 @@ def add_job_id(bashid,jobid):
 	db.session.commit()
 
 def runbash(bashid):
-	# command = findcommand_by_id(bashid)
-	# job = run.queue(command)
+	command = findcommand_by_id(bashid)
+	job = rq_run_job.queue(command)
 	# job = excep.queue()
-	job = add.queue(1,2,bashid)
+	#job = add.queue(1,2,bashid)
 	add_job_id(bashid,job.id)
