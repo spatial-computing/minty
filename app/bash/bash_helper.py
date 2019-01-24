@@ -8,7 +8,7 @@ from app.job import rq_run_job, rq_excep_job, rq_add_job
 def combine(args):
 	res=" "
 	for key in args:
-		if(args[key]!='' and args[key]!=None and args[key]!=False and key!="id" and key!="_sa_instance_state" and key!="rqids" and key!="status"):
+		if(args[key]!='' and args[key]!=None and args[key]!=False and key!="id" and key!="_sa_instance_state" and key!="rqids" and key!="status" and key!="command"):
 			param = key.replace("_", "-")
 			if(args[key]==True):
 				res+="--"+param+" "
@@ -24,8 +24,8 @@ def find_command_by_id(id, db_session=db.session):
 	bash = db_session.query(Bash).filter_by(id = id).first()
 	if bash is None:
 		return "no bash"
-	if bash.command != '':
-		return bash.command
+	# if bash.command != '':
+	# 	return bash.command
 	return combine(vars(bash))
 
 def find_bash_by_id(id):
@@ -62,8 +62,8 @@ def updatebash(id, **kwargs):
 	
 	db.session.commit()
 
-def find_bash_attr(id, attr):
-	bash = Bash.query.filter_by(id = id).first()
+def find_bash_attr(id, attr,db_session=db.session):
+	bash = db_session.query(Bash).filter_by(id = id).first()
 	bash = vars(bash)
 	value = bash[attr] 
 	return value

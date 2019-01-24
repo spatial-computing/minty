@@ -126,7 +126,7 @@ class Bash(db.Model):
     tile_server_root = db.Column(db.String(255), server_default='')
     force_restart_tileserver = db.Column(db.String(255), server_default='')
     target_mbtiles_path = db.Column(db.String(255), server_default='')
-    scp_to_default_server = db.Column(db.String(255), server_default='')
+    scp_to_default_server = db.Column(db.Boolean, server_default=text('False'))
     scp_to_server = db.Column(db.String(255), server_default='')
     without_website = db.Column(db.Boolean, server_default=text('False'))
     tiled_ext = db.Column(db.String(255), server_default='')
@@ -142,7 +142,7 @@ class Bash(db.Model):
 
     chart_type = db.Column(db.String(255), server_default='')
     rqids = db.Column(db.TEXT, server_default='')
-    color_map = db.Column(db.String(255), server_default='')
+    load_colormap = db.Column(db.String(255), server_default='')
     file_type = db.Column(db.String(255), server_default='')
     directory_structure = db.Column(db.String(255), server_default='')
     netcdf_subdataset = db.Column(db.String(255), server_default='')
