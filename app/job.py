@@ -4,6 +4,7 @@ import os
 import zipfile
 import tarfile
 import requests
+import json
 
 from rq import get_current_job
 from rq.utils import parse_timeout
@@ -59,15 +60,15 @@ def queue_job_with_connection(job, connection, *args, **kwargs):
     return job
 
 
-@rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
-def rq_add_job(x, y, id):
-    print(id)
-    raise Exception("EF")
-    import time
-    time.sleep(10)
-    return x+y
+# @rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
+# def rq_add_job(x, y, id):
+#     print(id)
+#     raise Exception("EF")
+#     import time
+#     time.sleep(10)
+#     return x+y
 
-@rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
+@rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_run_command_job(command, bash_id, redis_url):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
     # command = pre + command
@@ -78,6 +79,12 @@ def rq_run_command_job(command, bash_id, redis_url):
     # update the real job id and update data
     # rq_connection = redis_url_or_rq_connection
     # if isinstance(redis_url_or_rq_connection, str):
+
+    logs = {
+        "output": str(out, 'utf8') if isinstance(out, bytes) else str(out),
+        "error": str(err, 'utf8') if isinstance(err, bytes) else str(err)
+    }
+
     rq_connection = Redis.from_url(redis_url)
 
     run_command_job_done = queue_job_with_connection(
@@ -85,13 +92,11 @@ def rq_run_command_job(command, bash_id, redis_url):
         rq_connection, 
         bash_id, 
         get_current_job().id, 
-        {"output": out, "error": err},
+        logs,
         redis_url)
-    import json
-    # print({"output": out, "error": err})
-    return json.dumps({"output": out, "error": err})
+    return json.dumps(logs)
 
-@rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)    
+@rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)    
 def rq_run_command_done_job(bash_id, job_id, logs, redis_url):
     import time
     time.sleep(2)
@@ -99,7 +104,7 @@ def rq_run_command_done_job(bash_id, job_id, logs, redis_url):
     rq_connection = Redis.from_url(redis_url)
     bash_helper.update_bash_status(bash_id, job_id, logs, rq_connection)
 
-@rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
+@rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_create_bash_job(dc_instance, **command_args):
     ret = dc_instance._buildBash(**command_args)
 
@@ -141,7 +146,7 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
         # get_current_job().cancel()
         # requests.post('http://127.0.0.1:65522/rq/cancel_scheduler',  data = json.dumps({job_id: get_current_job()}))
 
-@rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
+@rq_instance.job(func_or_queue='low', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_download_job(resource, dataset_id, index, dir_path):
      # = '/tmp/' + dataset_id
     is_zip = False
@@ -177,7 +182,3 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     return 'download done'
 
 
-@rq_instance.job(func_or_queue='low', timeout='30m', result_ttl=RESUTL_TTL)
-def rq_excep_job():
-    out = subprocess.call("python /Users/xuanyang/Downloads/rai.py", shell = True)
-    return out

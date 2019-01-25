@@ -1,8 +1,10 @@
 import os
-MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
+import json
 
 from app.models import Bash, db
 from app.job import rq_run_command_job, rq_instance
+
+MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
 COLUMN_NAME_VIZ_TYPE = 'viz_type'
 
@@ -122,21 +124,18 @@ def run_bash(bash_id):
 
 def update_bash_status(bash_id, job_id, logs, rq_connection):
     from app.models import get_db_session_instance
+    from rq.job import Job
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
-    from rq.job import Job
-    # from rq.exceptions import NoSuchJobError
+    
     _j = Job.fetch(job_id, connection=rq_connection)
+    
+    logs['exc_info'] = _j.exc_info
+
     bash.rqids = job_id
     bash.status = _j.get_status()
-    import json
-    logs['exc_info'] = _j.exc_info
-    try:
-        for k in logs:
-            logs[k] = str(logs[k], 'utf8')
-    except TypeError as e:
-        print(str(e))
     bash.logs = json.dumps(logs)
+
     db_session.commit()
     return bash
 

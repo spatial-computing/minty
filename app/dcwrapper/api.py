@@ -255,6 +255,7 @@ class DCWrapper(object):
             
             command = bash_helper.find_command_by_id(bash.id, db_session=db_session)
             from app.job import queue_job_with_connection
+            from redis import Redis
             rq_connection = Redis.from_url(redis_url)
             bash_job = queue_job_with_connection(
                 rq_run_command_job, 
