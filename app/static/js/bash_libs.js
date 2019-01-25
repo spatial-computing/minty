@@ -77,7 +77,7 @@
                 csrf_token: $(document).find('#csrf_token_hidden').val()
             },
         }).done(function(json){
-            for (var i = json.status.length - 1; i >= 0; i--) {
+            for (var i = 0; i < json.status.length; i++) {
                 $($(document).find('.bash-status')[i]).html( badge[json.status[i]] )
                 $($(document).find('.bash-status')[i]).parents('tr').removeClass().addClass(job_status_tr_class[json.status[i]]);
                 if(json.status[i]==='queued' || json.status[i]==='started'){
@@ -94,7 +94,9 @@
     var handle = setInterval(function () {
         updateStatus();
     }, 10000);
-
+    function escape_html(string) {
+        return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+    }
     $('.status-btn').on('click',function(evnet){
         $.ajax({
             url:'/bash/status',
@@ -103,9 +105,9 @@
             data:{jobid:$(this).data('rqid'),bashid:$(this).data('bashid'),csrf_token:$(this).data('csrf')},
         }).done(function(json){
             $('#bash-modal .bash-modal-status').html(badge[json.status]);
-            $('#bash-modal .modal-body .exc_info').html(json.logs.exc_info);
-            $('#bash-modal .modal-body .error').html(json.logs.error)
-            $('#bash-modal .modal-body .output').html(json.logs.output);
+            $('#bash-modal .modal-body #nav_exc_info pre').html(json.logs.exc_info === null ? "No exc info" : escape_html(json.logs.exc_info));
+            $('#bash-modal .modal-body #nav_error pre').html(json.logs.error.replace(/\n/g, '<br>'))
+            $('#bash-modal .modal-body #nav_output pre').html(json.logs.output);
             // console.log("json.job_status")
             console.log(json.logs)
         })

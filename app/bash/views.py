@@ -157,16 +157,18 @@ class Status(MethodView):
             status = ''
             logs = {}
 
-            # no_exception, job = rq_instance.job_fetch(job_id)
-            # if no_exception:
-            #     status = job.get_status()
-            #     print('###' , job.result)
-            #     logs = json.loads(job.result)
-            #     logs['exc_info'] = job.exc_info
-            # else:
-            status = find_bash_attr(bash_id,'status')
-
-            logs = json.loads(find_bash_attr(bash_id,'logs'))
+            no_exception, job = rq_instance.job_fetch(job_id)
+            if no_exception:
+                status = job.get_status()
+                print(job.exc_info)
+                if job.result:
+                    logs = json.loads(job.result)
+                else:
+                    logs = {'output': 'No stdout', 'error': 'No stderr'}
+                logs['exc_info'] = job.exc_info
+            else:
+                status = find_bash_attr(bash_id,'status')
+                logs = json.loads(find_bash_attr(bash_id,'logs'))
 
             return jsonify({
                 "status": status, 

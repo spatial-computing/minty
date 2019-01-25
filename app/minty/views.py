@@ -12,7 +12,7 @@ class LayerJson(MethodView):
 
     def get(self, md5):
         jsonData = self.mongo_col.find_one({'$or': [{'md5vector': md5}, {'dcid': md5}]})
-        self.mongo_client.close()
+        
         if jsonData:
             del jsonData['_id']
             return jsonify(jsonData)
@@ -28,7 +28,7 @@ class DcidJson(MethodView):
         self.mongo_col = self.mongo_db["layer"]
     def get(self, dcid):
         jsonData = self.mongo_col.find_one({'dcid': dcid})
-        self.mongo_client.close()
+        
         if jsonData:
             del jsonData['_id']
             return jsonify(jsonData)
@@ -45,7 +45,7 @@ class MetadataJson(MethodView):
 
     def get(self):
         jsonData = self.mongo_col.find_one({'type': 'mintmap-metadata'})
-        self.mongo_client.close()
+        
         # print(jsonData, type(jsonData['_id']))
         if jsonData:
             del jsonData['_id']
@@ -63,7 +63,7 @@ class AutocompleteJson(MethodView):
 
     def get(self):
         jsonData = self.mongo_col.find_one({'type': 'mintmap-autocomplete'})
-        self.mongo_client.close()
+        
         # print(jsonData, type(jsonData['_id']))
         if jsonData:
             del jsonData['_id']

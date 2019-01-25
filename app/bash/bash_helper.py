@@ -36,11 +36,6 @@ VIZ_TYPE_OF_SINGLE_FILE = {
 
 def combine( args ):
     res = " "
-    # _get_value = None
-    # if isinstance(args, dict):
-    #   _get_value = args.__getitem__
-    # else:
-    #   _get_value = args.__getattribute__  
     for key in args:
         if( key not in IGNORED_KEY_AS_PARAMETER_IN_COMMAND and args[key] not in {'', None, False}):
             param = key.replace("_", "-")
@@ -49,7 +44,7 @@ def combine( args ):
                 res += "--%s " % (param)
             else:
                 if key in MINTCAST_PATH_NEEDED_IN_COMMAND:
-                    res += "--%s '%s%s' " % (param, MINTCAST_PATH.strip().rstrip('/') + '/', args[key])
+                    res += "--%s %s%s " % (param, MINTCAST_PATH.strip().rstrip('/') + '/', args[key])
                 else:
                     res += "--%s '%s' " % (param, args[key])
     # if args[COLUMN_NAME_VIZ_TYPE] in VIZ_TYPE_OF_TIMESERISE:
@@ -127,7 +122,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     from rq.job import Job
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
-    
+
     _j = Job.fetch(job_id, connection=rq_connection)
     
     logs['exc_info'] = _j.exc_info
