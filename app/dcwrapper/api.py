@@ -214,6 +214,7 @@ class DCWrapper(object):
         for index, resource in enumerate(resource_list):
             _j = rq_download_job.queue(resource, dataset_id, index, dir_path)
             jobs.append(_j.id)
+            self.command_args['rqids'] = _j.id
         # scheduler = rq_instance.get_scheduler()
         schedule = rq_check_job_status_scheduler.schedule(
                 timedelta(seconds=RQ_SCHEDULER_START_IN_SECONDS), # queue job in seconds
@@ -224,7 +225,7 @@ class DCWrapper(object):
                 repeat=RQ_SCHEDULER_REPEAT_TIMES, # The number of times the job needs to be repeatedly queued. Requires setting the interval parameter.
                 interval=RQ_SCHEDULER_INTERVAL # The interval of repetition as defined by the repeat parameter in seconds.
                 )
-        self.command_args['rqids'] = jobs[0]
+        
         bash = self._buildBash(db.session, **self.command_args)
         # bash_create_job = rq_create_bash_job.queue(self, **command_args)
         print('done download enqueue')
@@ -249,7 +250,7 @@ class DCWrapper(object):
     def _after_download(self, redis_url):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
-        
+
         # bash = self._buildBash(db_session, **self.command_args)
         if self.bash_autorun:
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
