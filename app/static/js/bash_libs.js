@@ -106,8 +106,8 @@
         }).done(function(json){
             $('#bash-modal .bash-modal-status').html(badge[json.status]);
             $('#bash-modal .modal-body #nav_exc_info pre').html(json.logs.exc_info === null ? "No exc info" : escape_html(json.logs.exc_info));
-            $('#bash-modal .modal-body #nav_error pre').html(json.logs.error.replace(/\n/g, '<br>'))
-            $('#bash-modal .modal-body #nav_output pre').html(json.logs.output);
+            $('#bash-modal .modal-body #nav_error pre').html(escape_html(json.logs.error))
+            $('#bash-modal .modal-body #nav_output pre').html(escape_html(json.logs.output));
             // console.log("json.job_status")
             console.log(json.logs)
         })

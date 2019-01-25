@@ -120,23 +120,47 @@ def run_bash(bash_id):
 def update_bash_status(bash_id, job_id, logs, rq_connection):
     from app.models import get_db_session_instance
     from rq.job import Job
-    db_session = get_db_session_instance()
-    bash = db_session.query(Bash).filter_by(id = bash_id).first()
+    
+    import requests
 
+    def update_viz_status_to_dc(dataset_id, viz_config):
+        payload = {'dataset_id': dataset_id, 'viz_config_id': viz_config}
+        req = requests.post(API_UPDATE_VIZSTATUS_TO_DC, data = json.dumps(payload))
+        if req.status_code != 200:
+            return 'error'
+        
+        response = req.json()
+        #print(response)
+        if not isinstance(response, dict):
+            return 'error'
+
+        if 'error' in response:
+            print(response['error'])
+            return 'error'
+
+        return 'success'
+
+    bash = db_session.query(Bash).filter_by(id = bash_id).first()
+    update_to_dc = ''
+    if update_viz_status_to_dc(bash.md5vector, bash.viz_config) == 'success':
+        update_to_dc = 'Update viz status to data catalog success.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
+    else:
+        update_to_dc = 'Error in updating viz status to data catalog.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
+    
+    db_session = get_db_session_instance()
+        
     _j = Job.fetch(job_id, connection=rq_connection)
     
-    logs['exc_info'] = _j.exc_info
+    if _j.exc_info:
+        logs['exc_info'] = str(_j.exc_info) + '\n\n' + update_to_dc
+    else:
+        logs['exc_info'] = update_to_dc
 
     bash.rqids = job_id
     bash.status = _j.get_status()
     bash.logs = json.dumps(logs)
 
     db_session.commit()
-    from app.dcwrapper.api import update_viz_status_to_dc
-    if update_viz_status_to_dc(bash.md5vector, bash.viz_config) == 'success':
-        print('update viz status to datacatalog success')
-    else:
-        print('error in updating viz status to datacatalog')
     return bash
 
 def find_one(db_session=db.session):

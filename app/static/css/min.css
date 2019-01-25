@@ -112,6 +112,10 @@ pre {
 }
 .modal-body pre {
   white-space: pre-wrap;
+  background: #214559;
+  color: #fff;
+  border-left: 3px solid #ffd369;
+  padding: 25px;
 }
 .custom-switch {
   padding-left: 2.25rem;

@@ -311,23 +311,6 @@ class DCWrapper(object):
             return suffix[-1]
         return ''
 
-def update_viz_status_to_dc(dataset_id, viz_config):
-    payload = {'dataset_id': dataset_id, 'viz_config_id': viz_config}
-    req = requests.post(API_UPDATE_VIZSTATUS_TO_DC, data = json.dumps(payload))
-    if req.status_code != 200:
-        return 'error'
-    
-    response = req.json()
-    #print(response)
-    if not isinstance(response, dict):
-        return 'error'
-
-    if 'error' in response:
-        print(response['error'])
-        return 'error'
-
-    return 'success'
-
 
 
 """
