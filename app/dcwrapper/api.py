@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import magic
 from datetime import timedelta
 
 from app.models import db, DataSet, Bash
@@ -137,7 +138,7 @@ class DCWrapper(object):
                 command_args['type'] = 'tiff-time'
         elif metadata['metadata']['file-type'] == 'csv':
                 command_args['type'] = 'csv'
-        
+        #metadata['viz_type'] = 'abc'
         if metadata['viz_type'] == 'mint-map-time-series':
             command_args.update({
                 "output_dir_structure": metadata['metadata']['directory-structure'],
@@ -162,7 +163,7 @@ class DCWrapper(object):
         return status
         
     def findResourcesById(self, dataset_id):
-        payload = {'dataset_ids__in': [dataset_id], 'limit': 20}
+        payload = {'dataset_ids__in': [dataset_id], 'limit': 1}
         req = requests.post(API_FIND_RESOURCES, headers = HEADERS, data = json.dumps(payload))
 
         if req.status_code != 200:
@@ -233,10 +234,9 @@ class DCWrapper(object):
         bash_check = db_session.query(Bash).filter_by(md5vector=bash.md5vector, viz_config=bash.viz_config).first()
         if bash.data_file_path == 'single file tag':
             single_file_dir = self.download_dist + '/' + bash.md5vector
-            root, dirs, files = os.walk(single_file_dir).__next__()
-            if len(files) == 1:
-                #print('only 1 file name: %s' % files[0])
-                bash.data_file_path = single_file_dir + '/' + files[0]
+            file_name = self._magicfile_check(single_file_dir)
+            print('only 1 file name: %s' % file_name)
+            bash.data_file_path = single_file_dir + '/' + file_name
         if not bash_check:
             db_session.add(bash)
             db_session.commit()
@@ -244,6 +244,7 @@ class DCWrapper(object):
         else:
             bash_helper.update_bash(bash_check.id, db_session=db_session, **kwargs)
             return bash
+
     def _after_download(self, rq_connection):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
@@ -257,6 +258,32 @@ class DCWrapper(object):
             
             bash_helper.add_job_id_to_bash_db(bash.id, bash_job.id, db_session=db_session)
             print('bash run enqueue')
+
+    def _magicfile_check(self, single_file_dir):
+        FILE_TYPE_TO_SUFFIX = {
+            'geojson' : 'geojson',
+            'csv' : 'csv', 
+            'netcdf' : 'nc'
+        }
+        magicfile_types = ['TIFF', 'NetCDF']
+        suffix_types = ['geojson', 'csv']
+        root, dirs, files = os.walk(single_file_dir).__next__()
+        if len(files) > 0:
+            for name in files:
+                lower_name = name.lower()
+                suffix = lower_name.split('.')
+                if suffix[-1] in suffix_types:
+                    return name
+                with magic.Magic() as m:
+                    magic_name = m.id_filename(single_file_dir + '/' + name)
+                    print(magic_name)
+                    for magic_type in magicfile_types:
+                        if magic_name.find(magic_type) > -1:
+                            return name
+
+        return ''
+
+        
 
 """
 def getNews(self, offset):
