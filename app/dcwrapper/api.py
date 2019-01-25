@@ -77,7 +77,7 @@ class DCWrapper(object):
 
         arr = []
         for k, v in dataset['dataset_metadata'].items():
-            if k.startswith('viz_config_'):
+            if k.startswith('viz_config'):
                 arr.append(k)
         if len(arr) == 0:
             status = 404.4
