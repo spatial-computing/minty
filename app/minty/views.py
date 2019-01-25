@@ -79,6 +79,7 @@ class VisualizeAction(MethodView):
         self.msg = {
             200: 'Task is establised on the server.',            
             404: 'Metadata or Dataset is not avaliable',
+            404.1: 'Dataset has no variable',
             301: 'File is being downloaded',
             415: 'Unsupported visulaization type',
             500: 'Internal or metadata Error'

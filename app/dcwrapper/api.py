@@ -45,26 +45,25 @@ class DCWrapper(object):
             status = 404
             return status
 
-        payload = {'dataset_id': dataset_id}
-        req = requests.post(API_STANDARD_NAME, headers = HEADERS, data = json.dumps(payload))
-        if req.status_code != 200:
-            status = 404
-            return status
+        # payload = {'dataset_id': dataset_id}
+        # req = requests.post(API_STANDARD_NAME, headers = HEADERS, data = json.dumps(payload))
+        # if req.status_code != 200:
+        #     status = 404.1
+        #     return status
 
-        response = req.json()
-        if isinstance(response, dict) and 'error' in response:
-            print(response['error'])
-            status = 404
-            return status
+        # response = req.json()
+        # if isinstance(response, dict) and 'error' in response:
+        #     print(response['error'])
+        #     status = 404.1
+        #     return status
 
-        #db
-        std = json.dumps(response['dataset']['standard_variables'])
+        # std = json.dumps(response['dataset']['standard_variables'])
         #print(std)
-        dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
-        check = db.session.query(DataSet).filter_by(id=response['dataset']['id']).first()
-        if not check:
-            db.session.add(dataset)
-            db.session.commit()
+        # dataset = DataSet(id=response['dataset']['id'], name=response['dataset']['name'], standard_variables=std)
+        # check = db.session.query(DataSet).filter_by(id=response['dataset']['id']).first()
+        # if not check:
+        #     db.session.add(dataset)
+        #     db.session.commit()
 
         dataset = self.findDatasetById(dataset_id)
         if dataset == 'error':
