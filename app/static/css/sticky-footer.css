@@ -91,6 +91,7 @@ body {
   display: flex;
   justify-content: space-between;
   flex-direction: row;
+  flex-wrap: wrap;
 }
 pre {
   background: #fdf6e3;
@@ -110,6 +111,11 @@ pre {
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
+
+.custom-switch {
+    flex-grow: 1;
+    flex: 1 1 33%;
+}
 .modal-body pre {
   white-space: pre-wrap;
   background: #214559;
@@ -117,43 +123,11 @@ pre {
   border-left: 3px solid #ffd369;
   padding: 25px;
 }
-.custom-switch {
-  padding-left: 2.25rem;
-}
 
-.custom-switch .custom-control-label::before {
-  left: 0rem;
-  width: 1.75rem;
-  pointer-events: all;
-  border-radius: 0.5rem;
-}
-.modal-dialog {
-    max-width: 50vw;
-}
-.custom-switch .custom-control-label::after {
-  top: calc(0.25rem + 2px);
-  left: calc(0rem + 2px);
-  width: calc(1rem - 4px);
-  height: calc(1rem - 4px);
-  background-color: #adb5bd;
-  border-radius: 0.5rem;
-  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, -webkit-transform 0.15s ease-in-out;
-  transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-  transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, -webkit-transform 0.15s ease-in-out;
-}
-
-@media screen and (prefers-reduced-motion: reduce) {
-  .custom-switch .custom-control-label::after {
-    transition: none;
-  }
-}
-
-.custom-switch .custom-control-input:checked ~ .custom-control-label::after {
-  background-color: #fff;
-  -webkit-transform: translateX(0.75rem);
-  transform: translateX(0.75rem);
-}
-
-.custom-switch .custom-control-input:disabled:checked ~ .custom-control-label::before {
-  background-color: rgba(0, 123, 255, 0.5);
+.toast {
+    background-color: rgba(255, 255, 255, 1) !important;
+    position: absolute; 
+    top: 20px; 
+    right: 30px;
+    z-index: 10;
 }

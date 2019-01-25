@@ -174,4 +174,6 @@ class TileStacheConfig(MethodView):
 
     def __del__(self):
         self.mongo_client.close()
-        
+  
+
+

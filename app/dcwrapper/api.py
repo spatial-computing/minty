@@ -1,7 +1,7 @@
 import requests
 import json
 import os
-import magic
+# import magic
 from datetime import timedelta
 
 from app.models import db, DataSet, Bash
