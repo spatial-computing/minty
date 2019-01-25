@@ -73,11 +73,15 @@ body {
 
 #bash-modal .modal-body {
   height: 50vh;
-  overflow-y: scroll;
   font-size: 13px;
   line-height: 1.5;
   font-family: Poppins;
   text-align: justify;
+}
+
+#bash-modal .modal-body #nav-tabContent{
+  overflow-y: scroll;
+  height: 100%;
 }
 .default-setting-panel{
   border: 1px solid #e8e8e8;
@@ -99,7 +103,6 @@ pre {
   font-family: Poppins, "Courier New",Courier,monospace;
   font-size: 15px;
   line-height: 1.6;
-  /* font-weight: 600; */
   margin-bottom: 0;
   max-width: 100%;
   overflow: auto;
@@ -108,10 +111,20 @@ pre {
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
+
 .custom-switch {
     flex-grow: 1;
     flex: 1 1 33%;
 }
+
+.modal-body pre {
+  white-space: pre-wrap;
+  background: #214559;
+  color: #fff;
+  border-left: 3px solid #ffd369;
+  padding: 25px;
+}
+
 
 .toast {
     background-color: rgba(255, 255, 255, 1) !important;

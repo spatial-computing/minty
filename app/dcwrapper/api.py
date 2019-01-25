@@ -5,7 +5,7 @@ import os
 from datetime import timedelta
 
 from app.models import db, DataSet, Bash
-from app.job import rq_instance, rq_download_job, rq_run_job, rq_create_bash_job, rq_check_job_status_scheduler
+from app.job import rq_instance, rq_download_job, rq_run_command_job, rq_create_bash_job, rq_check_job_status_scheduler
 from app.bash import bash_helper
 from rq import Connection, Worker, Queue
 from rq.utils import parse_timeout
@@ -23,7 +23,7 @@ RQ_SCHEDULER_REPEAT_TIMES = parse_timeout('1d') / 60  # Repeat this number of ti
 RQ_SCHEDULER_INTERVAL = 5
 
 class DCWrapper(object):
-    def __init__(self, bash_autorun=False, download_dist='/tmp/mint_datasets'):
+    def __init__(self, bash_autorun=True, download_dist='/tmp/mint_datasets'):
         self.bash_autorun = bash_autorun
         X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
         X_API_KEY = X_API_KEY.json()
@@ -94,7 +94,7 @@ class DCWrapper(object):
     # "mint-map-time-series"
         
         command_args = {
-            "layer_name": metadata['metadata']['title'].strip().replace(' ', '&nbsp;').replace('\t','&nbsp;'),
+            "layer_name": metadata['metadata']['title'].strip().replace(' ', '~_~').replace('\t','~_~'),
             "viz_config": the_first_viz_config,
             "viz_type": metadata['viz_type']
         }
@@ -234,10 +234,10 @@ class DCWrapper(object):
 
         if kwargs['data_file_path'] == 'single file tag':
             single_file_dir = self.download_dist + '/' + kwargs['md5vector']
-            file_name = self._magicfile_check(single_file_dir)
-            print('only 1 file name: %s' % file_name)
-            kwargs['data_file_path'] = single_file_dir + '/' + file_name
-            
+            data_file_path = self._magicfile_check(single_file_dir, kwargs['file_type'], kwargs['md5vector'])
+            print('only 1 file name: %s' % data_file_path)
+            kwargs['data_file_path'] = data_file_path
+
         if not bash_check:
             bash = bash_helper.add_bash(db_session=db_session, **kwargs)
             return bash
@@ -245,7 +245,7 @@ class DCWrapper(object):
             bash = bash_helper.update_bash(bash_check.id, db_session=db_session, **kwargs)
             return bash
 
-    def _after_download(self, rq_connection):
+    def _after_download(self, redis_url):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
 
@@ -255,37 +255,62 @@ class DCWrapper(object):
             
             command = bash_helper.find_command_by_id(bash.id, db_session=db_session)
             from app.job import queue_job_with_connection
-
-            bash_job = queue_job_with_connection(rq_run_job, rq_connection, command)
+            from redis import Redis
+            rq_connection = Redis.from_url(redis_url)
+            bash_job = queue_job_with_connection(
+                rq_run_command_job, 
+                rq_connection, 
+                command, 
+                bash.id,
+                redis_url
+            )
             
             bash_helper.add_job_id_to_bash_db(bash.id, bash_job.id, db_session=db_session)
             print('bash run enqueue')
 
-    def _magicfile_check(self, single_file_dir):
-        FILE_TYPE_TO_SUFFIX = {
-            'geojson' : 'geojson',
-            'csv' : 'csv', 
-            'netcdf' : 'nc'
+    def _magicfile_check(self, single_file_dir, file_type, dataset_id):
+        ONLY_CHECK_SUFFIX = {
+            'geojson',
+            'csv'
         }
-        magicfile_types = ['TIFF', 'NetCDF']
-        suffix_types = ['geojson', 'csv']
-        root, dirs, files = os.walk(single_file_dir).__next__()
-        if len(files) > 0:
+        FILE_TYPE_TO_SUFFIX = {
+            'geojson' : {'geojson', 'json'},
+            'csv' : {'csv'}, 
+            'netcdf' : {'nc'},
+            'geotiff': {'tif', 'tiff', 'asc'}
+        }
+        FILE_TYPE_TO_MAGIC = {
+            'netcdf': [ 'NetCDF Data Format', 'Hierarchical Data Format'],
+            'geotiff': [ 'TIFF image data' ]
+        }
+        for root, dirs, files in os.walk(single_file_dir):
             for name in files:
-                lower_name = name.lower()
-                suffix = lower_name.split('.')
-                if suffix[-1] in suffix_types:
-                    return name
-                with magic.Magic() as m:
-                    magic_name = m.id_filename(single_file_dir + '/' + name)
-                    print(magic_name)
-                    for magic_type in magicfile_types:
-                        if magic_name.find(magic_type) > -1:
-                            return name
+                filename = os.path.join(root, name)
+                if file_type in ONLY_CHECK_SUFFIX:
+                    suffix = self._check_suffix(filename)
+                    if suffix in FILE_TYPE_TO_SUFFIX[file_type.lower()]:
+                        return filename
+                else:
+                    fm = magic.from_file(filename)
+                    for mgx in FILE_TYPE_TO_MAGIC[file_type.lower()]:
+                        if fm.startswith(mgx):
+                            return filename
+                    # check type
+                    suffix = self._check_suffix(filename)
+                    if suffix in FILE_TYPE_TO_SUFFIX[file_type.lower()]:
+                        return filename
 
+        raise FileNotFoundError("%s doesn't have any valid file" % (dataset_id))
+        return None
+        
+    def _check_suffix(self, filename):
+        lower_name = filename.lower()
+        suffix = lower_name.split('.')
+        if len(suffix) > 0:
+            return suffix[-1]
         return ''
 
-        
+
 
 """
 def getNews(self, offset):
