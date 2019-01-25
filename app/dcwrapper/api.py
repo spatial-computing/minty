@@ -153,6 +153,8 @@ class DCWrapper(object):
         #print(command_args)
         self.command_args = command_args
 
+        bash = self._buildBash(db.session, **self.command_args)
+
         download_status = self._download(resources, dataset_id, **command_args)
         if download_status == 'done_queue':
             status = 200
