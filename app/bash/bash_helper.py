@@ -138,6 +138,11 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         print(str(e))
     bash.logs = json.dumps(logs)
     db_session.commit()
+    from app.dcwrapper.api import update_viz_status_to_dc
+    if update_viz_status_to_dc(bash.md5vector, bash.viz_config) == 'success':
+        print('update viz status to datacatalog success')
+    else:
+        print('error in updating viz status to datacatalog')
     return bash
 
 def find_one(db_session=db.session):
