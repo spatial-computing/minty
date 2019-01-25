@@ -1,12 +1,10 @@
 from flask import jsonify, request, url_for, redirect, current_app, render_template, flash, make_response
 from flask.views import MethodView
 
-from .bash_helper import *
-from app.job import *
-import requests
+from .bash_helper import find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, find_command_by_id, run_bash
 import os
-import flask_rq2
 
+import json
 from app.job import rq_instance
 from app.dcwrapper import api
 
@@ -144,39 +142,34 @@ class Status(MethodView):
             bash_ids = list(map(int, filter(lambda x: x  !=  '',request.form['bashid'].split(',') ) ))
             job_ids = request.form['jobid'].split(',')
             status = []
-            results = []
             for idx, job_id in enumerate(job_ids):
                 no_exception, job = rq_instance.job_fetch(job_id)
                 if no_exception:
                     status.append(job.get_status())
-                    results.append(job.result)
-                    # update_bash(bash_ids[idx], status = job.get_status())
                 else:
-                    status.append('')
-                    results.append(find_bash_attr(bash_ids[idx],'status'))
+                    status.append(find_bash_attr(bash_ids[idx],'status'))
                    
-            return jsonify({ "job_status": status, "job_result": results })
+            return jsonify({ "status": status })
         else:
-            bashid = request.form['bashid']
+            bash_id = request.form['bashid']
             job_id = request.form['jobid']
             # print(jobid)
             status = ''
-            result = ''
-            exc_info = ''
+            logs = {}
 
-            no_exception, job = rq_instance.job_fetch(job_id)
-            if no_exception:
-                status = job.get_status()
-                result = job.result
-                exc_info = job.exc_info
-            else:
-                status = '' 
-                result = ''
-                exc_info = job
+            # no_exception, job = rq_instance.job_fetch(job_id)
+            # if no_exception:
+            #     status = job.get_status()
+            #     print('###' , job.result)
+            #     logs = json.loads(job.result)
+            #     logs['exc_info'] = job.exc_info
+            # else:
+            status = find_bash_attr(bash_id,'status')
+
+            logs = json.loads(find_bash_attr(bash_id,'logs'))
 
             return jsonify({
-                "job_status": status, 
-                "result": result, 
-                "exc_info": exc_info if exc_info else 'No Log'
+                "status": status, 
+                "logs": logs
                 })
 

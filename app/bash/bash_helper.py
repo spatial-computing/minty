@@ -1,10 +1,8 @@
-
 import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 
 from app.models import Bash, db
-from app.job import rq_run_job, rq_excep_job, rq_add_job
-
+from app.job import rq_run_command_job, rq_instance
 COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
 COLUMN_NAME_VIZ_TYPE = 'viz_type'
 
@@ -17,6 +15,7 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'file_type',
     'dev_mode_off',
     'command',
+    'logs',
     COLUMN_NAME_DATA_FILE_PATH,
     COLUMN_NAME_VIZ_TYPE
 }
@@ -114,12 +113,32 @@ def add_job_id_to_bash_db(bashid, jobid, db_session=db.session):
     setattr(bash, "rqids", jobid)
     db_session.commit()
 
-def run_bash(bashid):
-    command = find_command_by_id(bashid)
-    job = add_job_id_to_bash_db.queue(command)
+def run_bash(bash_id):
+    command = find_command_by_id(bash_id)
+    job = rq_run_command_job.queue(command, bash_id, rq_instance.redis_url)
     # job = excep.queue()
     #job = add.queue(1, 2, bashid)
-    add_job_id(bashid, job.id)
+    add_job_id_to_bash_db(bash_id, job.id)
+
+def update_bash_status(bash_id, job_id, logs, rq_connection):
+    from app.models import get_db_session_instance
+    db_session = get_db_session_instance()
+    bash = db_session.query(Bash).filter_by(id = bash_id).first()
+    from rq.job import Job
+    # from rq.exceptions import NoSuchJobError
+    _j = Job.fetch(job_id, connection=rq_connection)
+    bash.rqids = job_id
+    bash.status = _j.get_status()
+    import json
+    logs['exc_info'] = _j.exc_info
+    try:
+        for k in logs:
+            logs[k] = str(logs[k], 'utf8')
+    except TypeError as e:
+        print(str(e))
+    bash.logs = json.dumps(logs)
+    db_session.commit()
+    return bash
 
 def find_one(db_session=db.session):
     return db_session.query(Bash).first()

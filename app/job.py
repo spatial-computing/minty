@@ -4,7 +4,6 @@ import os
 import zipfile
 import tarfile
 import requests
-from .models import *
 
 from rq import get_current_job
 from rq.utils import parse_timeout
@@ -69,14 +68,36 @@ def rq_add_job(x, y, id):
     return x+y
 
 @rq_instance.job(func_or_queue='high', timeout='30m', result_ttl=RESUTL_TTL)
-def rq_run_job(command):
+def rq_run_command_job(command, bash_id, redis_url):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
     # command = pre + command
     pre = "./bin/mintcast.sh"
     command = "cd %s && %s %s" % (MINTCAST_PATH, pre, command)
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIP, shell=True)
-    out, err = p.communicate()    
-    return out, err
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    out, err = p.communicate()
+    # update the real job id and update data
+    # rq_connection = redis_url_or_rq_connection
+    # if isinstance(redis_url_or_rq_connection, str):
+    rq_connection = Redis.from_url(redis_url)
+
+    run_command_job_done = queue_job_with_connection(
+        rq_run_command_done_job, 
+        rq_connection, 
+        bash_id, 
+        get_current_job().id, 
+        {"output": out, "error": err},
+        redis_url)
+    import json
+    # print({"output": out, "error": err})
+    return json.dumps({"output": out, "error": err})
+
+@rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)    
+def rq_run_command_done_job(bash_id, job_id, logs, redis_url):
+    import time
+    time.sleep(2)
+    from app.bash import bash_helper
+    rq_connection = Redis.from_url(redis_url)
+    bash_helper.update_bash_status(bash_id, job_id, logs, rq_connection)
 
 @rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_create_bash_job(dc_instance, **command_args):
@@ -105,7 +126,7 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
                     print('not finished yet')
                     return 
 
-            register_following_job_callback(rq_connection)
+            register_following_job_callback(redis_url)
             scheduler = Scheduler('high', connection=rq_connection) # Get a scheduler for the "foo" queue
             scheduler.cancel(get_current_job())
         else:

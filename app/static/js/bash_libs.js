@@ -77,10 +77,10 @@
                 csrf_token: $(document).find('#csrf_token_hidden').val()
             },
         }).done(function(json){
-            for (var i = json.job_status.length - 1; i >= 0; i--) {
-                $($(document).find('.bash-status')[i]).html( badge[json.job_status[i]] )
-                $($(document).find('.bash-status')[i]).parents('tr').removeClass().addClass(job_status_tr_class[json.job_status[i]]);
-                if(json.job_status[i]==='queued' || json.job_status[i]==='started'){
+            for (var i = json.status.length - 1; i >= 0; i--) {
+                $($(document).find('.bash-status')[i]).html( badge[json.status[i]] )
+                $($(document).find('.bash-status')[i]).parents('tr').removeClass().addClass(job_status_tr_class[json.status[i]]);
+                if(json.status[i]==='queued' || json.status[i]==='started'){
                    $($(document).find('.run-btn')[i]).prop('disabled', true);
                 }
                 else {
@@ -102,9 +102,12 @@
             dataType:'json',
             data:{jobid:$(this).data('rqid'),bashid:$(this).data('bashid'),csrf_token:$(this).data('csrf')},
         }).done(function(json){
-            $('#bash-modal .modal-body').html(json.exc_info);
-            $('#bash-modal .bash-modal-status').html(badge[json.job_status]);
+            $('#bash-modal .bash-modal-status').html(badge[json.status]);
+            $('#bash-modal .modal-body .exc_info').html(json.logs.exc_info);
+            $('#bash-modal .modal-body .error').html(json.logs.error)
+            $('#bash-modal .modal-body .output').html(json.logs.output);
             // console.log("json.job_status")
+            console.log(json.logs)
         })
     });
 
