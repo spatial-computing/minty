@@ -105,9 +105,11 @@ def find_bash_attr(id, attr,db_session=db.session):
     return value
 
 
-def add_job_id_to_bash_db(bashid, jobid, db_session=db.session):
+def add_job_id_to_bash_db(bashid, jobid, db_session=db.session, command=None):
     bash = db_session.query(Bash).filter_by(id = bashid).first()
     setattr(bash, "rqids", jobid)
+    if command:
+        setattr(bash, 'command', command)
     db_session.commit()
 
 def run_bash(bash_id):
@@ -115,7 +117,7 @@ def run_bash(bash_id):
     job = rq_run_command_job.queue(command, bash_id, rq_instance.redis_url)
     # job = excep.queue()
     #job = add.queue(1, 2, bashid)
-    add_job_id_to_bash_db(bash_id, job.id)
+    add_job_id_to_bash_db(bash_id, job.id, command=command)
 
 def update_bash_status(bash_id, job_id, logs, rq_connection):
     from app.models import get_db_session_instance
@@ -123,7 +125,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     
     import requests
     API_UPDATE_VIZSTATUS_TO_DC = 'http://api.mint-data-catalog.org/datasets/update_dataset_viz_status'
-    
+
     def update_viz_status_to_dc(dataset_id, viz_config):
         payload = {'dataset_id': dataset_id, 'viz_config_id': viz_config}
         req = requests.post(API_UPDATE_VIZSTATUS_TO_DC, data = json.dumps(payload))
