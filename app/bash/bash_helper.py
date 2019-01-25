@@ -1,9 +1,10 @@
 
 import os
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
-
+from flask import current_app
 from app.models import Bash, db
 from app.job import rq_run_job, rq_excep_job, rq_add_job
+import pymongo
 
 COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
 COLUMN_NAME_VIZ_TYPE = 'viz_type'
@@ -15,8 +16,8 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'rqids', 
     '_sa_instance_state', 
     'file_type',
-    'dev_mode_off',
     'command',
+    'use_default_setting',
     COLUMN_NAME_DATA_FILE_PATH,
     COLUMN_NAME_VIZ_TYPE
 }
@@ -34,6 +35,14 @@ VIZ_TYPE_OF_SINGLE_FILE = {
 
 
 def combine( args ):
+
+    mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+    mongo_db = mongo_client["mintcast"]
+    mongo_mintcast_default = mongo_db["metadata"]
+    default_setting = mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False,"type":False})
+    if (default_setting['use_default_setting'] == 'true'):
+        for key in default_setting:
+            args[key] = True if default_setting[key] == 'true' else False 
     res = " "
     # _get_value = None
     # if isinstance(args, dict):

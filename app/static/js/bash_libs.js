@@ -109,20 +109,36 @@
     });
 
 
-    $('.setting-form').on('submit',function(event){
-        event.preventDefault();
-        let setting = $( this ).serialize();
-        console.log(setting)
+    // $('.setting-form').on('submit',function(event){
+    //     event.preventDefault();
+    //     let setting = $( this ).serialize();
+    //     console.log(setting)
+    //     $.ajax({
+    //         url: '/bash',
+    //         type: 'POST',
+    //         dataType: 'json',
+    //         data: setting
+    //     }).done(function (json) {
+    //         window.location.reload();
+    //     });       
+
+    // })
+
+    $('.custom-control-input').change(function(event){
+        
+        let status = $(this).prop("checked");
+        let name = $( this ).attr('name');
+        let csrf_token = $('#csrf_token_hidden').val();
+        $(this).prop("checked",status);
         $.ajax({
-            url: '/bash',
-            type: 'POST',
-            dataType: 'json',
-            data: setting
-        }).done(function (json) {
+            url:'/bash/defaultsetting',
+            type:'POST',
+            dataType:'json',
+            data:{csrf_token:csrf_token, status:status, name:name}
+        }).done(function(json){
             window.location.reload();
-        });       
 
-
-    })
+        })
+    });
 
 }());

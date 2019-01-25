@@ -1,6 +1,6 @@
 from flask import jsonify, request, url_for, redirect, current_app, render_template, flash, make_response
 from flask.views import MethodView
-
+import pymongo
 from .bash_helper import *
 from app.job import *
 import requests
@@ -95,6 +95,13 @@ class Bash(MethodView):
 
 
 class BashList(MethodView):
+
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_mintcast_default = self.mongo_db["metadata"]
+        self.default_setting = self.mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False,"type":False})	
+
     def get(self):
         bashes = find_all()
         res = []
@@ -111,7 +118,7 @@ class BashList(MethodView):
         th.append("command")
         th.sort()
         headers = {'Content-Type': 'text/html'}
-        return make_response(render_template('bash/bashList.html',th = th,res = res,ids = ids),200,headers)
+        return make_response(render_template('bash/bashList.html',th = th,res = res,ids = ids, default_setting = self.default_setting),200,headers)
 
     def post(self):
         para = request.form
@@ -180,3 +187,31 @@ class Status(MethodView):
                 "exc_info": exc_info if exc_info else 'No Log'
                 })
 
+
+class MIntcastTaskDefaultSetting(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_mintcast_default = self.mongo_db["metadata"]
+
+    def get(self):
+        ret = self.mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False})
+        if ret:
+            return jsonify(dict(ret))
+        else:
+            return jsonify({'status': 404})
+
+    def post(self):
+        name = request.form['name']
+        status = request.form['status']
+        setting = {name:status}
+        self.mongo_mintcast_default.update_one(
+            {"type":"minty-mintcast-task-dashboard-default-value-setting"},
+            {'$set':setting},
+            upsert=True
+
+        )
+        return jsonify({"status": "ok"})
+
+    def __del__(self):
+        self.mongo_client.close()

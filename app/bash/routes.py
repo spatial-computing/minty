@@ -8,4 +8,5 @@ routes = [
 	Pluggable('/bash/view/<string:bash_id>', Bash, 'view_bash'),
 	Pluggable('/bash/run', Run, 'run'),
 	Pluggable('/bash/status', Status, 'status'),
+	Pluggable('/bash/defaultsetting',MIntcastTaskDefaultSetting,'defaultsetting')
 ]
