@@ -78,7 +78,9 @@ class VisualizeAction(MethodView):
     def __init__(self):
         self.msg = {
             200: 'Task is establised on the server.',            
-            404: 'Metadata or Dataset is not avaliable',
+            404.4: 'Metadata or Dataset (type 4) is not avaliable',
+            404.3: 'Metadata or Dataset (type 3) is not avaliable',
+            404.2: 'Metadata or Dataset (type 2) is not avaliable.',
             404.1: 'Dataset has no variable',
             301: 'File is being downloaded',
             415: 'Unsupported visulaization type',

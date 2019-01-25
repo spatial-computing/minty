@@ -67,12 +67,12 @@ class DCWrapper(object):
 
         dataset = self.findDatasetById(dataset_id)
         if dataset == 'error':
-            status = 404
+            status = 404.2
             return status
 
         resources = self.findResourcesById(dataset_id)
         if resources == 'error':
-            status = 404
+            status = 404.3
             return status
 
         arr = []
@@ -80,7 +80,7 @@ class DCWrapper(object):
             if k.startswith('viz_config_'):
                 arr.append(k)
         if len(arr) == 0:
-            status = 404
+            status = 404.4
             return status
         arr.sort()
 
