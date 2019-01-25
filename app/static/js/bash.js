@@ -46,7 +46,7 @@
                 dataType: 'json',
                 data: bash
             }).done(function(json){
-               
+               alter("")
             });           
         }
     });
@@ -123,8 +123,8 @@
     //     });       
 
     // })
-
-    $('.custom-control-input').change(function(event){
+    $('.custom-control-input').on('change',function(event){
+        event.preventDefault();
         
         let status = $(this).prop("checked");
         let name = $( this ).attr('name');
@@ -136,8 +136,9 @@
             dataType:'json',
             data:{csrf_token:csrf_token, status:status, name:name}
         }).done(function(json){
-            window.location.reload();
-            // window.location.href
+            // window.location.reload();
+            $('.toast-body').html(json.name +" changed to " +json.status)
+            $('.toast').toast('show');
 
         })
     });

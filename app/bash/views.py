@@ -108,7 +108,7 @@ class BashList(MethodView):
         ids = []
         for bash in bashes:
             bash=vars(bash)
-            bash['command'] = find_command_by_id(bash['id'])
+            # bash['command'] = find_command_by_id(bash['id'])
             res.append(bash)
             ids.append(str(bash['id']))
         th = []
@@ -211,7 +211,7 @@ class MIntcastTaskDefaultSetting(MethodView):
             upsert=True
 
         )
-        return jsonify({"status": "ok"})
+        return jsonify({"status": "ok","name":name,"status":status})
 
     def __del__(self):
         self.mongo_client.close()

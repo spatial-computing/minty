@@ -1,8 +1,19 @@
 {% extends 'layout/base.html' %}
 {% block content %}
 
-<input id="csrf_token_hidden" type="hidden" name="csrf_token" value="{{csrf_token()}}">
+<div class="toast" role="alert" aria-live="polite" aria-atomic="true" data-delay="5000">
+  <div class="toast-header">
+    <strong class="mr-auto">Mintcast Setting Changed</strong>
+    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="toast-body" style="opacity: 1">
+    Hello, world! This is a toast message.
+  </div>
+</div>
 
+<input id="csrf_token_hidden" type="hidden" name="csrf_token" value="{{csrf_token()}}">
 <div class="default-setting-panel">
   <h5>Default Value Setting Panel</h5>
   <form class="setting-form" action="">
@@ -95,6 +106,11 @@
 
   </div>
 </div>
+
+
+
+
+
 {% endblock %}
 
 
