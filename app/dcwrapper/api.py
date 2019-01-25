@@ -16,6 +16,7 @@ API_URL = 'http://api.mint-data-catalog.org/datasets'
 API_STANDARD_NAME = API_URL + '/dataset_standard_variables'
 API_FIND_RESOURCES = API_URL + '/find'
 API_FIND_DATASETS = 'http://api.mint-data-catalog.org/find_datasets'
+API_UPDATE_VIZSTATUS_TO_DC = API_URL + '/update_dataset_viz_status'
 
 # Scheduler
 RQ_SCHEDULER_START_IN_SECONDS = 5
@@ -309,6 +310,25 @@ class DCWrapper(object):
         if len(suffix) > 0:
             return suffix[-1]
         return ''
+
+def update_viz_status_to_dc(dataset_id, viz_config):
+    payload = {'dataset_id': dataset_id, 'viz_config_id': viz_config}
+    req = requests.post(API_UPDATE_VIZSTATUS_TO_DC, data = json.dumps(payload))
+    if req.status_code != 200:
+        return 'error'
+    
+    response = req.json()
+    #print(response)
+    if not isinstance(response, dict):
+        return 'error'
+
+    if 'error' in response:
+        print(response['error'])
+        return 'error'
+
+    return 'success'
+
+
 
 """
 def getNews(self, offset):
