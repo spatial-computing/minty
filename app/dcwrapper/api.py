@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import magic
 from datetime import timedelta
 
 from app.models import db, DataSet, Bash
@@ -22,7 +23,7 @@ RQ_SCHEDULER_REPEAT_TIMES = parse_timeout('1d') / 60  # Repeat this number of ti
 RQ_SCHEDULER_INTERVAL = 5
 
 class DCWrapper(object):
-    def __init__(self, bash_autorun=True, download_dist='/tmp/mint_datasets'):
+    def __init__(self, bash_autorun=False, download_dist='/tmp/mint_datasets'):
         self.bash_autorun = bash_autorun
         X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
         X_API_KEY = X_API_KEY.json()
@@ -137,7 +138,7 @@ class DCWrapper(object):
                 command_args['type'] = 'tiff-time'
         elif metadata['metadata']['file-type'] == 'csv':
                 command_args['type'] = 'csv'
-        
+        #metadata['viz_type'] = 'abc'
         if metadata['viz_type'] == 'mint-map-time-series':
             command_args.update({
                 "output_dir_structure": metadata['metadata']['directory-structure'],
@@ -145,13 +146,12 @@ class DCWrapper(object):
                 "start_time": metadata['metadata']['start-time'],
                 "end_time": metadata['metadata']['end-time'],
                 "datatime_format": metadata['metadata']['datatime-format'],
-                "dir": download_dist + dataset_id,
+                "dir": self.download_dist + '/' + dataset_id,
             })
-        # else:
-            # resource = resources[0]
-            # file = resource['resource_data_url'].split('/')
-            # file_name = file[len(file) - 1]
-            # command_args['data_file_path'] = '/tmp/' + dataset_id + '/' +  file_name
+        else:
+            if len(resources) == 1:
+                command_args['data_file_path'] = 'single file tag'
+        #print(command_args)
         self.command_args = command_args
 
         download_status = self._download(resources, dataset_id, **command_args)
@@ -163,7 +163,7 @@ class DCWrapper(object):
         return status
         
     def findResourcesById(self, dataset_id):
-        payload = {'dataset_ids__in': [dataset_id], 'limit': 20}
+        payload = {'dataset_ids__in': [dataset_id], 'limit': 1}
         req = requests.post(API_FIND_RESOURCES, headers = HEADERS, data = json.dumps(payload))
 
         if req.status_code != 200:
@@ -208,7 +208,7 @@ class DCWrapper(object):
     def _download(self, resource_list, dataset_id, **commmand_args):
         #print(len(resource_list))
         #print(os.getcwd())
-        dir_path = self.download_dist + dataset_id
+        dir_path = self.download_dist + '/' + dataset_id
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         jobs = []
@@ -230,8 +230,14 @@ class DCWrapper(object):
         return 'done_queue'
 
     def _buildBash(self, db_session, **kwargs):
-        # bash = Bash(**kwargs)
         bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector'], viz_config=kwargs['viz_config']).first()
+
+        if kwargs['data_file_path'] == 'single file tag':
+            single_file_dir = self.download_dist + '/' + kwargs['md5vector']
+            file_name = self._magicfile_check(single_file_dir)
+            print('only 1 file name: %s' % file_name)
+            kwargs['data_file_path'] = single_file_dir + '/' + file_name
+            
         if not bash_check:
             bash = bash_helper.add_bash(db_session=db_session, **kwargs)
             return bash
@@ -254,6 +260,32 @@ class DCWrapper(object):
             
             bash_helper.add_job_id_to_bash_db(bash.id, bash_job.id, db_session=db_session)
             print('bash run enqueue')
+
+    def _magicfile_check(self, single_file_dir):
+        FILE_TYPE_TO_SUFFIX = {
+            'geojson' : 'geojson',
+            'csv' : 'csv', 
+            'netcdf' : 'nc'
+        }
+        magicfile_types = ['TIFF', 'NetCDF']
+        suffix_types = ['geojson', 'csv']
+        root, dirs, files = os.walk(single_file_dir).__next__()
+        if len(files) > 0:
+            for name in files:
+                lower_name = name.lower()
+                suffix = lower_name.split('.')
+                if suffix[-1] in suffix_types:
+                    return name
+                with magic.Magic() as m:
+                    magic_name = m.id_filename(single_file_dir + '/' + name)
+                    print(magic_name)
+                    for magic_type in magicfile_types:
+                        if magic_name.find(magic_type) > -1:
+                            return name
+
+        return ''
+
+        
 
 """
 def getNews(self, offset):
