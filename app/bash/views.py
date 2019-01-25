@@ -165,7 +165,11 @@ class Status(MethodView):
                     logs = json.loads(job.result)
                 else:
                     logs = {'output': 'No stdout', 'error': 'No stderr'}
-                logs['exc_info'] = job.exc_info
+                if job.exc_info:
+                    logs['exc_info'] = job.exc_info
+                else:
+                    logs_tmp_var = json.loads(find_bash_attr(bash_id,'logs'))
+                    logs['exc_info'] = logs_tmp_var['exc_info']
             else:
                 status = find_bash_attr(bash_id,'status')
                 logs = json.loads(find_bash_attr(bash_id,'logs'))

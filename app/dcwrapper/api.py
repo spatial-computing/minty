@@ -16,7 +16,6 @@ API_URL = 'http://api.mint-data-catalog.org/datasets'
 API_STANDARD_NAME = API_URL + '/dataset_standard_variables'
 API_FIND_RESOURCES = API_URL + '/find'
 API_FIND_DATASETS = 'http://api.mint-data-catalog.org/find_datasets'
-API_UPDATE_VIZSTATUS_TO_DC = API_URL + '/update_dataset_viz_status'
 
 # Scheduler
 RQ_SCHEDULER_START_IN_SECONDS = 5
@@ -95,7 +94,7 @@ class DCWrapper(object):
     # "mint-map-time-series"
         
         command_args = {
-            "layer_name": metadata['metadata']['title'].strip().replace(' ', '&nbsp;').replace('\t','&nbsp;'),
+            "layer_name": metadata['metadata']['title'].strip().replace(' ', '~_~').replace('\t','~_~'),
             "viz_config": the_first_viz_config,
             "viz_type": metadata['viz_type']
         }

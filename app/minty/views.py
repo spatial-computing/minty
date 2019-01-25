@@ -89,8 +89,7 @@ class VisualizeAction(MethodView):
         #    job = start a DCWrapper with dataset_id
         getdata = api.DCWrapper()
         status = getdata.findByDatasetId(dataset_id) # job.status
-        return "{dataset_id: %s, status: %s, msg: %s}" % (dataset_id, status, self.msg[status])
-        # return "{testmsg: 'working on %s'}" % (dataset_id)
+        return jsonify({"dataset_id": dataset_id, "status": status, "msg": self.msg[status]})
       
 class VizType(MethodView):
     def __init__(self):
