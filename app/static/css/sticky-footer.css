@@ -123,7 +123,9 @@ pre {
   border-left: 3px solid #ffd369;
   padding: 25px;
 }
-
+.modal-dialog { 
+    max-width: 50vw;  
+}
 .toast {
     background-color: rgba(255, 255, 255, 1) !important;
     position: absolute; 
