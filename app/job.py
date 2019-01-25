@@ -72,11 +72,11 @@ def rq_add_job(x, y, id):
 def rq_run_job(command):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
     # command = pre + command
-    todir = "cd " + "{}".format( MINTCAST_PATH ) + "&&"
     pre = "./bin/mintcast.sh"
-    command = todir + pre + command
-    out = subprocess.call(command, shell = True)
-    return out
+    command = "cd %s && %s %s" % (MINTCAST_PATH, pre, command)
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIP, shell=True)
+    out, err = p.communicate()    
+    return out, err
 
 @rq_instance.job(func_or_queue='normal', timeout='30m', result_ttl=RESUTL_TTL)
 def rq_create_bash_job(dc_instance, **command_args):

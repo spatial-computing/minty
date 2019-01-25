@@ -233,17 +233,20 @@ class DCWrapper(object):
         # bash = Bash(**kwargs)
         bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector'], viz_config=kwargs['viz_config']).first()
         if not bash_check:
-            bash_helper.add_bash(db_session=db_session, **kwargs)
+            bash = bash_helper.add_bash(db_session=db_session, **kwargs)
             return bash
         else:
-            bash_helper.update_bash(bash_check.id, db_session=db_session, **kwargs)
+            bash = bash_helper.update_bash(bash_check.id, db_session=db_session, **kwargs)
             return bash
+
     def _after_download(self, rq_connection):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
+
         bash = self._buildBash(db_session, **self.command_args)
         if self.bash_autorun:
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
+            
             command = bash_helper.find_command_by_id(bash.id, db_session=db_session)
             from app.job import queue_job_with_connection
 

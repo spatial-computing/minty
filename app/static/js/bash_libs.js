@@ -8,14 +8,18 @@
     $('.run-btn').on('click',function (event) {
         event.preventDefault();   
         let command = $(this).data('command');
-        $.ajax({
-            url: '/bash/run',
-            type: 'POST',
-            dataType: 'json',
-            data: {command:command, csrf_token:$('.run-btn').data('csrf'),bashid:$(this).data('bashid')}
-        }).done(function (json) {
-            window.location.reload();
-        });
+        let confirmation = confirm("This action will overwrite the database and may redownload files, are you sure?");
+        if (confirmation) {
+            $.ajax({
+                url: '/bash/run',
+                type: 'POST',
+                dataType: 'json',
+                data: {command:command, csrf_token:$('.run-btn').data('csrf'),bashid:$(this).data('bashid')}
+            }).done(function (json) {
+                alert(json.status)
+            });
+        }
+        
     });
 
     $('.bashform').on('submit', function (event){
