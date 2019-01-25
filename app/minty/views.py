@@ -90,7 +90,7 @@ class VisualizeAction(MethodView):
     def get(self, dataset_id):
         # TODO: to Shawn
         #    job = start a DCWrapper with dataset_id
-        getdata = api.DCWrapper()
+        getdata = api.DCWrapper(bash_autorun=True)
         status = getdata.findByDatasetId(dataset_id) # job.status
         return jsonify({"dataset_id": dataset_id, "status": status, "msg": self.msg[status]})
       

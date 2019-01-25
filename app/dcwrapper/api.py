@@ -249,8 +249,8 @@ class DCWrapper(object):
     def _after_download(self, redis_url):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
-
-        bash = self._buildBash(db_session, **self.command_args)
+        
+        # bash = self._buildBash(db_session, **self.command_args)
         if self.bash_autorun:
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
             
