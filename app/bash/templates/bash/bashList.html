@@ -2,37 +2,10 @@
 {% block content %}
 
 <input id="csrf_token_hidden" type="hidden" name="csrf_token" value="{{csrf_token()}}">
+
 <div class="default-setting-panel">
   <h5>Default Value Setting Panel</h5>
   <form class="setting-form" action="">
-<!--     <div class="custom-control custom-switch">
-      {% if default_setting['dev_mode_off'] =='true' %}
-      <input type="checkbox" class="custom-control-input" id="dev-mode-off" name="dev_mode_off" checked>
-      {% else %}
-      <input type="checkbox" class="custom-control-input" id="dev-mode-off" name="dev_mode_off">
-      {% endif %}
-      <label class="custom-control-label" for="dev-mode-off">Dev Mode Off</label>
-    </div>
-    <div class="custom-control custom-switch">
-      {% if default_setting['disable_new_res'] =='true' %}
-      <input type="checkbox" class="custom-control-input" id="disabled-new-res" name="disable_new_res" checked>
-      {% else %}
-      <input type="checkbox" class="custom-control-input" id="disabled-new-res" name="disable_new_res" >
-      {% endif %}
-      <label class="custom-control-label" for="disabled-new-res">Disable new resolution</label>
-    </div>
-    <div class="custom-control custom-switch">
-      {% if default_setting['disable_new_res'] =='true' %}
-      <input type="checkbox" class="custom-control-input" id="scp-to-default-server" name="scp_to_default_server" checked>
-      {% else %}
-      <input type="checkbox" class="custom-control-input" id="scp-to-default-server" name="scp_to_default_server">
-      {% endif %}
-      <label class="custom-control-label" for="scp-to-default-server">Copy to server path</label>
-    </div>
-    <div class="custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="use-default-setting" name="use_default_setting">
-      <label class="custom-control-label" for="use-default-setting">Use default when conflicts</label>
-    </div> -->
     {% for key in default_setting %}
     <div class="custom-control custom-switch">
       {% if default_setting[key] =='true' %}

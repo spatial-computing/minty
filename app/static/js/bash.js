@@ -137,6 +137,7 @@
             data:{csrf_token:csrf_token, status:status, name:name}
         }).done(function(json){
             window.location.reload();
+            // window.location.href
 
         })
     });
