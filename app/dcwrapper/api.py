@@ -153,8 +153,6 @@ class DCWrapper(object):
         #print(command_args)
         self.command_args = command_args
 
-        bash = self._buildBash(db.session, **self.command_args)
-
         download_status = self._download(resources, dataset_id, **command_args)
         if download_status == 'done_queue':
             status = 200
@@ -226,6 +224,8 @@ class DCWrapper(object):
                 repeat=RQ_SCHEDULER_REPEAT_TIMES, # The number of times the job needs to be repeatedly queued. Requires setting the interval parameter.
                 interval=RQ_SCHEDULER_INTERVAL # The interval of repetition as defined by the repeat parameter in seconds.
                 )
+        self.command_args['rqids'] = jobs[0]
+        bash = self._buildBash(db.session, **self.command_args)
         # bash_create_job = rq_create_bash_job.queue(self, **command_args)
         print('done download enqueue')
         return 'done_queue'
