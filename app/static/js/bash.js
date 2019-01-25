@@ -22,35 +22,6 @@
         
     });
 
-    $('.bashform').on('submit', function (event){
-        event.preventDefault();
-        let bash=$( this ).serialize();
-        console.log(bash)
-        if ($('.submit').data('action')=='add'){
-            $.ajax({
-                url:'/bash/add',
-                type:'POST',
-                dataType: 'json',
-                data: bash
-            }).done(function(json){
-                window.location.reload()
-            });
-        }
-        else {  
-
-            let updata_bash_id = $('#updata_bash_id').val()
-            let url='/bash/view/'+updata_bash_id
-            $.ajax({
-                url:url,
-                type:'POST',
-                dataType: 'json',
-                data: bash
-            }).done(function(json){
-               
-            });           
-        }
-    });
-
     var badge = {
         finished: '<span class="badge badge-success text-wrap">Finished</span>',
         queued: '<span class="badge badge-info text-wrap">Queued</span>',
@@ -109,7 +80,7 @@
             $('#bash-modal .modal-body #nav_error pre').html(escape_html(json.logs.error))
             $('#bash-modal .modal-body #nav_output pre').html(escape_html(json.logs.output));
             // console.log("json.job_status")
-            console.log(json.logs)
+            // console.log(json.logs)
         })
     });
 

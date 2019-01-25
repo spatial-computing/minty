@@ -28,7 +28,7 @@
            <button  type = "submit" class="btn btn-primary submit" data-action="add" data-bashid="{{bash['id']}}">addbash</button>
           {% endif %}
         </form>
-        <div style="padding-left: 90px;">
+        <div style="padding-top: 20px;">
           <button onclick="window.location.href = '{{ url_for('bash.delete_bash',bash_id=bash['id']) }}';" class="btn btn-danger ">delete</button>
         </div>
       </div>
@@ -38,7 +38,32 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/bash.js') }}"></script>
 
 {% block javascript %}
-{% assets "JS_FRAMEWORS_BASH" %}
-<script src="{{ ASSET_URL }}"/></script>
-{% endassets %}
+<script type="text/javascript">
+  $('.bashform').on('submit', function (event){
+    event.preventDefault();
+    let bash=$( this ).serialize();
+    if ($('.submit').data('action')=='add'){
+        $.ajax({
+            url:'/bash/add',
+            type:'POST',
+            dataType: 'json',
+            data: bash
+        }).done(function(json){
+            window.location.reload()
+        });
+    }
+    else {  
+        let updata_bash_id = $('#updata_bash_id').val()
+        let url='/bash/edit/'+updata_bash_id
+        $.ajax({
+            url:url,
+            type:'POST',
+            dataType: 'json',
+            data: bash
+        }).done(function(json){
+           
+        });           
+    }
+  });
+</script>
 {% endblock %}

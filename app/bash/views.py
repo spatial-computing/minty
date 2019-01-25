@@ -1,7 +1,7 @@
 from flask import jsonify, request, url_for, redirect, current_app, render_template, flash, make_response
 from flask.views import MethodView
 
-from .bash_helper import find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, find_command_by_id, run_bash
+from .bash_helper import get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id
 import os
 
 import json
@@ -9,6 +9,7 @@ from app.job import rq_instance
 from app.dcwrapper import api
 
 import ast
+KEY_FILTER_FOR_USER = {'_sa_instance_state',  'id', 'viz_type'}
 class DeleteBash(MethodView):
 
     def get(self, bash_id):
@@ -18,13 +19,13 @@ class DeleteBash(MethodView):
 class AddBash(MethodView):
     def get(self):
         headers = {'Content-Type': 'text/html'}
-        bash = find_one()
-        bash = vars(bash)
+        bash = get_bash_column_metadata()
+        print(bash)
         txt = []
         boolean = []
         for key in bash:
-            if(key != "_sa_instance_state" and key != 'id'):
-                if type(bash[key]) == type(True):
+            if(key not in KEY_FILTER_FOR_USER):
+                if bash[key] == type(True):
                     boolean.append(key)
                 else:
                     txt.append(key)
@@ -51,19 +52,20 @@ class AddBash(MethodView):
         return url_for('bash.bash_list')
 
 
-class Bash(MethodView):
-
+class EditBash(MethodView):
     def get(self,bash_id = None):
         headers = {'Content-Type': 'text/html'}
         if bash_id is None:
-            return "none"
+            return make_response('No record', 404)
         else:
             bash = find_bash_by_id(bash_id)
-            bash = vars(bash)
+            if not bash:
+                return make_response('No record', 404)
+            bash = bash._asdict()
             txt = []
             boolean = []
             for key in bash:
-                if(key != "_sa_instance_state" and key != 'id'):
+                if(key not in KEY_FILTER_FOR_USER):
                     if type(bash[key]) == type(True):
                         boolean.append(key)
                     else:
@@ -71,9 +73,6 @@ class Bash(MethodView):
             txt.sort()
             boolean.sort()
             return make_response(render_template('bash/bash.html',txt = txt,boolean = boolean,bash = bash),200,headers)
-
-    
-
 # infact it is a put method to update the bash
 
     def post(self,bash_id):
@@ -91,15 +90,14 @@ class Bash(MethodView):
         return url_for('bash.bash_list')
         #return make_response(render_template('bash/bashres.html',res = newbash),200,headers)
 
-
 class BashList(MethodView):
     def get(self):
-        bashes = find_all()
+        bashes = find_all(limit=20, page=0)
         res = []
         ids = []
         for bash in bashes:
-            bash=vars(bash)
-            bash['command'] = find_command_by_id(bash['id'])
+            bash = bash._asdict()
+            # bash['command'] = find_command_by_id(bash['id'])
             res.append(bash)
             ids.append(str(bash['id']))
         th = []
@@ -109,7 +107,12 @@ class BashList(MethodView):
         th.append("command")
         th.sort()
         headers = {'Content-Type': 'text/html'}
-        return make_response(render_template('bash/bashList.html',th = th,res = res,ids = ids),200,headers)
+        return make_response(
+            render_template(
+                'bash/bashList.html', 
+                th=th, 
+                res=res,
+                ids = ids), 200, headers)
 
     def post(self):
         para = request.form
@@ -127,7 +130,10 @@ class Run(MethodView):
     def post(self):
         bashid = request.form["bashid"]
         bash = find_bash_by_id(bashid)
-        bash = vars(bash)
+        if not bash:
+            return jsonify({"status": "No record"})
+        bash = bash._asdict()
+
         if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
             run_bash(bashid)
         else:
@@ -145,9 +151,11 @@ class Status(MethodView):
             for idx, job_id in enumerate(job_ids):
                 no_exception, job = rq_instance.job_fetch(job_id)
                 if no_exception:
-                    status.append(job.get_status())
+                    _s = job.get_status()
+                    status.append(_s if _s else '')
                 else:
-                    status.append(find_bash_attr(bash_ids[idx],'status'))
+                    _s = find_bash_attr(bash_ids[idx],'status')
+                    status.append(_s if _s else '')
                    
             return jsonify({ "status": status })
         else:
@@ -160,7 +168,6 @@ class Status(MethodView):
             no_exception, job = rq_instance.job_fetch(job_id)
             if no_exception:
                 status = job.get_status()
-                print(job.exc_info)
                 if job.result:
                     logs = json.loads(job.result)
                 else:
@@ -173,6 +180,10 @@ class Status(MethodView):
             else:
                 status = find_bash_attr(bash_id,'status')
                 logs = json.loads(find_bash_attr(bash_id,'logs'))
+            
+            status = status if status else ''
+            if not logs:
+                logs = {'output':'', 'error':'', 'exc_info':''}
 
             return jsonify({
                 "status": status, 

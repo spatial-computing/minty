@@ -64,7 +64,7 @@
                     <button class="btn btn-outline-info btn-sm status-btn" data-csrf="{{ csrf_token() }}" data-rqid="{{ bash['rqids'] }}" data-bashid="{{bash['id']}}" data-toggle="modal" data-target="#bash-modal">Log</button>
                   </td>
                   <td class="center">
-                    <a class="btn btn-outline-primary btn-sm" href='{{ url_for('bash.view_bash',bash_id=bash['id']) }}'>Edit</a>
+                    <a class="btn btn-outline-primary btn-sm" href='{{ url_for('bash.edit_bash', bash_id=bash['id']) }}'>Edit</a>
                   </td>
                 </tr>
 
