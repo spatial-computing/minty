@@ -1,9 +1,11 @@
 import os
 
 from flask import current_app
-from app.models import Bash, db
-from app.job import rq_run_job, rq_excep_job, rq_add_job
 import pymongo
+import json
+from app.models import Bash, db
+from app.job import rq_run_command_job, rq_instance 
+from sqlalchemy.orm import load_only
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
