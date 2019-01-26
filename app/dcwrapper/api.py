@@ -140,7 +140,7 @@ class DCWrapper(object):
         #metadata['viz_type'] = 'abc'
         if metadata['viz_type'] == 'mint-map-time-series':
             command_args.update({
-                "output_dir_structure": metadata['metadata']['directory-structure'],
+                "output_dir_structure": metadata['metadata']['directory-structure'] + '/*.mbtiles',
                 "directory_structure":metadata['metadata']['directory-structure'],
                 "start_time": metadata['metadata']['start-time'],
                 "end_time": metadata['metadata']['end-time'],
