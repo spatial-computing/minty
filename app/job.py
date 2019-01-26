@@ -162,25 +162,25 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     if file_name.find('.tar') != -1:
         is_tar = True
 
-    response = requests.get(resource['resource_data_url'])
+    # response = requests.get(resource['resource_data_url'])
     logs = {}
-    if response.status_code == 200:
-        download_command = 'wget -O ' + file_path + ' ' + resource['resource_data_url']
-        p = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        out, err = p.communicate()
-            # update the real job id and update data
-            # rq_connection = redis_url_or_rq_connection
-            # if isinstance(redis_url_or_rq_connection, str):
-
-        logs = {
-            "output": str(out, 'utf8') if isinstance(out, bytes) else str(out),
-            "error": str(err, 'utf8') if isinstance(err, bytes) else str(err)
-        }
     
+    download_command = "wget -O %s %s" % (file_path, resource['resource_data_url'])
+    p = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    out, err = p.communicate()
+        # update the real job id and update data
+        # rq_connection = redis_url_or_rq_connection
+        # if isinstance(redis_url_or_rq_connection, str):
+
+
+    out_zip, err_zip = "", ""
     if is_zip:
-        zip_ref = zipfile.ZipFile(file_path, 'r')
-        zip_ref.extractall(dir_path)
-        zip_ref.close()
+        unzip_command = "unzip %s -d %s" % (file_path, dir_path)
+        p2 = subprocess.Popen(unzip_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        out_zip, err_zip = p2.communicate()
+        # zip_ref = zipfile.ZipFile(file_path, 'r')
+        # zip_ref.extractall(dir_path)
+        # zip_ref.close()
         os.remove(file_path)
     elif is_tar:
         tar_ref = tarfile.open(file_path, 'r')
@@ -188,6 +188,13 @@ def rq_download_job(resource, dataset_id, index, dir_path):
         tar_ref.close()
         os.remove(file_path)
     
+    logs = {
+        "output": str(out, 'utf8') if isinstance(out, bytes) else str(out),
+        "error": str(err, 'utf8') if isinstance(err, bytes) else str(err)
+    }
+    if err_zip or out_zip:
+        logs['output'] += str(out_zip, 'utf8') if isinstance(out_zip, bytes) else str(out_zip)
+        logs['error'] += str(err_zip, 'utf8') if isinstance(err_zip, bytes) else str(err_zip)
     print("download file %d" %(index+1))
     return json.dumps(logs)
 

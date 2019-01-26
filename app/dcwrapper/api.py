@@ -294,11 +294,13 @@ class DCWrapper(object):
                         return filename
                 else:
                     fm = magic.from_file(filename)
+                    print(fm)
                     for mgx in FILE_TYPE_TO_MAGIC[file_type.lower()]:
                         if fm.startswith(mgx):
                             return filename
                     # check type
                     suffix = self._check_suffix(filename)
+                    print(fm)
                     if suffix in FILE_TYPE_TO_SUFFIX[file_type.lower()]:
                         return filename
 
