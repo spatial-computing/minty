@@ -234,7 +234,7 @@ class DCWrapper(object):
     def _buildBash(self, db_session, **kwargs):
         bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector'], viz_config=kwargs['viz_config']).first()
 
-        if 'data_file_path' in kwargs and kwargs['data_file_path'] == 'single file tag':
+        if bash_check and 'data_file_path' in kwargs and kwargs['data_file_path'] == 'single file tag':
             single_file_dir = self.download_dist + '/' + kwargs['md5vector']
             data_file_path = self._magicfile_check(single_file_dir, kwargs['file_type'], kwargs['md5vector'])
             print('only 1 file name: %s' % data_file_path)

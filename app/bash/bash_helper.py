@@ -86,10 +86,11 @@ def combine( args ):
     mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
     mongo_db = mongo_client["mintcast"]
     mongo_mintcast_default = mongo_db["metadata"]
-    default_setting = mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False,"type":False})
+    default_setting = mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False, "type":False})
     if (default_setting['use_default_setting'] == 'true'):
         for key in default_setting:
-            args[key] = True if default_setting[key] == 'true' else False 
+            if key != 'use_default_setting':
+                args[key] = True if default_setting[key] == 'true' else False 
     res = " "
     # if == True
     # args[key] = default
