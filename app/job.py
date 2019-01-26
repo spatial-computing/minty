@@ -163,10 +163,20 @@ def rq_download_job(resource, dataset_id, index, dir_path):
         is_tar = True
 
     response = requests.get(resource['resource_data_url'])
+    logs = {}
     if response.status_code == 200:
-        with open(file_path, 'wb') as f:
-            f.write(response.content)
+        download_command = 'wget -O ' + file_path + ' ' + resource['resource_data_url']
+        p = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+            # update the real job id and update data
+            # rq_connection = redis_url_or_rq_connection
+            # if isinstance(redis_url_or_rq_connection, str):
 
+        logs = {
+            "output": str(out, 'utf8') if isinstance(out, bytes) else str(out),
+            "error": str(err, 'utf8') if isinstance(err, bytes) else str(err)
+        }
+    
     if is_zip:
         zip_ref = zipfile.ZipFile(file_path, 'r')
         zip_ref.extractall(dir_path)
@@ -179,6 +189,6 @@ def rq_download_job(resource, dataset_id, index, dir_path):
         os.remove(file_path)
     
     print("download file %d" %(index+1))
-    return 'download done'
+    return json.dumps(logs)
 
 
