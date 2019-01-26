@@ -72,7 +72,7 @@ def queue_job_with_connection(job, connection, *args, **kwargs):
 def rq_run_command_job(command, bash_id, redis_url):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
     # command = pre + command
-    pre = "./bin/mintcast.sh"
+    pre = "bash ./bin/mintcast.sh"
     command = "cd %s && %s %s" % (MINTCAST_PATH, pre, command)
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
