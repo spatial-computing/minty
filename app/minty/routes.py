@@ -5,6 +5,7 @@ from .views import *
 
 routes = [
 	Pluggable('/minty/layer/<md5>', LayerJson, 'findLayerByVectorMD5'),
+	Pluggable('/minty/has_layer/<md5>', HasLayerJson, 'hasLayerByVectorMD5'),
 	Pluggable('/minty/layer/dc/<dcid>', DcidJson, 'findLayerByDataCatalogID'),
 	Pluggable('/minty/metadata', MetadataJson, 'metadata'),
 	Pluggable('/minty/autocomplete', AutocompleteJson, 'autocomplete'),

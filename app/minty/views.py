@@ -21,6 +21,21 @@ class LayerJson(MethodView):
     def __del__(self):
         self.mongo_client.close()
 
+class HasLayerJson(MethodView):
+    def __init__(self):
+        self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+        self.mongo_db = self.mongo_client["mintcast"]
+        self.mongo_col = self.mongo_db["layer"]
+
+    def get(self, md5):
+        jsonData = self.mongo_col.find_one({'$or': [{'md5vector': md5}, {'dcid': md5}]}, {'_id':False})
+        
+        if jsonData:
+            return jsonify({'has': True})
+        else:
+            return jsonify({'has': False})
+    def __del__(self):
+        self.mongo_client.close()
 class DcidJson(MethodView):
     def __init__(self):
         self.mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
