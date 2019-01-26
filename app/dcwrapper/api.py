@@ -22,6 +22,7 @@ RQ_SCHEDULER_START_IN_SECONDS = 5
 RQ_SCHEDULER_REPEAT_TIMES = parse_timeout('1d') / 60  # Repeat this number of times (None means repeat forever)
 RQ_SCHEDULER_INTERVAL = 5
 
+SINGLE_FILE_TAG = 'single file tag'
 class DCWrapper(object):
     def __init__(self, bash_autorun=True, download_dist='/tmp/mint_datasets'):
         self.bash_autorun = bash_autorun
@@ -149,7 +150,7 @@ class DCWrapper(object):
             })
         else:
             if len(resources) == 1:
-                command_args['data_file_path'] = 'single file tag'
+                command_args['data_file_path'] = SINGLE_FILE_TAG
         #print(command_args)
         self.command_args = command_args
 
@@ -226,15 +227,15 @@ class DCWrapper(object):
                 interval=RQ_SCHEDULER_INTERVAL # The interval of repetition as defined by the repeat parameter in seconds.
                 )
         
-        bash = self._buildBash(db.session, **self.command_args)
+        bash = self._buildBash(db.session, from_download_func=True, **self.command_args)
         # bash_create_job = rq_create_bash_job.queue(self, **command_args)
         print('done download enqueue')
         return 'done_queue'
 
-    def _buildBash(self, db_session, **kwargs):
+    def _buildBash(self, db_session, from_download_func=False, **kwargs):
         bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector'], viz_config=kwargs['viz_config']).first()
 
-        if bash_check and 'data_file_path' in kwargs and kwargs['data_file_path'] == 'single file tag':
+        if not from_download_func and bash_check and 'data_file_path' in kwargs and kwargs['data_file_path'] == SINGLE_FILE_TAG:
             single_file_dir = self.download_dist + '/' + kwargs['md5vector']
             data_file_path = self._magicfile_check(single_file_dir, kwargs['file_type'], kwargs['md5vector'])
             print('only 1 file name: %s' % data_file_path)
@@ -251,7 +252,7 @@ class DCWrapper(object):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
 
-        # bash = self._buildBash(db_session, **self.command_args)
+        bash = self._buildBash(db_session, from_download_func=False, **self.command_args)
         if self.bash_autorun:
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
             

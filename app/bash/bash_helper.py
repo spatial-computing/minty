@@ -1,6 +1,5 @@
 import os
-
-from flask import current_app
+from database import MongoConfig
 import pymongo
 import json
 from app.models import Bash, db
@@ -83,7 +82,7 @@ PROJECTION_OF_BASH_USER_COULD_MODIFY = [
 ]
 def combine( args ):
 
-    mongo_client = pymongo.MongoClient(current_app.config['MONGODB_DATABASE_URI'])
+    mongo_client = pymongo.MongoClient(MongoConfig.MONGODB_CONNECTION)
     mongo_db = mongo_client["mintcast"]
     mongo_mintcast_default = mongo_db["metadata"]
     default_setting = mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False, "type":False})

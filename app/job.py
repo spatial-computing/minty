@@ -161,7 +161,8 @@ def rq_download_job(resource, dataset_id, index, dir_path):
 
     if file_name.find('.tar') != -1:
         is_tar = True
-
+    if file_name.endswith('.zip') != -1:
+        is_zip = True
     # response = requests.get(resource['resource_data_url'])
     logs = {}
     
