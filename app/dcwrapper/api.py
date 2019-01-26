@@ -104,7 +104,7 @@ class DCWrapper(object):
     # "mint-map-time-series"
         
         command_args = {
-            "layer_name": metadata['metadata']['title'].strip().replace(' ', '~_~').replace('\t','~_~'),
+            "layer_name": metadata['metadata']['title'].strip().replace(' ', '-_-').replace('\t','-_-'),
             "viz_config": the_first_viz_config,
             "viz_type": metadata['viz_type']
         }
