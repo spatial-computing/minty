@@ -72,7 +72,7 @@ def queue_job_with_connection(job, connection, *args, **kwargs):
 def rq_run_command_job(command, bash_id, redis_url):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
     # command = pre + command
-    pre = "bash ./bin/mintcast.sh"
+    pre = "/bin/bash ./bin/mintcast.sh"
     command = "cd %s && %s %s" % (MINTCAST_PATH, pre, command)
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
@@ -176,7 +176,7 @@ def rq_download_job(resource, dataset_id, index, dir_path):
 
     out_zip, err_zip = "", ""
     if is_zip:
-        unzip_command = "unzip %s -d %s" % (file_path, dir_path)
+        unzip_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
         p2 = subprocess.Popen(unzip_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         out_zip, err_zip = p2.communicate()
         # zip_ref = zipfile.ZipFile(file_path, 'r')
