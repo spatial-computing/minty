@@ -152,11 +152,19 @@ def rq_download_job(resource, dataset_id, index, dir_path):
      # = '/tmp/' + dataset_id
     is_zip = False
     is_tar = False
-    if resource['resource_metadata'].get('is_zip') is not None:
-        if resource['resource_metadata']['is_zip'] == 'true':
-            is_zip = True
+    file = None
+    resource_data_url = None
+    if isinstance(resource, str):
+        resource_data_url = resource
+        file = resource.split('/')
+    else:
+        if resource['resource_metadata'].get('is_zip') is not None:
+            if resource['resource_metadata']['is_zip'] == 'true':
+                is_zip = True
 
-    file = resource['resource_data_url'].split('/')
+        file = resource['resource_data_url'].split('/')
+        resource_data_url = resource['resource_data_url']
+        
     file_name = file[len(file) - 1]
     file_path = dir_path + '/' + file_name
 
@@ -167,7 +175,7 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     # response = requests.get(resource['resource_data_url'])
     logs = {}
     
-    download_command = "wget -O %s %s" % (file_path, resource['resource_data_url'])
+    download_command = "wget -O %s %s" % (file_path, resource_data_url)
     p = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
         # update the real job id and update data

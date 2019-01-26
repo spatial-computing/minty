@@ -1,0 +1,29 @@
+failed: Operation timed out.
+Retrying.
+
+--2019-01-26 01:32:30--  (try: 2)  http://abc/
+Connecting to abc|68.181.193.67|:80... failed: Operation timed out.
+Retrying.
+
+--2019-01-26 01:33:48--  (try: 3)  http://abc/
+Connecting to abc|68.181.193.67|:80... failed: Operation timed out.
+Retrying.
+
+--2019-01-26 01:35:06--  (try: 4)  http://abc/
+Connecting to abc|68.181.193.67|:80... failed: Operation timed out.
+Retrying.
+
+--2019-01-26 01:36:25--  (try: 5)  http://abc/
+Connecting to abc|68.181.193.67|:80... failed: Operation timed out.
+Retrying.
+
+--2019-01-26 01:37:46--  (try: 6)  http://abc/
+Connecting to abc|68.181.193.67|:80... failed: Operation timed out.
+Retrying.
+
+--2019-01-26 01:39:07--  (try: 7)  http://abc/
+Connecting to abc|68.181.193.67|:80... failed: Operation timed out.
+Retrying.
+
+--2019-01-26 01:40:29--  (try: 8)  http://abc/
+Connecting to abc|68.181.193.67|:80... 

@@ -38,7 +38,7 @@ class DCWrapper(object):
             os.mkdir(self.download_dist)
         self.command_args = {}
 
-    def findByDatasetId(self, dataset_id):
+    def findByDatasetId(self, dataset_id, data_url=None, viz_config=None):
         status = 200
         req = None
         if not isinstance(dataset_id, str):
@@ -70,23 +70,33 @@ class DCWrapper(object):
         if dataset == 'error':
             status = 404.2
             return status
+        resources = None
+        if not data_url:
+            resources = self.findResourcesById(dataset_id)
+            if resources == 'error':
+                status = 404.3
+                return status
+        else:
+            resources = data_url
 
-        resources = self.findResourcesById(dataset_id)
-        if resources == 'error':
-            status = 404.3
-            return status
-
-        arr = []
-        for k, v in dataset['dataset_metadata'].items():
-            if k.startswith('viz_config'):
-                arr.append(k)
-        if len(arr) == 0:
-            status = 404.4
-            return status
-        arr.sort()
+        the_first_viz_config = None
+        if not viz_config:
+            arr = []
+            for k, v in dataset['dataset_metadata'].items():
+                if k.startswith('viz_config'):
+                    arr.append(k)
+            if len(arr) == 0:
+                status = 404.4
+                return status
+            arr.sort()
+            the_first_viz_config = arr[0]
+        else:
+            the_first_viz_config = viz_config
 
         #print(arr)
-        the_first_viz_config = arr[0]
+        if the_first_viz_config not in dataset['dataset_metadata']:
+            status = 404
+            return status
         metadata = dataset['dataset_metadata'][the_first_viz_config]
 
     # "mint-chart", 
@@ -149,8 +159,8 @@ class DCWrapper(object):
                 "dir": self.download_dist + '/' + dataset_id,
             })
         else:
-            if len(resources) == 1:
-                command_args['data_file_path'] = SINGLE_FILE_TAG
+            # if (not isinstance(resources, str)) and (len(resources) == 1):
+            command_args['data_file_path'] = SINGLE_FILE_TAG
         #print(command_args)
         self.command_args = command_args
 
@@ -212,10 +222,15 @@ class DCWrapper(object):
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         jobs = []
-        for index, resource in enumerate(resource_list):
-            _j = rq_download_job.queue(resource, dataset_id, index, dir_path)
+        if isinstance(resource_list, str):
+            _j = rq_download_job.queue(resource_list, dataset_id, 0, dir_path)
             jobs.append(_j.id)
             self.command_args['rqids'] = _j.id
+        else:
+            for index, resource in enumerate(resource_list):
+                _j = rq_download_job.queue(resource, dataset_id, index, dir_path)
+                jobs.append(_j.id)
+                self.command_args['rqids'] = _j.id
         # scheduler = rq_instance.get_scheduler()
         schedule = rq_check_job_status_scheduler.schedule(
                 timedelta(seconds=RQ_SCHEDULER_START_IN_SECONDS), # queue job in seconds

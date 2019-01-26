@@ -82,17 +82,33 @@ class VisualizeAction(MethodView):
             404.3: 'Metadata or Dataset (type 3) is not avaliable',
             404.2: 'Metadata or Dataset (type 2) is not avaliable.',
             404.1: 'Dataset has no variable',
+            404: 'Viz_config not found in dataset',
             301: 'File is being downloaded',
             415: 'Unsupported visulaization type',
-            500: 'Internal or metadata Error'
+            500: 'Internal or metadata Error',
+            400: 'Bad request, please send dataset_id and data_url'
         }
 
     def get(self, dataset_id):
-        # TODO: to Shawn
-        #    job = start a DCWrapper with dataset_id
-        getdata = api.DCWrapper(bash_autorun=True)
-        status = getdata.findByDatasetId(dataset_id) # job.status
-        return jsonify({"dataset_id": dataset_id, "status": status, "msg": self.msg[status]})
+        if dataset_id == 'dataset':
+            print(request.args)
+            if 'dataset_id' not in request.args or 'data_url' not in request.args:
+                return jsonify({"status": 400, "msg": self.msg[status]})
+            dataset_id = request.args['dataset_id']
+            data_url = request.args['data_url']
+            viz_config = None
+            if 'viz_config' in request.args:
+                viz_config = request.args['viz_config']
+            # /visualize/dataset?dataset_id=<>&data_url=<>
+            getdata = api.DCWrapper(bash_autorun=True)
+            status = getdata.findByDatasetId(dataset_id, data_url=data_url, viz_config=viz_config) # job.status
+            return jsonify({"dataset_id": dataset_id, "status": status, "msg": self.msg[status]})
+        else:
+        
+            #    job = start a DCWrapper with dataset_id
+            getdata = api.DCWrapper(bash_autorun=True)
+            status = getdata.findByDatasetId(dataset_id) # job.status
+            return jsonify({"dataset_id": dataset_id, "status": status, "msg": self.msg[status]})
       
 class VizType(MethodView):
     def __init__(self):
