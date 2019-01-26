@@ -295,13 +295,11 @@ class DCWrapper(object):
                         return filename
                 else:
                     fm = magic.from_file(filename)
-                    print(fm)
+                    suffix = self._check_suffix(filename)
                     for mgx in FILE_TYPE_TO_MAGIC[file_type.lower()]:
-                        if fm.startswith(mgx):
+                        if fm.startswith(mgx) and suffix in FILE_TYPE_TO_SUFFIX[file_type.lower()]:
                             return filename
                     # check type
-                    suffix = self._check_suffix(filename)
-                    print(fm)
                     if suffix in FILE_TYPE_TO_SUFFIX[file_type.lower()]:
                         return filename
 
@@ -314,93 +312,3 @@ class DCWrapper(object):
         if len(suffix) > 0:
             return suffix[-1]
         return ''
-
-
-
-"""
-def getNews(self, offset):
-		# get all new dataset since offset		
-		pass
-
-	def findByTask(self, task_type):
-		# task
-		#  |- single dataset
-		#  |- timeseries
-		#  |- diff
-		#  |- trend  => chart
-		#  |- chart
-		pass
-
-	def findById(self, id):
-		# get all metadata
-		# put into postgres mintcast.datacatalog
-		# download 
-		pass
-
-	def findByName(self, name):
-		# $.post
-		pass
-
-	def notifyById(self, id, msg):
-		pass
-
-	def _download(self, url):
-		"insert into mintcast.original"
-		"rq"
-		pass
-
-	def _download_timeseries(self, url):
-
-		pass
-
-	def _download_zip(self, url):
-
-		pass
-# views.py
-
-class Mintcast():
-	#docstring for mintcast#
-	def __init__(self, arg):
-		pass
-
-	def handleTiff(self, **kargs):
-		# karg {}
-		pass
-
-	def handleTimeseries(self, **kargs):
-
-		pass
-	
-# User
-#  |- dashboard
-	#  |- rq task list name : status
-	#  |- mintcast.original (find, update)  
-	#  |- [button]=> start mintcast job
-
-class mintUIrequest(methodview):
-	#docstring for mintUIrequest
-	def __init__(self):
-		pass
-
-	def hasID(self, id):
-		# check mintcast.layer has dcid=id
-		return True
-
-	def get(self, id):
-		if hasID(id):
-			return jsonify({'status': 'ok','name': mintcast.layer.sourcelayer, 'md5': mintcast.layer.md5})
-		else:
-			# bootstrap
-
-
-			# create job 
-				# |- request DC wrapper
-				# |- download Dataset
-				if timeseries:
-					# |- request timeseries format
-					if empty:
-						# |- wait
-				# |- generate mintcast job use parameter dependon
-
-			return jsonify({'status': '404'})
-            """
