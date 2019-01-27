@@ -1,4 +1,5 @@
 import os
+import subprocess
 from database import MongoConfig
 import pymongo
 import json
@@ -202,7 +203,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     
     import requests
     API_UPDATE_VIZSTATUS_TO_DC = 'http://api.mint-data-catalog.org/datasets/update_dataset_viz_status'
-
+    API_CHECK_HAS_LAYER = 'http://52.90.74.236:65533//minty/has_layer/'
     def update_viz_status_to_dc(dataset_id, viz_config):
         payload = {'dataset_id': dataset_id, 'viz_config_id': viz_config}
         req = requests.post(API_UPDATE_VIZSTATUS_TO_DC, data = json.dumps(payload))
@@ -219,27 +220,51 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
             return 'error'
 
         return 'success'
+    
+    def check_has_layer(md5):
+        req = requests.get(API_CHECK_HAS_LAYER + md5)
+        if req.status_code != 200:
+            return 'Failed request to has_layer,\ncannot check if minty has layer or not.\nDataset_id: %s' % (md5)
+        
+        response = req.json()
+        print(response)
+        if not isinstance(response, dict):
+            return 'has_layer return error.\nDataset_id: %s' % (md5)
+        
+        if response['has'] is False:
+            return 'Failed in pipeline: not generate the layer.\nDataset_id: %s' % (md5)
+
+        return 'success'
 
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
     update_to_dc = ''
-    if update_viz_status_to_dc(bash.md5vector, bash.viz_config) == 'success':
-        update_to_dc = 'Update viz status to data catalog success.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
-    else:
-        update_to_dc = 'Error in updating viz status to data catalog.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
-    
+    check_layer = check_has_layer(bash.md5vector)
+
+    if check_layer == 'success':
+        check_layer = 'has_layer check success.\nDataset_id: %s' % (bash.md5vector)
+        if update_viz_status_to_dc(bash.md5vector, bash.viz_config) == 'success':
+            update_to_dc = 'Update viz status to data catalog success.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
+        else:
+            update_to_dc = 'Error in updating viz status to data catalog.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
         
     _j = Job.fetch(job_id, connection=rq_connection)
     
     if _j.exc_info:
-        logs['exc_info'] = str(_j.exc_info) + '\n\n' + update_to_dc
+        logs['exc_info'] = str(_j.exc_info) + '\n\n' + check_layer + '\n\n' + update_to_dc
     else:
-        logs['exc_info'] = update_to_dc
+        logs['exc_info'] = check_layer + '\n\n' + update_to_dc
 
     bash.rqids = job_id
     bash.status = _j.get_status()
     bash.logs = json.dumps(logs)
 
     db_session.commit()
+    path = bash.dir
+    if path == '':
+        path = bash.data_file_path
+    else:
+        path = path + '/.'
+    subprocess.run(["rm", "-rf", path])
     return bash
 
