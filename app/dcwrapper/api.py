@@ -115,7 +115,10 @@ class DCWrapper(object):
             })
         else:
             # Bar Dot Donut
-            command_args['chart_type'] = metadata['metadata']['chart-type'].lower()
+            command_args.update({
+                "md5vector": dataset['dataset_id'],
+                "chart_type": metadata['metadata']['chart-type'].lower()
+            })
         # Black2White BuPu YlGnBl
         # South Sudan Pongo Basin No Clip
         if 'shapefile' in metadata['metadata']:
