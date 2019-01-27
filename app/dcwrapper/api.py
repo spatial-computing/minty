@@ -117,7 +117,8 @@ class DCWrapper(object):
             # Bar Dot Donut
             command_args.update({
                 "md5vector": dataset['dataset_id'],
-                "chart_type": metadata['metadata']['chart-type'].lower()
+                "chart_type": metadata['metadata']['chart-type'].lower(),
+                "file_type": 'csv'
             })
         # Black2White BuPu YlGnBl
         # South Sudan Pongo Basin No Clip
