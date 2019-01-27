@@ -118,7 +118,8 @@ class DCWrapper(object):
             command_args.update({
                 "md5vector": dataset['dataset_id'],
                 "chart_type": metadata['metadata']['chart-type'].lower(),
-                "file_type": 'csv'
+                "file_type": 'csv',
+                "type": 'csv'
             })
         # Black2White BuPu YlGnBl
         # South Sudan Pongo Basin No Clip
