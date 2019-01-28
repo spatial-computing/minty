@@ -151,7 +151,7 @@ class Run(MethodView):
         else:
             # r = requests.get(url_for('minty.visualize_action', dataset_id=bash['md5vector']))
             getdata = api.DCWrapper()
-            status = getdata.findByDatasetId(bash['md5vector']) # job.status
+            status = getdata.findByDatasetId(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) # job.status
         return jsonify({"status": "queued"})
 
 class Status(MethodView):

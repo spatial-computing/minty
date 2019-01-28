@@ -102,7 +102,7 @@ class DCWrapper(object):
     # "mint-chart", 
     # "mint-map", 
     # "mint-map-time-series"
-        uuid2 = the_first_viz_config.split('_')[~0]
+        uuid2 = the_first_viz_config[len('viz_config_'):]
         command_args = {
             "layer_name": metadata['metadata']['title'].strip().replace(' ', '-_-').replace('\t','-_-'),
             "viz_config": the_first_viz_config,
@@ -110,6 +110,9 @@ class DCWrapper(object):
             "md5vector": uuid2,
             "dataset_id": dataset['dataset_id']
         }
+        if data_url:
+            command_args.update({"data_url": data_url})
+
         if metadata['viz_type'] != 'mint-chart':
             command_args.update({
                 "file_type": metadata['metadata']['file-type'],

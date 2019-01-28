@@ -224,12 +224,11 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
     update_to_dc = ''
-    if update_viz_status_to_dc(bash.md5vector, bash.viz_config) == 'success':
+    if update_viz_status_to_dc(bash.dataset_id, bash.viz_config) == 'success':
         update_to_dc = 'Update viz status to data catalog success.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
     else:
         update_to_dc = 'Error in updating viz status to data catalog.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
     
-        
     _j = Job.fetch(job_id, connection=rq_connection)
     
     if _j.exc_info:

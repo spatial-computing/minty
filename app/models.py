@@ -151,6 +151,7 @@ class Bash(db.Model):
     viz_type = db.Column(db.String(255), server_default='')
     logs = db.Column(db.TEXT, server_default='')
     dataset_id = db.Column(db.String(255), server_default='')
+    data_url = db.Column(db.String(), server_default='') 
     def __setitem__(self, k, v):
         self.k = v
 
