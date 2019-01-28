@@ -102,21 +102,21 @@ class DCWrapper(object):
     # "mint-chart", 
     # "mint-map", 
     # "mint-map-time-series"
-        
+        uuid2 = the_first_viz_config.split('_')[~0]
         command_args = {
             "layer_name": metadata['metadata']['title'].strip().replace(' ', '-_-').replace('\t','-_-'),
             "viz_config": the_first_viz_config,
-            "viz_type": metadata['viz_type']
+            "viz_type": metadata['viz_type'],
+            "md5vector": uuid2,
+            "dataset_id": dataset['dataset_id']
         }
         if metadata['viz_type'] != 'mint-chart':
             command_args.update({
-                "md5vector": dataset['dataset_id'],
                 "file_type": metadata['metadata']['file-type'],
             })
         else:
             # Bar Dot Donut
             command_args.update({
-                "md5vector": dataset['dataset_id'],
                 "chart_type": metadata['metadata']['chart-type'].lower(),
                 "file_type": 'csv',
                 "type": 'csv'
@@ -163,7 +163,7 @@ class DCWrapper(object):
                 "start_time": metadata['metadata']['start-time'],
                 "end_time": metadata['metadata']['end-time'],
                 "datatime_format": metadata['metadata']['datatime-format'],
-                "dir": self.download_dist + '/' + dataset_id,
+                "dir": self.download_dist + '/' + uuid2,
             })
         else:
             # if (not isinstance(resources, str)) and (len(resources) == 1):
@@ -171,7 +171,7 @@ class DCWrapper(object):
         #print(command_args)
         self.command_args = command_args
 
-        download_status = self._download(resources, dataset_id, **command_args)
+        download_status = self._download(resources, uuid2, **command_args)
         if download_status == 'done_queue':
             status = 200
         else:

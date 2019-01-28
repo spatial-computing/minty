@@ -112,8 +112,10 @@ class VisualizeAction(MethodView):
             dataset_id = request.args['dataset_id']
             data_url = request.args['data_url']
             viz_config = None
-            if 'viz_config' in request.args:
-                viz_config = request.args['viz_config']
+            # http://52.90.74.236:65533/minty/visualize/dataset?dataset_id=<>&viz_config_id=viz_config_<uuid2>&data_url=<>
+            # viz_config_id=viz_config_<uuid2>&data_url=<>
+            if 'viz_config_id' in request.args:
+                viz_config = request.args['viz_config_id']
             # /visualize/dataset?dataset_id=<>&data_url=<>
             getdata = api.DCWrapper(bash_autorun=True)
             status = getdata.findByDatasetId(dataset_id, data_url=data_url, viz_config=viz_config) # job.status

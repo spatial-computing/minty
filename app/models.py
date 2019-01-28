@@ -150,6 +150,7 @@ class Bash(db.Model):
     status = db.Column(db.String(255), server_default='not enqueued')
     viz_type = db.Column(db.String(255), server_default='')
     logs = db.Column(db.TEXT, server_default='')
+    dataset_id = db.Column(db.String(255), server_default='')
     def __setitem__(self, k, v):
         self.k = v
 
