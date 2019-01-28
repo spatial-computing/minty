@@ -156,22 +156,21 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     resource_data_url = None
     if isinstance(resource, str):
         resource_data_url = resource
-        file = resource.split('/')
     else:
         if resource['resource_metadata'].get('is_zip') is not None:
             if resource['resource_metadata']['is_zip'] == 'true':
                 is_zip = True
-
-        file = resource['resource_data_url'].split('/')
         resource_data_url = resource['resource_data_url']
-        
-    file_name = file[len(file) - 1]
+    
+    file = resource_data_url.split('/')    
+    file_name = file[-1]
     file_path = dir_path + '/' + file_name
-
+    # print('$$$', file, file_name, file_path)
     if file_name.find('.tar') != -1:
         is_tar = True
-    if file_name.endswith('.zip') != -1:
+    if file_name.endswith('.zip'):
         is_zip = True
+    # print('#####', is_tar, is_zip, file_name)
     # response = requests.get(resource['resource_data_url'])
     logs = {}
     

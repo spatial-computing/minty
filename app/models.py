@@ -95,7 +95,7 @@ class Layer(db.Model):
     styletype =  db.Column(db.String(32), server_default='fill')
     legend_type = db.Column(db.String(16), server_default='linear')
     viz_type = db.Column(db.TEXT, server_default='')
-
+    title = db.Column(db.TEXT, server_default='')
 
 class Bash(db.Model):
     __tablename__='bash'

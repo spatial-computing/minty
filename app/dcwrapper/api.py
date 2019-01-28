@@ -115,39 +115,46 @@ class DCWrapper(object):
             })
         else:
             # Bar Dot Donut
-            command_args['chart_type'] = metadata['metadata']['chart-type'].lower()
+            command_args.update({
+                "md5vector": dataset['dataset_id'],
+                "chart_type": metadata['metadata']['chart-type'].lower(),
+                "file_type": 'csv',
+                "type": 'csv'
+            })
         # Black2White BuPu YlGnBl
         # South Sudan Pongo Basin No Clip
-
-        if metadata['metadata']['shapefile'] == "South Sudan":
-            command_args["with_shape_file"] = "shp/ss.shp"
-        elif metadata['metadata']['shapefile'] == "Pongo Basin":
-            command_args["with_shape_file"] = "shp/WBD.shp"
-        elif metadata['metadata']['shapefile'] == "Gel-Aliab":
-            command_args["with_shape_file"] = "shp/GelAliab.shp"
+        if 'shapefile' in metadata['metadata']:
+            if metadata['metadata']['shapefile'] == "South Sudan":
+                command_args["with_shape_file"] = "shp/ss.shp"
+            elif metadata['metadata']['shapefile'] == "Pongo Basin":
+                command_args["with_shape_file"] = "shp/WBD.shp"
+            elif metadata['metadata']['shapefile'] == "Gel-Aliab":
+                command_args["with_shape_file"] = "shp/GelAliab.shp"
         
-        command_args["load_colormap"] = "shp/colortable.txt"
-        if metadata['metadata']['color-map'] == "Black2White":
+        if 'color-map' in metadata['metadata']:
             command_args["load_colormap"] = "shp/colortable.txt"
-        elif metadata['metadata']['color-map'] == "BuPu":
-            command_args["load_colormap"] = "shp/bupu_colormap.txt"
-        elif metadata['metadata']['color-map'] == "YlGnBl":
-            command_args["load_colormap"] = "shp/ylgnbl_colormap.txt"
+            if metadata['metadata']['color-map'] == "Black2White":
+                command_args["load_colormap"] = "shp/colortable.txt"
+            elif metadata['metadata']['color-map'] == "BuPu":
+                command_args["load_colormap"] = "shp/bupu_colormap.txt"
+            elif metadata['metadata']['color-map'] == "YlGnBl":
+                command_args["load_colormap"] = "shp/ylgnbl_colormap.txt"
 
-        viz_type = 'tiff'
-        if metadata['metadata']['file-type'] == 'netcdf':
-            command_args['netcdf_subdataset'] = metadata['metadata']['netcdf-subdataset']
-            if metadata['viz_type'] == 'mint-map':
-                command_args['type'] = 'single-netcdf'
-            elif metadata['viz_type'] == 'mint-map-time-series':
-                command_args['type'] = 'netcdf'
-        elif metadata['metadata']['file-type'] == 'geotiff':
-            if metadata['viz_type'] == 'mint-map':
-                command_args['type'] = 'tiff'
-            elif metadata['viz_type'] == 'mint-map-time-series':
-                command_args['type'] = 'tiff-time'
-        elif metadata['metadata']['file-type'] == 'csv':
-                command_args['type'] = 'csv'
+        if 'file-type' in metadata['metadata']:
+            viz_type = 'tiff'
+            if metadata['metadata']['file-type'] == 'netcdf':
+                command_args['netcdf_subdataset'] = metadata['metadata']['netcdf-subdataset']
+                if metadata['viz_type'] == 'mint-map':
+                    command_args['type'] = 'single-netcdf'
+                elif metadata['viz_type'] == 'mint-map-time-series':
+                    command_args['type'] = 'netcdf'
+            elif metadata['metadata']['file-type'] == 'geotiff':
+                if metadata['viz_type'] == 'mint-map':
+                    command_args['type'] = 'tiff'
+                elif metadata['viz_type'] == 'mint-map-time-series':
+                    command_args['type'] = 'tiff-time'
+            elif metadata['metadata']['file-type'] == 'csv':
+                    command_args['type'] = 'csv'
         #metadata['viz_type'] = 'abc'
         if metadata['viz_type'] == 'mint-map-time-series':
             command_args.update({
