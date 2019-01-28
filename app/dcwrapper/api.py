@@ -103,6 +103,9 @@ class DCWrapper(object):
     # "mint-map", 
     # "mint-map-time-series"
         uuid2 = the_first_viz_config[len('viz_config_'):]
+        if len(uuid2) < 2:
+            status = 400.1
+            return status
         command_args = {
             "layer_name": metadata['metadata']['title'].strip().replace(' ', '-_-').replace('\t','-_-'),
             "viz_config": the_first_viz_config,

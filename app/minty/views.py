@@ -101,7 +101,8 @@ class VisualizeAction(MethodView):
             301: 'File is being downloaded',
             415: 'Unsupported visulaization type',
             500: 'Internal or metadata Error',
-            400: 'Bad request, please send dataset_id and data_url'
+            400: 'Bad request, please send dataset_id and data_url',
+            400.1: 'Bad request, viz_config does not include a uuid'
         }
 
     def get(self, dataset_id):
