@@ -82,7 +82,8 @@ PROJECTION_OF_BASH_USER_COULD_MODIFY = [
     Bash.directory_structure,
     Bash.netcdf_subdataset,
     Bash.viz_type,
-    Bash.data_url
+    Bash.data_url,
+    Bash.dataset_id
 ]
 def combine( args ):
 
