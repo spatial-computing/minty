@@ -21,6 +21,7 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'command',
     'logs',
     'dataset_id',
+    'data-url',
     COLUMN_NAME_DATA_FILE_PATH,
     COLUMN_NAME_VIZ_TYPE
 }
@@ -80,7 +81,8 @@ PROJECTION_OF_BASH_USER_COULD_MODIFY = [
     Bash.file_type,
     Bash.directory_structure,
     Bash.netcdf_subdataset,
-    Bash.viz_type
+    Bash.viz_type,
+    Bash.data_url
 ]
 def combine( args ):
 
