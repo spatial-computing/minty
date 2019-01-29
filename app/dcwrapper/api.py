@@ -228,20 +228,20 @@ class DCWrapper(object):
 
         return response['datasets'][0]
 
-    def _download(self, resource_list, dataset_id, **commmand_args):
+    def _download(self, resource_list, uuid2, **commmand_args):
         #print(len(resource_list))
         #print(os.getcwd())
-        dir_path = self.download_dist + '/' + dataset_id
+        dir_path = self.download_dist + '/' + uuid2
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         jobs = []
         if isinstance(resource_list, str):
-            _j = rq_download_job.queue(resource_list, dataset_id, 0, dir_path)
+            _j = rq_download_job.queue(resource_list, uuid2, 0, dir_path)
             jobs.append(_j.id)
             self.command_args['rqids'] = _j.id
         else:
             for index, resource in enumerate(resource_list):
-                _j = rq_download_job.queue(resource, dataset_id, index, dir_path)
+                _j = rq_download_job.queue(resource, uuid2, index, dir_path)
                 jobs.append(_j.id)
                 self.command_args['rqids'] = _j.id
         # scheduler = rq_instance.get_scheduler()
