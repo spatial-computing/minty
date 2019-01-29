@@ -116,6 +116,8 @@ def combine( args ):
             else:
                 if key in MINTCAST_PATH_NEEDED_IN_COMMAND:
                     res += "--%s %s%s " % (param, MINTCAST_PATH.strip().rstrip('/') + '/', args[key])
+                elif key == 'dir':
+                    res += "--%s %s " % (param, args[key])
                 else:
                     res += "--%s '%s' " % (param, args[key])
     if args[COLUMN_NAME_VIZ_TYPE] not in VIZ_TYPE_OF_TIMESERISE:
