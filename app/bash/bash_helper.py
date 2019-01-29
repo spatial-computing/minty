@@ -82,8 +82,17 @@ PROJECTION_OF_BASH_USER_COULD_MODIFY = [
     Bash.directory_structure,
     Bash.netcdf_subdataset,
     Bash.viz_type,
-    Bash.data_url,
-    Bash.dataset_id
+    Bash.data_url
+]
+
+PROJECTION_OF_BASH_TO_USE = [
+    Bash.viz_config, 
+    Bash.dataset_id, 
+    Bash.id, 
+    Bash.data_url, 
+    Bash.viz_type,
+    Bash.data_file_path,
+    Bash.dir
 ]
 def combine( args ):
 
@@ -131,6 +140,11 @@ def find_bash_by_id(id, db_session=db.session):
                      .filter_by(id = id).first()
     return bash
 
+def find_bash_by_id_for_run(id, db_session=db.session):
+    bash = db_session.query(Bash)\
+                     .with_entities(*PROJECTION_OF_BASH_TO_USE)\
+                     .filter_by(id = id).first()
+    return bash
 
 #find all
 def find_all(limit = 20, page=0, db_session=db.session):

@@ -2,7 +2,7 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 
 import pymongo
-from .bash_helper import get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id
+from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id
 import os
 
 import json
@@ -141,7 +141,7 @@ class BashList(MethodView):
 class Run(MethodView):
     def post(self):
         bashid = request.form["bashid"]
-        bash = find_bash_by_id(bashid)
+        bash = find_bash_by_id_for_run(bashid)
         if not bash:
             return jsonify({"status": "No record"})
         bash = bash._asdict()
