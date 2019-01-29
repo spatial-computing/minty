@@ -223,7 +223,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     
     import requests
     API_UPDATE_VIZSTATUS_TO_DC = 'http://api.mint-data-catalog.org/datasets/update_dataset_viz_status'
-    API_CHECK_HAS_LAYER = 'http://52.90.74.236:65533//minty/has_layer/'
+    API_CHECK_HAS_LAYER = 'http://minty.mintviz.org/minty/has_layer/'
     def update_viz_status_to_dc(dataset_id, viz_config):
         payload = {'dataset_id': dataset_id, 'viz_config_id': viz_config}
         req = requests.post(API_UPDATE_VIZSTATUS_TO_DC, data = json.dumps(payload))
