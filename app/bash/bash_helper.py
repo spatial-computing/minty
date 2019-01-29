@@ -21,7 +21,7 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'command',
     'logs',
     'dataset_id',
-    'data-url',
+    'data_url',
     COLUMN_NAME_DATA_FILE_PATH,
     COLUMN_NAME_VIZ_TYPE
 }
