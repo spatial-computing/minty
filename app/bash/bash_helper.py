@@ -224,8 +224,8 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
 
         return 'success'
     
-    def check_has_layer(dataset_id, viz_config):
-        req = requests.get(API_CHECK_HAS_LAYER + dataset_id)
+    def check_has_layer(uuid2, dataset_id, viz_config):
+        req = requests.get(API_CHECK_HAS_LAYER + uuid2)
         if req.status_code != 200:
             return 'Failed request to has_layer,\ncannot check if minty has layer or not.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
         
@@ -243,7 +243,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
     update_to_dc = ''
 
-    check_layer = check_has_layer(bash.dataset_id, bash.viz_config)
+    check_layer = check_has_layer(bash.md5vector, bash.dataset_id, bash.viz_config)
 
     if check_layer == 'success':
         check_layer = 'Layer check success.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
