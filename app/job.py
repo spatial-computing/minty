@@ -31,7 +31,7 @@ RQ.job_fetch = job_fetch
 rq_instance = RQ()
 
 RESUTL_TTL = '7d' # -1 for never expire, clean up result key manually
-RUN_MINTCAST_JOB_TIMEOUT = '8h'
+RUN_MINTCAST_JOB_TIMEOUT = '20d'
 NORMAL_JOB_TIMEOUT = '30m'
 DOWNLOAD_JOB_TIMEOUT = '4h'
 def queue_job_with_connection(job, connection, *args, **kwargs):
