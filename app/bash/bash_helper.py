@@ -265,9 +265,9 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     if check_layer == 'success':
         check_layer = 'Layer check success.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
         if update_viz_status_to_dc(bash.dataset_id, bash.viz_config) == 'success':
-            update_to_dc = 'Update viz status to data catalog success.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
+            update_to_dc = 'Update viz status to data catalog success.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
         else:
-            update_to_dc = 'Error in updating viz status to data catalog.\nDataset_id: %s\nViz_config: %s' % (bash.md5vector, bash.viz_config)
+            update_to_dc = 'Error in updating viz status to data catalog.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
 
     _j = Job.fetch(job_id, connection=rq_connection)
     
