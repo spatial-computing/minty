@@ -224,6 +224,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     import requests
     API_UPDATE_VIZSTATUS_TO_DC = 'http://api.mint-data-catalog.org/datasets/update_dataset_viz_status'
     API_CHECK_HAS_LAYER = 'http://minty.mintviz.org/minty/has_layer/'
+    API_CHECK_MINT_CHART_LAYER = 'http://minty.mintviz.org/minty/chart/'
     def update_viz_status_to_dc(dataset_id, viz_config):
         payload = {'dataset_id': dataset_id, 'viz_config_id': viz_config}
         req = requests.post(API_UPDATE_VIZSTATUS_TO_DC, data = json.dumps(payload))
@@ -241,18 +242,29 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
 
         return 'success'
     
-    def check_has_layer(uuid2, dataset_id, viz_config):
-        req = requests.get(API_CHECK_HAS_LAYER + uuid2)
+    def check_has_layer(uuid2, dataset_id, viz_config, viz_type):
+        req = None
+        if viz_type == 'mint-chart':
+            req = requests.get(API_CHECK_MINT_CHART_LAYER + uuid2)
+        else:
+            req = requests.get(API_CHECK_HAS_LAYER + uuid2)
+        
         if req.status_code != 200:
-            return 'Failed request to has_layer,\ncannot check if minty has layer or not.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+            return 'Failed request to check layer,\ncannot check if minty has layer or not.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
         
         response = req.json()
         # print(response)
         if not isinstance(response, dict):
             return 'has_layer return error.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
         
-        if response['has'] is False:
-            return 'Failed in pipeline: not generate the layer.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+        if viz_type == 'mint-chart':
+            if response.get('status') != None and response['status'] == 404:
+                return 'Viz_type : mint-chart, cannot find the layer with this uuid.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+            elif (response.get('data') == None) or (response.get('data') != None and len(response['data']) == 0):
+                return 'Viz_type : mint-chart, the layer with this uuid return the wrong data content.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+        else:
+            if response['has'] is False:
+                return 'Failed in pipeline: not generate the layer.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
 
         return 'success'
 
@@ -260,14 +272,17 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
     update_to_dc = ''
 
-    check_layer = check_has_layer(bash.md5vector, bash.dataset_id, bash.viz_config)
+    check_layer = check_has_layer(bash.md5vector, bash.dataset_id, bash.viz_config, bash.viz_type)
 
     if check_layer == 'success':
         check_layer = 'Layer check success.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
+        bash.status = 'success'
         if update_viz_status_to_dc(bash.dataset_id, bash.viz_config) == 'success':
             update_to_dc = 'Update viz status to data catalog success.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
         else:
             update_to_dc = 'Error in updating viz status to data catalog.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
+    else:
+        bash.status = 'failed'
 
     _j = Job.fetch(job_id, connection=rq_connection)
     
@@ -277,7 +292,6 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         logs['exc_info'] = check_layer + '\n\n' + update_to_dc
 
     bash.rqids = job_id
-    bash.status = _j.get_status()
     bash.logs = json.dumps(logs)
 
     db_session.commit()
