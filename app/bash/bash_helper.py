@@ -294,7 +294,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         job_enqueued_at = utc_to_local(job.enqueued_at)
         layer_modified_at = utc_to_local(layer_modified_at)
 
-        time_comparision = "\njob_enqueued_at: %s\nlayer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S%z'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S%z'))
+        time_comparision = "\njob_enqueued_at: %s\nlayer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S %f %z'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S %f %z'))
 
         if job_enqueued_at > layer_modified_at:
             return "Failed to run the command, the job enqueued_at time is later than the layer updated." + time_comparision
