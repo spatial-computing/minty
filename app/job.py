@@ -1,10 +1,11 @@
 from flask_rq2 import RQ
 import subprocess
 import os
-import zipfile
+# import zipfile
 import tarfile
 import requests
 import json
+import magic
 
 from rq import get_current_job
 from rq.utils import parse_timeout
@@ -181,7 +182,14 @@ def rq_download_job(resource, dataset_id, index, dir_path):
         # rq_connection = redis_url_or_rq_connection
         # if isinstance(redis_url_or_rq_connection, str):
 
-
+    if not is_zip and not is_tar:
+        if os.path.exists(file_path):
+            magic_fileinfo = magic.from_file(file_path)
+            if magic_fileinfo.lower().startswith('gzip'):
+                is_tar = True
+            if magic_fileinfo.lower().startswith('zip'):
+                is_zip = True
+                
     out_zip, err_zip = "", ""
     if is_zip:
         unzip_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
