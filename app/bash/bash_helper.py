@@ -108,14 +108,11 @@ def combine( args ):
         for key in default_setting:
             # if key != 'use_default_setting':
             args[key] = default_setting[key] 
+
     res = " "
-    # if == True
-    # args[key] = default
-    # print(args)
     for key in args:
         if( key not in IGNORED_KEY_AS_PARAMETER_IN_COMMAND and args[key] not in {'', None, False}):
             param = key.replace("_", "-")
-            # print("weird stuff##2",key)
             if( args[key] == True ):
                 res += "--%s " % (param)
             else:
