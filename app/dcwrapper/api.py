@@ -228,7 +228,7 @@ class DCWrapper(object):
 
         return response['datasets'][0]
 
-    def _download(self, resource_list, uuid2, **commmand_args):
+    def _download(self, resource_list, uuid2, **command_args):
         #print(len(resource_list))
         #print(os.getcwd())
         dir_path = self.download_dist + '/' + uuid2
@@ -269,7 +269,7 @@ class DCWrapper(object):
         return 'done_queue'
 
     def _buildBash(self, db_session, from_download_func=False, **kwargs):
-        bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector'], viz_config=kwargs['viz_config']).first()
+        bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector']).first()
 
         if not from_download_func and bash_check and 'data_file_path' in kwargs and kwargs['data_file_path'] == SINGLE_FILE_TAG:
             single_file_dir = self.download_dist + '/' + kwargs['md5vector']
