@@ -288,9 +288,9 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         from rq import get_current_job
         job = get_current_job()
         job_enqueued_at = job.enqueued_at
-        # print(job.id, 'job_enqueued_at', 'layer_modified_at', job_enqueued_at, layer_modified_at)
+        tmp = "job_enqueued_at: %s layer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S'))
         if job_enqueued_at > layer_modified_at:
-            return "Failed to run the command, the job enqueued_at time is later than the layer updated."
+            return "Failed to run the command, the job enqueued_at time is later than the layer updated." + tmp
 
         return 'success'
 
