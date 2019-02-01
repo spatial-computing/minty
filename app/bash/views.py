@@ -147,12 +147,9 @@ class Cancel(MethodView):
         no_exception, job = rq_instance.job_fetch(bash_job_id)
         if no_exception:
             job.cancel()
-            update_bash(bashid,status="ready_for_run") 
+            update_bash(bashid,status="ready_to_run") 
             return jsonify({"status":"job cancelled"})
         return jsonify({"status":"No such job"})
-
-        
-
 
 class Run(MethodView):
     def post(self):
@@ -162,10 +159,13 @@ class Run(MethodView):
             return jsonify({"status": "No record"})
         bash = bash._asdict()
 
+        if bash.status in {'running', 'downloading', 'started'}:
+            return jsonify({"status": "It\'s running"})
+
         if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
             run_bash(bashid)
             print(bashid)
-            update_bash(bashid, status= "running" )
+            update_bash(bashid, status="running")
         else:
             getdata = api.DCWrapper()
             status = getdata.findByDatasetId(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
