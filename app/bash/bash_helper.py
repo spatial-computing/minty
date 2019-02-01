@@ -279,9 +279,9 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
 
             layer_modified_at = response.get('modified_at', None)
             if layer_modified_at:
-                layer_modified_at = datetime.strptime(layer_modified_at, '%Y-%m-%d %H:%M:%S')
+                layer_modified_at = utc_to_local(datetime.strptime(layer_modified_at, '%Y-%m-%d %H:%M:%S'))
             else:
-                layer_modified_at = datetime.now()
+                layer_modified_at = utc_to_local(datetime.utcnow())
         else:
             if response['has'] is False:
                 return 'Failed in pipeline: not generate the layer.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
@@ -292,7 +292,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         job = get_current_job()
 
         job_enqueued_at = utc_to_local(job.enqueued_at.replace(second=0, microsecond=0))
-        layer_modified_at = utc_to_local(layer_modified_at)
+        layer_modified_at = layer_modified_at
 
         time_comparision = "\njob_enqueued_at: %s\nlayer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S %f %z'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S %f %z'))
 
@@ -306,9 +306,9 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         from sqlalchemy.orm import load_only
         layer = db_session.query(Layer).filter_by(md5 = md5vector).options(load_only('id', 'modified_at')).first()
         if layer:
-            return layer.modified_at
+            return layer.modified_at.astimezone(tz=None)
         else:
-            return datetime.now()
+            return utc_to_local(datetime.utcnow())
 
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
