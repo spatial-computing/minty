@@ -291,7 +291,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         
         job = get_current_job()
 
-        job_enqueued_at = utc_to_local(job.enqueued_at)
+        job_enqueued_at = utc_to_local(job.enqueued_at).replace(microsecond=0)
         layer_modified_at = utc_to_local(layer_modified_at)
 
         time_comparision = "\njob_enqueued_at: %s\nlayer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S %f %z'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S %f %z'))
