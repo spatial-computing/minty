@@ -253,7 +253,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
 
         return 'success'
     
-    def check_has_layer(uuid2, dataset_id, viz_config, viz_type):
+    def check_has_layer(uuid2, dataset_id, viz_config, viz_type, db_session):
         req = None
         if viz_type == 'mint-chart':
             req = requests.get(API_CHECK_MINT_CHART_LAYER + uuid2)
@@ -267,24 +267,49 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         # print(response)
         if not isinstance(response, dict):
             return 'has_layer return error.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+
+        from datetime import datetime
         
         if viz_type == 'mint-chart':
             if response.get('status') != None and response['status'] == 404:
                 return 'Viz_type : mint-chart, cannot find the layer with this uuid.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
             elif (response.get('data') == None) or (response.get('data') != None and len(response['data']) == 0):
                 return 'Viz_type : mint-chart, the layer with this uuid return the wrong data content.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+
+            layer_modified_at = response.get('modified_at', None)
+            if layer_modified_at:
+                layer_modified_at = datetime.strptime(layer_modified_at, '%Y-%m-%d %H:%M:%S')
+            else:
+                layer_modified_at = datetime.now()
         else:
             if response['has'] is False:
                 return 'Failed in pipeline: not generate the layer.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+            layer_modified_at = find_modified_at_by_md5vector(md5vector, db_session)
+
+        from rq import get_current_job
+        job = get_current_job()
+        job_enqueued_at = job.enqueued_at
+        # print(job.id, 'job_enqueued_at', 'layer_modified_at', job_enqueued_at, layer_modified_at)
+        if job_enqueued_at > layer_modified_at:
+            return "Failed to run the command, the job enqueued_at time is later than the layer updated."
 
         return 'success'
+
+    def find_modified_at_by_md5vector(md5vector, db_session):
+        from app.models import Layer
+        from sqlalchemy.orm import load_only
+        layer = db_session.query(Layer).filter_by(md5 = md5vector).options(load_only('id', 'modified_at')).first()
+        if layer:
+            return layer.modified_at
+        else:
+            return datetime.now()
 
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
     update_to_dc = ''
 
-    check_layer = check_has_layer(bash.md5vector, bash.dataset_id, bash.viz_config, bash.viz_type)
-
+    check_layer = check_has_layer(bash.md5vector, bash.dataset_id, bash.viz_config, bash.viz_type, db_session)
+    
     if check_layer == 'success':
         check_layer = 'Layer check success.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
         bash.status = 'success'

@@ -184,8 +184,8 @@ class Run(MethodView):
         if not bash:
             return jsonify({"status": "No record"})
         bash = bash._asdict()
-
-        if bash.status in {'running', 'downloading', 'started'}:
+        print(bash)
+        if bash['status'] in {'running', 'downloading', 'started'}:
             return jsonify({"status": "It\'s running"})
 
         if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
@@ -231,11 +231,12 @@ class Status(MethodView):
             no_exception, job = rq_instance.job_fetch(job_id)
             if no_exception:
                 status = job.get_status()
+                print(status)
                 if status != 'failed':
                     status = find_bash_attr(bash_id,'status')
                 else:
-                    status = find_bash_attr(bash_id,'status')
-                    if status != 'failed':
+                    substatus = find_bash_attr(bash_id,'status')
+                    if substatus != 'failed':
                         update_bash(bash_id, status="failed")
 
                 if job.result:

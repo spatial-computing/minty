@@ -124,7 +124,7 @@ class VisualizeAction(MethodView):
             bash = find_bash_by_viz_config_for_run(viz_config)
             if bash:
                 bash = bash._asdict()
-                if bash.status in {'running', 'downloading', 'started'}:
+                if bash['status'] in {'running', 'downloading', 'started'}:
                     return jsonify({"status": 307, "msg": self.msg[307]})
 
             getdata = api.DCWrapper(bash_autorun=True)

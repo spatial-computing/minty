@@ -16,7 +16,8 @@
                 dataType: 'json',
                 data: {command:command, csrf_token:$('.run-btn').data('csrf'),bashid:$(this).data('bashid')}
             }).done(function (json) {
-                alert(json.status)
+                alert(json.status);
+                updateStatus();
             });
         }
         
@@ -29,9 +30,12 @@
                 url: '/bash/cancel',
                 type: 'POST',
                 dataType: 'json',
-                data: { csrf_token:$('.run-btn').data('csrf'),bashid:$(this).data('bashid')}
+                data: { 
+                    csrf_token: $('.run-btn').data('csrf'),
+                    bashid: $(this).data('bashid')}
             }).done(function (json) {
-                alert(json.status)
+                alert(json.status);
+                updateStatus();
             });
 
         }
@@ -74,11 +78,11 @@
                 $($(document).find('.bash-status')[i]).html( badge[json.status[i]] )
                 $($(document).find('.bash-status')[i]).parents('tr').removeClass().addClass(job_status_tr_class[json.status[i]]);
                 if(json.status[i] === 'running'){
-                   $($(document).find('.run-btn')[i]).css("display","none"); 
-                   $($(document).find('.cancel-btn')[i]).css("display","block");
+                   $($(document).find('.run-btn')[i]).hide(); 
+                   $($(document).find('.cancel-btn')[i]).show();
                 }else {
-                    $($(document).find('.run-btn')[i]).css("display","block");
-                    $($(document).find('.cancel-btn')[i]).css("display","none"); 
+                    $($(document).find('.run-btn')[i]).show();
+                    $($(document).find('.cancel-btn')[i]).hide(); 
                 }
             }
             
