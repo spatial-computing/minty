@@ -22,6 +22,7 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'logs',
     'dataset_id',
     'data_url',
+    'download_ids',
     COLUMN_NAME_DATA_FILE_PATH,
     COLUMN_NAME_VIZ_TYPE
 }
@@ -46,7 +47,8 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.viz_config, 
         Bash.viz_type,
         Bash.file_type,
-        Bash.md5vector
+        Bash.md5vector,
+        Bash.download_ids
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [
@@ -92,7 +94,8 @@ PROJECTION_OF_BASH_TO_USE = [
     Bash.data_url, 
     Bash.viz_type,
     Bash.data_file_path,
-    Bash.dir
+    Bash.dir,
+    Bash.status
 ]
 def combine( args ):
 
@@ -150,6 +153,12 @@ def find_bash_by_id_for_run(id, db_session=db.session):
 
 def find_count(db_session=db.session):
     return db_session.query(Bash).count()
+
+def find_bash_by_viz_config_for_run(viz_config, db_session=db.session):
+    bash = db_session.query(Bash)\
+                     .with_entities(*PROJECTION_OF_BASH_TO_USE)\
+                     .filter_by(viz_config = viz_config).first()
+    return bash
 #find all
 def find_all(limit = 20, page=0, db_session=db.session):
     bashes = db_session.query(Bash)\

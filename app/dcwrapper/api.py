@@ -235,15 +235,23 @@ class DCWrapper(object):
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
         jobs = []
+        download_id_text = ''
         if isinstance(resource_list, str):
             _j = rq_download_job.queue(resource_list, uuid2, 0, dir_path)
             jobs.append(_j.id)
+            download_id_text += _j.id
             self.command_args['rqids'] = _j.id
         else:
             for index, resource in enumerate(resource_list):
                 _j = rq_download_job.queue(resource, uuid2, index, dir_path)
                 jobs.append(_j.id)
+                download_id_text = download_id_text + ',' + _j.id 
                 self.command_args['rqids'] = _j.id
+        
+        download_id_text = download_id_text.lstrip(',')
+        self.command_args['download_ids'] = download_id_text
+
+        self.command_args['status'] = 'downloading'
         # scheduler = rq_instance.get_scheduler()
         schedule = rq_check_job_status_scheduler.schedule(
                 timedelta(seconds=RQ_SCHEDULER_START_IN_SECONDS), # queue job in seconds
@@ -279,7 +287,11 @@ class DCWrapper(object):
     def _after_download(self, redis_url):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
-
+        if not self.bash_autorun:
+            self.command_args['status'] = 'ready_to_run'
+        else:
+            self.command_args['status'] = 'running'
+            
         bash = self._buildBash(db_session, from_download_func=False, **self.command_args)
         if self.bash_autorun:
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()

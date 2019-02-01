@@ -2,7 +2,7 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 
 import pymongo
-from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, find_count
+from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count
 import os
 import math
 import json
@@ -163,6 +163,19 @@ class BashList(MethodView):
             update_bash(bash_id,**setting)
         return jsonify({"status": "success"})
 
+class Cancel(MethodView):
+    def post(self):
+        bashid = request.form['bashid']
+        bash_job_id = find_bash_attr(bashid,"rqids")
+        if not bash_job_id:
+            return jsonify({"status":"No bash job id"})
+        no_exception, job = rq_instance.job_fetch(bash_job_id)
+        if no_exception:
+            job.cancel()
+            update_bash(bashid,status="ready_to_run") 
+            return jsonify({"status":"job cancelled"})
+        return jsonify({"status":"No such job"})
+
 class Run(MethodView):
     def post(self):
         bashid = request.form["bashid"]
@@ -171,12 +184,16 @@ class Run(MethodView):
             return jsonify({"status": "No record"})
         bash = bash._asdict()
 
+        if bash.status in {'running', 'downloading', 'started'}:
+            return jsonify({"status": "It\'s running"})
+
         if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
             run_bash(bashid)
+            print(bashid)
+            update_bash(bashid, status="running")
         else:
-            # r = requests.get(url_for('minty.visualize_action', dataset_id=bash['md5vector']))
             getdata = api.DCWrapper()
-            status = getdata.findByDatasetId(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) # job.status
+            status = getdata.findByDatasetId(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
         return jsonify({"status": "queued"})
 
 class Status(MethodView):
@@ -189,11 +206,12 @@ class Status(MethodView):
                 no_exception, job = rq_instance.job_fetch(job_id)
                 if no_exception:
                     _s = job.get_status()
-                    status.append(_s if _s else '')
-                else:
+                #     status.append(_s if _s else '')
+                # else:
+                if _s != 'failed':
                     _s = find_bash_attr(bash_ids[idx],'status')
-                    status.append(_s if _s else '')
-                   
+                status.append(_s if _s else '')
+            
             return jsonify({ "status": status })
         else:
             bash_id = request.form['bashid']
@@ -205,6 +223,10 @@ class Status(MethodView):
             no_exception, job = rq_instance.job_fetch(job_id)
             if no_exception:
                 status = job.get_status()
+                if status != 'failed':
+                    status = find_bash_attr(bash_id,'status')
+                else
+
                 if job.result:
                     logs = json.loads(job.result)
                 else:
@@ -214,6 +236,9 @@ class Status(MethodView):
                 else:
                     logs_tmp_var = json.loads(find_bash_attr(bash_id,'logs'))
                     logs['exc_info'] = logs_tmp_var['exc_info'] if 'exc_info' in logs_tmp_var else ''
+
+                    #should update database bash logs
+
             else:
                 status = find_bash_attr(bash_id,'status')
                 logs = json.loads(find_bash_attr(bash_id,'logs'))

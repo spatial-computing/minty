@@ -21,20 +21,40 @@
         }
         
     });
+    $('.cancel-btn').on('click',function (event) {
+        event.preventDefault();   
+        let confirmation = confirm("This action will cancel this job, are you sure?");
+        if (confirmation) {
+            $.ajax({
+                url: '/bash/cancel',
+                type: 'POST',
+                dataType: 'json',
+                data: { csrf_token:$('.run-btn').data('csrf'),bashid:$(this).data('bashid')}
+            }).done(function (json) {
+                alert(json.status)
+            });
+
+        }
+        
+    });
 
     var badge = {
-        finished: '<span class="badge badge-success text-wrap">Finished</span>',
-        queued: '<span class="badge badge-info text-wrap">Queued</span>',
-        started: '<span class="badge badge-warning text-wrap">Started</span>',
+        finished: '<span class="badge badge-info text-wrap">Finished</span>',
+        downloading: '<span class="badge badge-dark text-wrap">Downloading</span>'
+        success: '<span class="badge badge-success text-wrap">Success</span>',
+        ready_to_run: '<span class="badge badge-info text-wrap">Ready to run</span>',
+        running: '<span class="badge badge-warning text-wrap">Runnnig</span>',
         failed: '<span class="badge badge-danger text-wrap">Failed</span>',
-        '': '<span class="badge badge-dark text-wrap">Not running</span>'
+        not_enqueued: '<span class="badge badge-dark text-wrap">Not enqueued</span>'
     }
     var job_status_tr_class = {
         finished: 'table-success',
-        queued: 'table-info',
-        started: 'table-info',
-        failed: 'table-warning',
-        '': 'table-light'   
+        downloading: 'table-info',
+        success: 'table-success',
+        ready_to_run: 'table-warning',
+        running: 'table-info',
+        failed: 'table-danger',
+        not_enqueued: 'table-light'   
     }
     function updateStatus() {
         $.ajax({
@@ -51,11 +71,13 @@
             for (var i = 0; i < json.status.length; i++) {
                 $($(document).find('.bash-status')[i]).html( badge[json.status[i]] )
                 $($(document).find('.bash-status')[i]).parents('tr').removeClass().addClass(job_status_tr_class[json.status[i]]);
-                if(json.status[i]==='queued' || json.status[i]==='started'){
-                   $($(document).find('.run-btn')[i]).prop('disabled', true);
+                if(json.status[i]==='running'){
+                   $($(document).find('.run-btn')[i]).css("display","none"); 
+                   $($(document).find('.cancel-btn')[i]).css("display","block");
                 }
                 else {
-                   $($(document).find('.run-btn')[i]).prop('disabled', false); 
+                    $($(document).find('.run-btn')[i]).css("display","block");
+                    $($(document).find('.cancel-btn')[i]).css("display","none"); 
                 }
             }
             

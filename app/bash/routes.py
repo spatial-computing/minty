@@ -8,5 +8,6 @@ routes = [
 	Pluggable('/bash/edit/<string:bash_id>', EditBash, 'edit_bash'),
 	Pluggable('/bash/run', Run, 'run'),
 	Pluggable('/bash/status', Status, 'status'),
-	Pluggable('/bash/defaultsetting',MIntcastTaskDefaultSetting,'defaultsetting')
+	Pluggable('/bash/defaultsetting',MIntcastTaskDefaultSetting,'defaultsetting'),
+	Pluggable('/bash/cancel',Cancel,'cancel')
 ]
