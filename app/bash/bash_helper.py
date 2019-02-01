@@ -288,7 +288,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         from rq import get_current_job
         
         job = get_current_job()
-        job_enqueued_at = job.enqueued_at
+        job_enqueued_at = job.enqueued_at.astimezone(tz.tzlocal())
         time_comparision = "\njob_enqueued_at: %s\nlayer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S'))
         if job_enqueued_at > layer_modified_at:
             return "Failed to run the command, the job enqueued_at time is later than the layer updated." + time_comparision
