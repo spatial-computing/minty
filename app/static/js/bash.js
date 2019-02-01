@@ -40,17 +40,20 @@
 
     var badge = {
         finished: '<span class="badge badge-info text-wrap">Finished</span>',
+        downloading: '<span class="badge badge-dark text-wrap">Downloading</span>'
         success: '<span class="badge badge-success text-wrap">Success</span>',
-        ready_for_run: '<span class="badge badge-info text-wrap">ready for run</span>',
-        running: '<span class="badge badge-warning text-wrap">runnnig</span>',
+        ready_to_run: '<span class="badge badge-info text-wrap">Ready to run</span>',
+        running: '<span class="badge badge-warning text-wrap">Runnnig</span>',
         failed: '<span class="badge badge-danger text-wrap">Failed</span>',
         not_enqueued: '<span class="badge badge-dark text-wrap">Not enqueued</span>'
     }
     var job_status_tr_class = {
         finished: 'table-success',
-        ready_for_run: 'table-info',
+        downloading: 'table-info',
+        success: 'table-success',
+        ready_to_run: 'table-warning',
         running: 'table-info',
-        failed: 'table-warning',
+        failed: 'table-danger',
         not_enqueued: 'table-light'   
     }
     function updateStatus() {

@@ -248,10 +248,9 @@ class DCWrapper(object):
                 download_id_text = download_id_text + ',' + _j.id 
                 self.command_args['rqids'] = _j.id
         
-        if download_id_text[0] == ',':
-            self.command_args['download_ids'] = download_id_text[1:]
-        else:
-            self.command_args['download_ids'] = download_id_text
+        download_id_text = download_id_text.lstrip(',')
+        self.command_args['download_ids'] = download_id_text
+
         self.command_args['status'] = 'downloading'
         # scheduler = rq_instance.get_scheduler()
         schedule = rq_check_job_status_scheduler.schedule(
@@ -289,7 +288,7 @@ class DCWrapper(object):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
         if not self.bash_autorun:
-            self.command_args['status'] = 'ready for run'
+            self.command_args['status'] = 'ready_to_run'
         else:
             self.command_args['status'] = 'running'
             

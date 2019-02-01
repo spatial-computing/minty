@@ -22,6 +22,7 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'logs',
     'dataset_id',
     'data_url',
+    'download_ids',
     COLUMN_NAME_DATA_FILE_PATH,
     COLUMN_NAME_VIZ_TYPE
 }
@@ -46,7 +47,8 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.viz_config, 
         Bash.viz_type,
         Bash.file_type,
-        Bash.md5vector
+        Bash.md5vector,
+        Bash.download_ids
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [

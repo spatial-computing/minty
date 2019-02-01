@@ -165,7 +165,7 @@ class Run(MethodView):
         if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
             run_bash(bashid)
             print(bashid)
-            update_bash(bashid,status="running")
+            update_bash(bashid, status= "running" )
         else:
             getdata = api.DCWrapper()
             status = getdata.findByDatasetId(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
@@ -178,14 +178,15 @@ class Status(MethodView):
             job_ids = request.form['jobid'].split(',')
             status = []
             for idx, job_id in enumerate(job_ids):
-                # no_exception, job = rq_instance.job_fetch(job_id)
-                # if no_exception:
-                #     _s = job.get_status()
+                no_exception, job = rq_instance.job_fetch(job_id)
+                if no_exception:
+                    _s = job.get_status()
                 #     status.append(_s if _s else '')
                 # else:
-                _s = find_bash_attr(bash_ids[idx],'status')
+                if _s != 'failed':
+                    _s = find_bash_attr(bash_ids[idx],'status')
                 status.append(_s if _s else '')
-                   
+            
             return jsonify({ "status": status })
         else:
             bash_id = request.form['bashid']
@@ -196,8 +197,11 @@ class Status(MethodView):
 
             no_exception, job = rq_instance.job_fetch(job_id)
             if no_exception:
-                # status = job.get_status()
-                status = find_bash_attr(bash_id,'status')
+                status = job.get_status()
+                if status != 'failed':
+                    status = find_bash_attr(bash_id,'status')
+                else
+
                 if job.result:
                     logs = json.loads(job.result)
                 else:

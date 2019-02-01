@@ -152,7 +152,7 @@ class Bash(db.Model):
     logs = db.Column(db.TEXT, server_default='')
     dataset_id = db.Column(db.String(255), server_default='')
     data_url = db.Column(db.String(), server_default='')
-    download_ids = db.Column(db.TEXT, server_default='')
+    download_ids = db.Column(db.String(), server_default='')
     def __setitem__(self, k, v):
         self.k = v
 
