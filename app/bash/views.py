@@ -11,6 +11,7 @@ from app.dcwrapper import api
 
 import ast
 KEY_FILTER_FOR_USER = {'_sa_instance_state',  'id', 'viz_type'}
+MINTY_URL = 'http://minty.mintviz.org/'
 class DeleteBash(MethodView):
 
     def get(self, bash_id):
@@ -98,8 +99,8 @@ class BashList(MethodView):
         self.mongo_db = self.mongo_client["mintcast"]
         self.mongo_mintcast_default = self.mongo_db["metadata"]
         self.mongo_mintcast_default_controller = self.mongo_db["metadata"]
-        self.default_setting = self.mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False,"type":False})
-        self.default_setting_controller = self.mongo_mintcast_default_controller.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting-controller'}, {"_id": False,"type":False})	
+        self.default_setting = self.mongo_mintcast_default.find_one({'type': 'minty-mintcast-cmd-parameter-setting'}, {"_id": False,"type":False})
+        self.default_setting_controller = self.mongo_mintcast_default_controller.find_one({'type': 'minty-dashboard-setting'}, {"_id": False,"type":False})	
     
     def _safe_cast_int(self, s, default_value=0):
         try:
@@ -171,9 +172,7 @@ class Cancel(MethodView):
     def post(self):
         bashid = request.form['bashid']
         bash_job_id = find_bash_attr(bashid,"rqids")
-        local_url = 'http://0.0.0.0:65522/'
-        if local_url == request.host_url:
-            return jsonify({"status":"can not cancel a job in local"})
+        # if local_url == request.host_url:
         if not bash_job_id:
             return jsonify({"status":"No bash job id"})
         no_exception, job = rq_instance.job_fetch(bash_job_id)
@@ -182,6 +181,7 @@ class Cancel(MethodView):
             update_bash(bashid, status="ready_to_run") 
             return jsonify({"status":"Job cancelled"})
         return jsonify({"status":"No such job"})
+
 
 class Run(MethodView):
     def post(self):
@@ -302,7 +302,7 @@ class MIntcastTaskDefaultSetting(MethodView):
         self.mongo_mintcast_default = self.mongo_db["metadata"]
 
     def get(self):
-        ret = self.mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False})
+        ret = self.mongo_mintcast_default.find_one({'type': 'minty-mintcast-cmd-parameter-setting'}, {"_id": False})
         if ret:
             return jsonify(dict(ret))
         else:
@@ -311,9 +311,9 @@ class MIntcastTaskDefaultSetting(MethodView):
     def post(self):
         name = request.form['name']
         status = request.form['status']
-        setting = {name:status}
+        setting = {name:True} if status =='true' else {name:False}
         self.mongo_mintcast_default.update_one(
-            {"type":"minty-mintcast-task-dashboard-default-value-setting"},
+            {"type":"minty-mintcast-cmd-parameter-setting"},
             {'$set':setting},
             upsert=True
 
@@ -330,7 +330,7 @@ class MIntcastTaskDefaultSettingController(MethodView):
         self.mongo_mintcast_default_controller = self.mongo_db["metadata"]
 
     def get(self):
-        ret = self.mongo_mintcast_default_controller.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting-controller'}, {"_id": False})
+        ret = self.mongo_mintcast_default_controller.find_one({'type': 'minty-dashboard-setting'}, {"_id": False})
         if ret:
             return jsonify(dict(ret))
         else:
@@ -339,9 +339,9 @@ class MIntcastTaskDefaultSettingController(MethodView):
     def post(self):
         name = request.form['name']
         status = request.form['status']
-        setting = {name:status}
+        setting = {name:True} if status =='true' else {name:False}
         self.mongo_mintcast_default_controller.update_one(
-            {"type":"minty-mintcast-task-dashboard-default-value-setting-controller"},
+            {"type":"minty-dashboard-setting"},
             {'$set':setting},
             upsert=True
 

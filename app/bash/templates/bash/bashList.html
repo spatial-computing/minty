@@ -20,7 +20,7 @@
   <form class="setting-form" action="">
     {% for key in default_setting_controller %}
     <div class="custom-control custom-switch">
-      {% if default_setting[key] =='true' %}
+      {% if default_setting_controller[key] ==True %}
       <input type="checkbox" class="custom-controller custom-control-input" id="{{key}}" name="{{key}}" checked>
       {% else %}
       <input type="checkbox" class="custom-controller custom-control-input" id="{{key}}" name="{{key}}" >
@@ -32,11 +32,11 @@
 </div>
 
 <div class="default-setting-panel">
-  <h5>Default Value Setting Panel</h5>
+  <h5>MintCast Default Value Panel</h5>
   <form class="setting-form" action="">
     {% for key in default_setting %}
     <div class="custom-control custom-switch">
-      {% if default_setting[key] =='true' %}
+      {% if default_setting[key] ==True %}
       <input type="checkbox" class="custom-setting custom-control-input" id="{{key}}" name="{{key}}" checked>
       {% else %}
       <input type="checkbox" class="custom-setting custom-control-input" id="{{key}}" name="{{key}}" >
