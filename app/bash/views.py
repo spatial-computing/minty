@@ -2,9 +2,9 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 
 import pymongo
-from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id
+from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, find_count
 import os
-
+import math
 import json
 from app.job import rq_instance
 from app.dcwrapper import api
@@ -98,9 +98,30 @@ class BashList(MethodView):
         self.mongo_db = self.mongo_client["mintcast"]
         self.mongo_mintcast_default = self.mongo_db["metadata"]
         self.default_setting = self.mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False,"type":False})	
+    
+    def _safe_cast_int(self, s, default_value=0):
+        try:
+            return int(s)
+        except Exception as e:
+            return default_value
 
     def get(self):
-        bashes = find_all(limit=20, page=0)
+        page = 1
+        default_limit = 8
+        limit = default_limit
+        if 'page' in request.args:
+            page = self._safe_cast_int(request.args['page'], default_value=page)
+        if 'limit' in request.args:
+            limit = self._safe_cast_int(request.args['limit'], default_value=limit)
+        if page < 1:
+            page = 1
+        if limit < 2 or limit > 20:
+            limit = default_limit
+        total_records = find_count()
+        total_page_num = math.ceil(total_records / limit);
+        if page > total_page_num:
+            page = total_page_num
+        bashes = find_all(limit=limit, page=page-1)
         res = []
         ids = []
         for bash in bashes:
@@ -124,6 +145,10 @@ class BashList(MethodView):
                 th=th, 
                 res=res,
                 default_setting=self.default_setting,
+                total_page_num=total_page_num,
+                current_page=page,
+                current_limit=limit,
+                default_limit=default_limit,
                 ids = ids), 200, headers)
 
     def post(self):

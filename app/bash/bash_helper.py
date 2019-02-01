@@ -148,12 +148,14 @@ def find_bash_by_id_for_run(id, db_session=db.session):
                      .filter_by(id = id).first()
     return bash
 
+def find_count(db_session=db.session):
+    return db_session.query(Bash).count()
 #find all
 def find_all(limit = 20, page=0, db_session=db.session):
     bashes = db_session.query(Bash)\
                        .with_entities(*PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB)\
                        .order_by(Bash.id.desc())\
-                       .limit(limit).offset(page)\
+                       .limit(limit).offset(limit*page)\
                        .all()
     # res=[]
     # for bash in bashes:

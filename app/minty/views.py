@@ -107,7 +107,7 @@ class VisualizeAction(MethodView):
 
     def get(self, dataset_id):
         if dataset_id == 'dataset':
-            print(request.args)
+            # print(request.args)
             if 'dataset_id' not in request.args or 'data_url' not in request.args:
                 return jsonify({"status": 400, "msg": self.msg[status]})
             dataset_id = request.args['dataset_id']
