@@ -1,8 +1,5 @@
 !(function () {
-//     console.log( "ready!" );
-    // $('#dtHorizontalExample').DataTable({
-    // "scrollX": true
-    // });
+ 
     
 
     $('.run-btn').on('click',function (event) {
@@ -136,15 +133,32 @@
     //     });       
 
     // })
-    $('.custom-control-input').on('change',function(event){
+    $('.custom-setting').on('change',function(event){
         event.preventDefault();
-        
         let status = $(this).prop("checked");
         let name = $( this ).attr('name');
         let csrf_token = $('#csrf_token_hidden').val();
         $(this).prop("checked",status);
         $.ajax({
             url:'/bash/defaultsetting',
+            type:'POST',
+            dataType:'json',
+            data:{csrf_token:csrf_token, status:status, name:name}
+        }).done(function(json){
+            // window.location.reload();
+            $('.toast-body').html(json.name +" changed to " +json.status)
+            $('.toast').toast('show');
+
+        })
+    });
+    $('.custom-controller').on('change',function(event){
+        event.preventDefault();
+        let status = $(this).prop("checked");
+        let name = $( this ).attr('name');
+        let csrf_token = $('#csrf_token_hidden').val();
+        $(this).prop("checked",status);
+        $.ajax({
+            url:'/bash/defaultsetting/controller',
             type:'POST',
             dataType:'json',
             data:{csrf_token:csrf_token, status:status, name:name}
