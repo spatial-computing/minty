@@ -285,7 +285,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         else:
             if response['has'] is False:
                 return 'Failed in pipeline: not generate the layer.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
-            layer_modified_at = find_modified_at_by_md5vector(md5vector, db_session)
+            layer_modified_at = find_modified_at_by_md5vector(uuid2, db_session)
 
         from rq import get_current_job
         

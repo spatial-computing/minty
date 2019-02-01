@@ -231,7 +231,7 @@ class Status(MethodView):
             no_exception, job = rq_instance.job_fetch(job_id)
             if no_exception:
                 status = job.get_status()
-                print(status)
+                # print(status)
                 if status != 'failed':
                     status = find_bash_attr(bash_id,'status')
                 else:
