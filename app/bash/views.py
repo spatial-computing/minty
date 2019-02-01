@@ -121,6 +121,7 @@ class BashList(MethodView):
         total_page_num = math.ceil(total_records / limit);
         if page > total_page_num:
             page = total_page_num
+
         bashes = find_all(limit=limit, page=page-1)
         res = []
         ids = []
@@ -172,8 +173,8 @@ class Cancel(MethodView):
         no_exception, job = rq_instance.job_fetch(bash_job_id)
         if no_exception:
             job.cancel()
-            update_bash(bashid,status="ready_to_run") 
-            return jsonify({"status":"job cancelled"})
+            update_bash(bashid, status="ready_to_run") 
+            return jsonify({"status":"Job cancelled"})
         return jsonify({"status":"No such job"})
 
 class Run(MethodView):
@@ -204,28 +205,38 @@ class Status(MethodView):
             status = []
             for idx, job_id in enumerate(job_ids):
                 no_exception, job = rq_instance.job_fetch(job_id)
+                _s = ''
                 if no_exception:
                     _s = job.get_status()
                 #     status.append(_s if _s else '')
                 # else:
                 if _s != 'failed':
                     _s = find_bash_attr(bash_ids[idx],'status')
+                # no batch update
+                # else:
+                #     _s = find_bash_attr(bash_ids[idx],'status')
+                #     if _s != 'failed':
+                #         update_bash(bash_ids[idx], status="failed")
+
                 status.append(_s if _s else '')
             
             return jsonify({ "status": status })
         else:
             bash_id = request.form['bashid']
             job_id = request.form['jobid']
+            download_id = request.form['download_id']
             # print(jobid)
-            status = ''
+            status = 'not_found'
             logs = {}
-
             no_exception, job = rq_instance.job_fetch(job_id)
             if no_exception:
                 status = job.get_status()
                 if status != 'failed':
                     status = find_bash_attr(bash_id,'status')
-                else
+                else:
+                    status = find_bash_attr(bash_id,'status')
+                    if status != 'failed':
+                        update_bash(bash_id, status="failed")
 
                 if job.result:
                     logs = json.loads(job.result)
@@ -238,18 +249,42 @@ class Status(MethodView):
                     logs['exc_info'] = logs_tmp_var['exc_info'] if 'exc_info' in logs_tmp_var else ''
 
                     #should update database bash logs
-
             else:
                 status = find_bash_attr(bash_id,'status')
                 logs = json.loads(find_bash_attr(bash_id,'logs'))
             
-            status = status if status else ''
+            status = status if status else 'not_found'
             if not logs:
                 logs = {'output':'', 'error':'', 'exc_info':''}
+# ================Download Log Started===========================
+            download_status = 'not_found'
+            download_logs = {}
+            no_exception, download_job = rq_instance.job_fetch(download_id)
+            exc_info_download_info = 'No exc_info or download log has expired.'
+            if no_exception:
+                download_status = download_job.get_status()
+                if download_job.result:
+                    download_logs = json.loads(download_job.result)
+                else:
+                    download_logs = {'output': 'No stdout', 'error': 'No stderr'}
+
+                if download_job.exc_info:
+                    download_logs['exc_info'] = download_job.exc_info
+                else:
+                    download_logs['exc_info'] = exc_info_download_info
+
+                if download_logs['exc_info'] == "null" or not download_logs['exc_info']:
+                    download_logs['exc_info'] = exc_info_download_info
+            download_status = download_status if download_status else 'not_found' 
+
+            if not download_logs:
+                download_logs = {'output':'No stdout', 'error':'No stderr', 'exc_info': exc_info_download_info}
 
             return jsonify({
                 "status": status, 
-                "logs": logs
+                "logs": logs,
+                "download_status": download_status,
+                "download_logs": download_logs
                 })
 
 
