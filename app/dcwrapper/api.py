@@ -285,13 +285,17 @@ class DCWrapper(object):
             return bash
 
     def _after_download(self, redis_url):
+        print('kepia###3', self.command_args['status'])
+        if self.command_args['status'] == 'running' or self.command_args['status'] == 'ready_to_run':
+            return
+        
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
         if not self.bash_autorun:
             self.command_args['status'] = 'ready_to_run'
         else:
             self.command_args['status'] = 'running'
-            
+        
         bash = self._buildBash(db_session, from_download_func=False, **self.command_args)
         if self.bash_autorun:
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
