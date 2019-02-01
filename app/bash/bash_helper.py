@@ -251,7 +251,10 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
             return 'error'
 
         return 'success'
-    
+    def utc_to_local(utc_dt):
+        from datetime import timezone
+        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
     def check_has_layer(uuid2, dataset_id, viz_config, viz_type, db_session):
         req = None
         if viz_type == 'mint-chart':
@@ -268,7 +271,6 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
             return 'has_layer return error.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
 
         from datetime import datetime
-        from dateutil import tz
         if viz_type == 'mint-chart':
             if response.get('status') != None and response['status'] == 404:
                 return 'Viz_type : mint-chart, cannot find the layer with this uuid.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
@@ -277,9 +279,9 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
 
             layer_modified_at = response.get('modified_at', None)
             if layer_modified_at:
-                layer_modified_at = datetime.strptime(layer_modified_at, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz.tzlocal())
+                layer_modified_at = datetime.strptime(layer_modified_at, '%Y-%m-%d %H:%M:%S')
             else:
-                layer_modified_at = datetime.now().replace(tzinfo=tz.tzlocal())
+                layer_modified_at = datetime.now()
         else:
             if response['has'] is False:
                 return 'Failed in pipeline: not generate the layer.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
@@ -288,8 +290,12 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         from rq import get_current_job
         
         job = get_current_job()
-        job_enqueued_at = job.enqueued_at.astimezone(tz.tzlocal())
+
+        job_enqueued_at = utc_to_local(job.enqueued_at)
+        layer_modified_at = utc_to_local(layer_modified_at)
+
         time_comparision = "\njob_enqueued_at: %s\nlayer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S'))
+        
         if job_enqueued_at > layer_modified_at:
             return "Failed to run the command, the job enqueued_at time is later than the layer updated." + time_comparision
 
@@ -300,9 +306,9 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         from sqlalchemy.orm import load_only
         layer = db_session.query(Layer).filter_by(md5 = md5vector).options(load_only('id', 'modified_at')).first()
         if layer:
-            return layer.modified_at.replace(tzinfo=tz.tzlocal())
+            return layer.modified_at
         else:
-            return datetime.now().replace(tzinfo=tz.tzlocal())
+            return datetime.now()
 
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
