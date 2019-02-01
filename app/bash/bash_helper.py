@@ -102,11 +102,13 @@ def combine( args ):
     mongo_client = pymongo.MongoClient(MongoConfig.MONGODB_CONNECTION)
     mongo_db = mongo_client["mintcast"]
     mongo_mintcast_default = mongo_db["metadata"]
-    default_setting = mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False, "type":False})
-    if (default_setting['use_default_setting'] == 'true'):
+    default_setting = mongo_mintcast_default.find_one({'type': 'minty-mintcast-cmd-parameter-setting'}, {"_id": False, "type":False})
+    default_setting_controller = mongo_mintcast_default.find_one({'type': 'minty-dashboard-setting'}, {"_id": False, "type":False})
+    if (default_setting_controller['use_default_setting']):
         for key in default_setting:
-            if key != 'use_default_setting':
-                args[key] = True if default_setting[key] == 'true' else False 
+            # if key != 'use_default_setting':
+            args[key] = default_setting[key] 
+
     res = " "
     for key in args:
         if( key not in IGNORED_KEY_AS_PARAMETER_IN_COMMAND and args[key] not in {'', None, False}):
@@ -123,6 +125,7 @@ def combine( args ):
     if args[COLUMN_NAME_VIZ_TYPE] not in VIZ_TYPE_OF_TIMESERISE:
         # res += "/tmp/tmp.tif" # for test
         res += args[COLUMN_NAME_DATA_FILE_PATH]
+    print(res)
     return res
 
 #find one by id 
