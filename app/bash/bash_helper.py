@@ -231,7 +231,6 @@ def run_bash(bash_id):
 def update_bash_status(bash_id, job_id, logs, rq_connection):
     from app.models import get_db_session_instance
     from rq.job import Job
-    
     import requests
     API_UPDATE_VIZSTATUS_TO_DC = 'http://api.mint-data-catalog.org/datasets/update_dataset_viz_status'
     API_CHECK_HAS_LAYER = 'http://minty.mintviz.org/minty/has_layer/'
@@ -306,8 +305,10 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
 
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
+    bash.rqids = job_id
+    db_session.commit()
+    
     update_to_dc = ''
-
     check_layer = check_has_layer(bash.md5vector, bash.dataset_id, bash.viz_config, bash.viz_type, db_session)
     
     if check_layer == 'success':
@@ -327,7 +328,6 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     else:
         logs['exc_info'] = check_layer + '\n\n' + update_to_dc
 
-    bash.rqids = job_id
     bash.logs = json.dumps(logs)
 
     db_session.commit()
