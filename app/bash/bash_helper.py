@@ -22,6 +22,7 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'logs',
     'dataset_id',
     'data_url',
+    'download_ids',
     COLUMN_NAME_DATA_FILE_PATH,
     COLUMN_NAME_VIZ_TYPE
 }
@@ -46,7 +47,8 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.viz_config, 
         Bash.viz_type,
         Bash.file_type,
-        Bash.md5vector
+        Bash.md5vector,
+        Bash.download_ids
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [
@@ -92,7 +94,8 @@ PROJECTION_OF_BASH_TO_USE = [
     Bash.data_url, 
     Bash.viz_type,
     Bash.data_file_path,
-    Bash.dir
+    Bash.dir,
+    Bash.status
 ]
 def combine( args ):
 
@@ -103,14 +106,16 @@ def combine( args ):
     if (default_setting['use_default_setting'] == 'true'):
         for key in default_setting:
             if key != 'use_default_setting':
+                # print("weird stuff##",default_setting[key], key)
                 args[key] = True if default_setting[key] == 'true' else False 
     res = " "
     # if == True
     # args[key] = default
+    # print(args)
     for key in args:
         if( key not in IGNORED_KEY_AS_PARAMETER_IN_COMMAND and args[key] not in {'', None, False}):
             param = key.replace("_", "-")
-
+            # print("weird stuff##2",key)
             if( args[key] == True ):
                 res += "--%s " % (param)
             else:
@@ -148,12 +153,20 @@ def find_bash_by_id_for_run(id, db_session=db.session):
                      .filter_by(id = id).first()
     return bash
 
+def find_count(db_session=db.session):
+    return db_session.query(Bash).count()
+
+def find_bash_by_viz_config_for_run(viz_config, db_session=db.session):
+    bash = db_session.query(Bash)\
+                     .with_entities(*PROJECTION_OF_BASH_TO_USE)\
+                     .filter_by(viz_config = viz_config).first()
+    return bash
 #find all
 def find_all(limit = 20, page=0, db_session=db.session):
     bashes = db_session.query(Bash)\
                        .with_entities(*PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB)\
                        .order_by(Bash.id.desc())\
-                       .limit(limit).offset(page)\
+                       .limit(limit).offset(limit*page)\
                        .all()
     # res=[]
     # for bash in bashes:
@@ -220,7 +233,6 @@ def run_bash(bash_id):
 def update_bash_status(bash_id, job_id, logs, rq_connection):
     from app.models import get_db_session_instance
     from rq.job import Job
-    
     import requests
     API_UPDATE_VIZSTATUS_TO_DC = 'http://api.mint-data-catalog.org/datasets/update_dataset_viz_status'
     API_CHECK_HAS_LAYER = 'http://minty.mintviz.org/minty/has_layer/'
@@ -241,8 +253,11 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
             return 'error'
 
         return 'success'
-    
-    def check_has_layer(uuid2, dataset_id, viz_config, viz_type):
+    def utc_to_local(utc_dt):
+        from datetime import timezone
+        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
+    def check_has_layer(uuid2, dataset_id, viz_config, viz_type, db_session):
         req = None
         if viz_type == 'mint-chart':
             req = requests.get(API_CHECK_MINT_CHART_LAYER + uuid2)
@@ -256,24 +271,55 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         # print(response)
         if not isinstance(response, dict):
             return 'has_layer return error.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
-        
+
+        from datetime import datetime
         if viz_type == 'mint-chart':
             if response.get('status') != None and response['status'] == 404:
                 return 'Viz_type : mint-chart, cannot find the layer with this uuid.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
             elif (response.get('data') == None) or (response.get('data') != None and len(response['data']) == 0):
                 return 'Viz_type : mint-chart, the layer with this uuid return the wrong data content.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+
+            layer_modified_at = response.get('modified_at', None)
+            if layer_modified_at:
+                layer_modified_at = utc_to_local(datetime.strptime(layer_modified_at, '%Y-%m-%d %H:%M:%S'))
+            else:
+                layer_modified_at = utc_to_local(datetime.utcnow())
         else:
             if response['has'] is False:
                 return 'Failed in pipeline: not generate the layer.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
+            layer_modified_at = find_modified_at_by_md5vector(uuid2, db_session)
+
+        from rq import get_current_job
+        
+        job = get_current_job()
+
+        job_enqueued_at = utc_to_local(job.enqueued_at.replace(second=0, microsecond=0))
+        layer_modified_at = layer_modified_at
+
+        time_comparision = "\njob_enqueued_at: %s\nlayer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S %f %z'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S %f %z'))
+
+        if job_enqueued_at > layer_modified_at:
+            return "Failed to run the command, the job enqueued_at time is later than the layer updated." + time_comparision
 
         return 'success'
 
+    def find_modified_at_by_md5vector(md5vector, db_session):
+        from app.models import Layer
+        from sqlalchemy.orm import load_only
+        layer = db_session.query(Layer).filter_by(md5 = md5vector).options(load_only('id', 'modified_at')).first()
+        if layer:
+            return layer.modified_at.astimezone(tz=None)
+        else:
+            return utc_to_local(datetime.utcnow())
+
     db_session = get_db_session_instance()
     bash = db_session.query(Bash).filter_by(id = bash_id).first()
+    bash.rqids = job_id
+    db_session.commit()
+    
     update_to_dc = ''
-
-    check_layer = check_has_layer(bash.md5vector, bash.dataset_id, bash.viz_config, bash.viz_type)
-
+    check_layer = check_has_layer(bash.md5vector, bash.dataset_id, bash.viz_config, bash.viz_type, db_session)
+    
     if check_layer == 'success':
         check_layer = 'Layer check success.\nDataset_id: %s\nViz_config: %s' % (bash.dataset_id, bash.viz_config)
         bash.status = 'success'
@@ -291,7 +337,6 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     else:
         logs['exc_info'] = check_layer + '\n\n' + update_to_dc
 
-    bash.rqids = job_id
     bash.logs = json.dumps(logs)
 
     db_session.commit()
@@ -314,4 +359,3 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         # subprocess.run(["bash", "rm", "-rf", path])
 
     return bash
-

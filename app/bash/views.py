@@ -2,9 +2,9 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 
 import pymongo
-from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id,combine
+from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count
 import os
-
+import math
 import json
 from app.job import rq_instance
 from app.dcwrapper import api
@@ -98,9 +98,31 @@ class BashList(MethodView):
         self.mongo_db = self.mongo_client["mintcast"]
         self.mongo_mintcast_default = self.mongo_db["metadata"]
         self.default_setting = self.mongo_mintcast_default.find_one({'type': 'minty-mintcast-task-dashboard-default-value-setting'}, {"_id": False,"type":False})	
+    
+    def _safe_cast_int(self, s, default_value=0):
+        try:
+            return int(s)
+        except Exception as e:
+            return default_value
 
     def get(self):
-        bashes = find_all(limit=20, page=0)
+        page = 1
+        default_limit = 8
+        limit = default_limit
+        if 'page' in request.args:
+            page = self._safe_cast_int(request.args['page'], default_value=page)
+        if 'limit' in request.args:
+            limit = self._safe_cast_int(request.args['limit'], default_value=limit)
+        if page < 1:
+            page = 1
+        if limit < 2 or limit > 20:
+            limit = default_limit
+        total_records = find_count()
+        total_page_num = math.ceil(total_records / limit);
+        if page > total_page_num:
+            page = total_page_num
+
+        bashes = find_all(limit=limit, page=page-1)
         res = []
         ids = []
         for bash in bashes:
@@ -124,6 +146,10 @@ class BashList(MethodView):
                 th=th, 
                 res=res,
                 default_setting=self.default_setting,
+                total_page_num=total_page_num,
+                current_page=page,
+                current_limit=limit,
+                default_limit=default_limit,
                 ids = ids), 200, headers)
 
     def post(self):
@@ -147,12 +173,9 @@ class Cancel(MethodView):
         no_exception, job = rq_instance.job_fetch(bash_job_id)
         if no_exception:
             job.cancel()
-            update_bash(bashid,status="ready_for_run") 
-            return jsonify({"status":"job cancelled"})
+            update_bash(bashid, status="ready_to_run") 
+            return jsonify({"status":"Job cancelled"})
         return jsonify({"status":"No such job"})
-
-        
-
 
 class Run(MethodView):
     def post(self):
@@ -161,11 +184,14 @@ class Run(MethodView):
         if not bash:
             return jsonify({"status": "No record"})
         bash = bash._asdict()
+        print(bash)
+        if bash['status'] in {'running', 'downloading', 'started'}:
+            return jsonify({"status": "It\'s running"})
 
         if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
             run_bash(bashid)
             print(bashid)
-            update_bash(bashid,status="running")
+            update_bash(bashid, status="running")
         else:
             getdata = api.DCWrapper()
             status = getdata.findByDatasetId(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
@@ -178,26 +204,41 @@ class Status(MethodView):
             job_ids = request.form['jobid'].split(',')
             status = []
             for idx, job_id in enumerate(job_ids):
-                # no_exception, job = rq_instance.job_fetch(job_id)
-                # if no_exception:
-                #     _s = job.get_status()
+                no_exception, job = rq_instance.job_fetch(job_id)
+                _s = ''
+                if no_exception:
+                    _s = job.get_status()
                 #     status.append(_s if _s else '')
                 # else:
-                _s = find_bash_attr(bash_ids[idx],'status')
+                if _s != 'failed':
+                    _s = find_bash_attr(bash_ids[idx],'status')
+                # no batch update
+                # else:
+                #     _s = find_bash_attr(bash_ids[idx],'status')
+                #     if _s != 'failed':
+                #         update_bash(bash_ids[idx], status="failed")
+
                 status.append(_s if _s else '')
-                   
+            
             return jsonify({ "status": status })
         else:
             bash_id = request.form['bashid']
             job_id = request.form['jobid']
+            download_id = request.form['download_id']
             # print(jobid)
-            status = ''
+            status = 'not_found'
             logs = {}
-
             no_exception, job = rq_instance.job_fetch(job_id)
             if no_exception:
-                # status = job.get_status()
-                status = find_bash_attr(bash_id,'status')
+                status = job.get_status()
+                # print(status)
+                if status != 'failed':
+                    status = find_bash_attr(bash_id,'status')
+                else:
+                    substatus = find_bash_attr(bash_id,'status')
+                    if substatus != 'failed':
+                        update_bash(bash_id, status="failed")
+
                 if job.result:
                     logs = json.loads(job.result)
                 else:
@@ -209,18 +250,42 @@ class Status(MethodView):
                     logs['exc_info'] = logs_tmp_var['exc_info'] if 'exc_info' in logs_tmp_var else ''
 
                     #should update database bash logs
-
             else:
                 status = find_bash_attr(bash_id,'status')
                 logs = json.loads(find_bash_attr(bash_id,'logs'))
             
-            status = status if status else ''
+            status = status if status else 'not_found'
             if not logs:
                 logs = {'output':'', 'error':'', 'exc_info':''}
+# ================Download Log Started===========================
+            download_status = 'not_found'
+            download_logs = {}
+            no_exception, download_job = rq_instance.job_fetch(download_id)
+            exc_info_download_info = 'No exc_info or download log has expired.'
+            if no_exception:
+                download_status = download_job.get_status()
+                if download_job.result:
+                    download_logs = json.loads(download_job.result)
+                else:
+                    download_logs = {'output': 'No stdout', 'error': 'No stderr'}
+
+                if download_job.exc_info:
+                    download_logs['exc_info'] = download_job.exc_info
+                else:
+                    download_logs['exc_info'] = exc_info_download_info
+
+                if download_logs['exc_info'] == "null" or not download_logs['exc_info']:
+                    download_logs['exc_info'] = exc_info_download_info
+            download_status = download_status if download_status else 'not_found' 
+
+            if not download_logs:
+                download_logs = {'output':'No stdout', 'error':'No stderr', 'exc_info': exc_info_download_info}
 
             return jsonify({
                 "status": status, 
-                "logs": logs
+                "logs": logs,
+                "download_status": download_status,
+                "download_logs": download_logs
                 })
 
 

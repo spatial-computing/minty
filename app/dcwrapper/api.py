@@ -228,7 +228,7 @@ class DCWrapper(object):
 
         return response['datasets'][0]
 
-    def _download(self, resource_list, uuid2, **commmand_args):
+    def _download(self, resource_list, uuid2, **command_args):
         #print(len(resource_list))
         #print(os.getcwd())
         dir_path = self.download_dist + '/' + uuid2
@@ -248,10 +248,9 @@ class DCWrapper(object):
                 download_id_text = download_id_text + ',' + _j.id 
                 self.command_args['rqids'] = _j.id
         
-        if download_id_text[0] == ',':
-            self.command_args['download_ids'] = download_id_text[1:]
-        else:
-            self.command_args['download_ids'] = download_id_text
+        download_id_text = download_id_text.lstrip(',')
+        self.command_args['download_ids'] = download_id_text
+
         self.command_args['status'] = 'downloading'
         # scheduler = rq_instance.get_scheduler()
         schedule = rq_check_job_status_scheduler.schedule(
@@ -270,7 +269,7 @@ class DCWrapper(object):
         return 'done_queue'
 
     def _buildBash(self, db_session, from_download_func=False, **kwargs):
-        bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector'], viz_config=kwargs['viz_config']).first()
+        bash_check = db_session.query(Bash).filter_by(md5vector=kwargs['md5vector']).first()
 
         if not from_download_func and bash_check and 'data_file_path' in kwargs and kwargs['data_file_path'] == SINGLE_FILE_TAG:
             single_file_dir = self.download_dist + '/' + kwargs['md5vector']
@@ -289,7 +288,7 @@ class DCWrapper(object):
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
         if not self.bash_autorun:
-            self.command_args['status'] = 'ready for run'
+            self.command_args['status'] = 'ready_to_run'
         else:
             self.command_args['status'] = 'running'
             

@@ -3,6 +3,7 @@ from flask.views import MethodView
 # from .. import app
 import pymongo
 from app.dcwrapper import api
+from app.bash.bash_helper import find_bash_by_viz_config_for_run
 
 class LayerJson(MethodView):
     def __init__(self):
@@ -101,16 +102,15 @@ class VisualizeAction(MethodView):
             301: 'File is being downloaded',
             415: 'Unsupported visulaization type',
             500: 'Internal or metadata Error',
-            400: 'Bad request, please send dataset_id and data_url',
+            400: 'Bad request, please send dataset_id, viz_config and data_url',
             400.1: 'Bad request, viz_config does not include a uuid',
-            201: 'This job is running now. Please check http://mintviz.org/bash .'
+            307: 'This job is running now. Please check status or cancel on http://mintviz.org/bash'
         }
 
     def get(self, dataset_id):
         if dataset_id == 'dataset':
-            print(request.args)
             if 'dataset_id' not in request.args or 'data_url' not in request.args:
-                return jsonify({"status": 400, "msg": self.msg[status]})
+                return jsonify({"status": 400, "msg": self.msg[400]})
             dataset_id = request.args['dataset_id']
             data_url = request.args['data_url']
             viz_config = None
@@ -118,9 +118,14 @@ class VisualizeAction(MethodView):
             # viz_config_id=viz_config_<uuid2>&data_url=<>
             if 'viz_config' in request.args:
                 viz_config = request.args['viz_config']
+            else:
+                return jsonify({"status": 400, "msg": self.msg[400]})
             # /visualize/dataset?dataset_id=<>&data_url=<>
-
-            #
+            bash = find_bash_by_viz_config_for_run(viz_config)
+            if bash:
+                bash = bash._asdict()
+                if bash['status'] in {'running', 'downloading', 'started'}:
+                    return jsonify({"status": 307, "msg": self.msg[307]})
 
             getdata = api.DCWrapper(bash_autorun=True)
             status = getdata.findByDatasetId(dataset_id, data_url=data_url, viz_config=viz_config) # job.status
