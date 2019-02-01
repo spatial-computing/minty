@@ -1,8 +1,5 @@
 !(function () {
-//     console.log( "ready!" );
-    // $('#dtHorizontalExample').DataTable({
-    // "scrollX": true
-    // });
+ 
     
 
     $('.run-btn').on('click',function (event) {
@@ -41,8 +38,8 @@
     var badge = {
         finished: '<span class="badge badge-info text-wrap">Finished</span>',
         success: '<span class="badge badge-success text-wrap">Success</span>',
-        ready_for_run: '<span class="badge badge-info text-wrap">ready for run</span>',
-        running: '<span class="badge badge-warning text-wrap">runnnig</span>',
+        ready_for_run: '<span class="badge badge-info text-wrap">Ready to run</span>',
+        running: '<span class="badge badge-warning text-wrap">Runnnig</span>',
         failed: '<span class="badge badge-danger text-wrap">Failed</span>',
         not_enqueued: '<span class="badge badge-dark text-wrap">Not enqueued</span>'
     }
@@ -120,7 +117,6 @@
     // })
     $('.custom-control-input').on('change',function(event){
         event.preventDefault();
-        
         let status = $(this).prop("checked");
         let name = $( this ).attr('name');
         let csrf_token = $('#csrf_token_hidden').val();
