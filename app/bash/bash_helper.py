@@ -125,7 +125,6 @@ def combine( args ):
     if args[COLUMN_NAME_VIZ_TYPE] not in VIZ_TYPE_OF_TIMESERISE:
         # res += "/tmp/tmp.tif" # for test
         res += args[COLUMN_NAME_DATA_FILE_PATH]
-    print(res)
     return res
 
 #find one by id 
