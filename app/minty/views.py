@@ -102,7 +102,8 @@ class VisualizeAction(MethodView):
             415: 'Unsupported visulaization type',
             500: 'Internal or metadata Error',
             400: 'Bad request, please send dataset_id and data_url',
-            400.1: 'Bad request, viz_config does not include a uuid'
+            400.1: 'Bad request, viz_config does not include a uuid',
+            201: 'This job is running now. Please check http://mintviz.org/bash .'
         }
 
     def get(self, dataset_id):
@@ -118,6 +119,9 @@ class VisualizeAction(MethodView):
             if 'viz_config' in request.args:
                 viz_config = request.args['viz_config']
             # /visualize/dataset?dataset_id=<>&data_url=<>
+
+            #
+
             getdata = api.DCWrapper(bash_autorun=True)
             status = getdata.findByDatasetId(dataset_id, data_url=data_url, viz_config=viz_config) # job.status
             return jsonify({"dataset_id": dataset_id, "status": status, "msg": self.msg[status]})
