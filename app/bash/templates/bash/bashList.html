@@ -109,8 +109,9 @@
                     <a class="btn btn-outline-primary btn-sm" href='{{ url_for('bash.edit_bash', bash_id=bash['id']) }}'>Edit</a>
                   </td>
                   <td class="center">
-                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}" data-option="{{ False }}">Unreg</a>
-                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}" data-option="{{ True }}">Reg</a>
+                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}" data-option="{{ False }}">Unreg</button>
+                    <br><br>
+                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}" data-option="{{ True }}">Reg</button>
                   </td>
                 </tr>
 

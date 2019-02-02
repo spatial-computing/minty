@@ -215,7 +215,7 @@ class Unregister(MethodView):
         viz_config = request.form['viz_config']
         option = request.form['option']
         unregister_dc = api.DCWrapper()
-        status = unregister_dc.unregister_dataset_visualize_status(dataset_id, viz_config, option)
+        status = unregister_dc.unregister_dataset_visualize_status(dataset_id, viz_config, True if option == 'True' else False)
         return jsonify({"status":status})
 
 class Status(MethodView):
