@@ -73,13 +73,13 @@
                 <th width="10%" class="center">Status</th>
                 {% for key in th %}
                   {% if key!="" %}
-                    <th width="72%">{{key}}</th>
+                    <th width="66%">{{key}}</th>
                   {% endif %}
                 {% endfor %}
                 <th width="6%" class="center">Action</th>
                 <th width="6%" class="center">Logger</th>
                 <th width="6%" class="center">Edit</th>
-                <th width="6%" class="center">Register to DC</th>
+                <th width="6%" class="center">DC</th>
               </tr>
             </thead>
             <tbody>
@@ -109,7 +109,7 @@
                     <a class="btn btn-outline-primary btn-sm" href='{{ url_for('bash.edit_bash', bash_id=bash['id']) }}'>Edit</a>
                   </td>
                   <td class="center">
-                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}">Unregister</a>
+                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}">Unreg</a>
                   </td>
                 </tr>
 
