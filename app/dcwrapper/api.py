@@ -159,7 +159,7 @@ class DCWrapper(object):
                 if metadata['viz_type'] == 'mint-map':
                     command_args['type'] = 'tiff'
                 elif metadata['viz_type'] == 'mint-map-time-series':
-                    command_args['type'] = 'tiff-time'
+                    command_args['type'] = 'tiff' # use start time to detect whether is timeseries
             elif metadata['metadata']['file-type'] == 'csv':
                     command_args['type'] = 'csv'
         #metadata['viz_type'] = 'abc'
