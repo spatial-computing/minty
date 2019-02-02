@@ -2,7 +2,7 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 
 import pymongo
-from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count
+from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count, cancel_mintcast_job
 import os
 import math
 import json
@@ -178,7 +178,7 @@ class Cancel(MethodView):
         no_exception, job = rq_instance.job_fetch(bash_job_id)
         if no_exception:
             job.cancel()
-            update_bash(bashid, status="ready_to_run") 
+            cancel_mintcast_job(bashid)
             return jsonify({"status":"Job cancelled"})
         return jsonify({"status":"No such job"})
 

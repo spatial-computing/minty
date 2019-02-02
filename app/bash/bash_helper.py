@@ -4,7 +4,7 @@ from database import MongoConfig
 import pymongo
 import json
 from app.models import Bash, db
-from app.job import rq_run_command_job, rq_instance 
+from app.job import rq_run_command_job, rq_instance, rq_terminate_mintcast_session
 from sqlalchemy.orm import load_only
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
@@ -207,10 +207,12 @@ def update_bash(id, db_session=db.session, **kwargs):
     return bash
 
 
-def find_bash_attr(id, attr,db_session=db.session):
+def find_bash_attr(id, attr, db_session=db.session):
     bash = db_session.query(Bash).filter_by(id = id).options(load_only(attr)).first()
-    bash = vars(bash)
-    value = bash[attr] 
+    value = None
+    if bash:
+        bash = vars(bash)
+        value = bash[attr] 
     return value
 
 
@@ -227,6 +229,18 @@ def run_bash(bash_id):
     # job = excep.queue()
     #job = add.queue(1, 2, bashid)
     add_job_id_to_bash_db(bash_id, job.id, command=command)
+
+def cancel_mintcast_job(bash_id):
+    job = rq_terminate_mintcast_session.queue(bash_id, rq_instance.redis_url, _after_terminated)
+
+def _after_terminated(bash_id, success=True, msg=''):
+    from app.models import get_db_session_instance
+    db_session = get_db_session_instance()
+    if success:
+        update_bash(bash_id, db_session=db_session, status="ready_to_run") 
+    else:
+        update_bash(bash_id, db_session=db_session, status="failed", logs=json.dumps({'exc_info': msg}))
+
 
 def update_bash_status(bash_id, job_id, logs, rq_connection):
     from app.models import get_db_session_instance

@@ -6,6 +6,7 @@ import tarfile
 import requests
 import json
 import magic
+import signal
 
 from rq import get_current_job
 from rq.utils import parse_timeout
@@ -15,6 +16,10 @@ from redis import Redis
 from rq_scheduler import Scheduler
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
+
+JOB_SUBPROCESS_MINTCAST_PID_REDIS_RECORD = "mintcast:bash:pid:%s"
+
+
 
 def job_fetch(self, id):
     job = False, None
@@ -69,27 +74,52 @@ def queue_job_with_connection(job, connection, *args, **kwargs):
 #     import time
 #     time.sleep(10)
 #     return x+y
+@rq_instance.job(func_or_queue='high', timeout=NORMAL_JOB_TIMEOUT, result_ttl=RESUTL_TTL)    
+def rq_terminate_mintcast_session(bash_id, redis_url, callback_after_terminated):
+    rq_connection = Redis.from_url(redis_url)
+    pid = rq_connection.get(JOB_SUBPROCESS_MINTCAST_PID_REDIS_RECORD % bash_id)
+    try:
+        pid = int(pid)
+        os.killpg(os.getpgid(pid), signal.SIGTERM)
+    except Exception as e:
+        callback_after_terminated(bash_id, success=False, msg=str(e))
+        return 'Failed to killpg'
 
+    callback_after_terminated(bash_id, success=True)
+    return 'success'
+    
 @rq_instance.job(func_or_queue='normal', timeout=RUN_MINTCAST_JOB_TIMEOUT, result_ttl=RESUTL_TTL)
 def rq_run_command_job(command, bash_id, redis_url):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
     # command = pre + command
     # trap 'echo Terminating && trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT && 
     # pre = "" % (MINTCAST_PATH)
+    # import shlex
+    rq_connection = Redis.from_url(redis_url)
+
     command = "/bin/bash %s/bin/mintcast.sh %s" % (MINTCAST_PATH, command)
-    p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    # args = shlex.split(command)
+    p = subprocess.Popen(
+                command, 
+                stdin=subprocess.PIPE, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                start_new_session=True,
+                shell=True
+            )
+    # start_new_session=True,
     print("p.id######", p.pid)
+    # save pid to redis
+    rq_connection.set(
+        JOB_SUBPROCESS_MINTCAST_PID_REDIS_RECORD % (bash_id), 
+        p.pid
+    )
     out, err = p.communicate()
-    # update the real job id and update data
-    # rq_connection = redis_url_or_rq_connection
-    # if isinstance(redis_url_or_rq_connection, str):
 
     logs = {
         "output": str(out, 'utf8') if isinstance(out, bytes) else str(out),
         "error": str(err, 'utf8') if isinstance(err, bytes) else str(err)
     }
-
-    rq_connection = Redis.from_url(redis_url)
 
     run_command_job_done = queue_job_with_connection(
         rq_run_command_done_job, 
@@ -98,6 +128,12 @@ def rq_run_command_job(command, bash_id, redis_url):
         get_current_job().id, 
         logs,
         redis_url)
+
+    rq_connection.expire(
+        JOB_SUBPROCESS_MINTCAST_PID_REDIS_RECORD % (bash_id), 
+        1
+    )
+
     return json.dumps(logs)
 
 @rq_instance.job(func_or_queue='high', timeout=NORMAL_JOB_TIMEOUT, result_ttl=RESUTL_TTL)    
@@ -111,7 +147,9 @@ def rq_run_command_done_job(bash_id, job_id, logs, redis_url):
 @rq_instance.job(func_or_queue='high', timeout=NORMAL_JOB_TIMEOUT, result_ttl=RESUTL_TTL)
 def rq_create_bash_job(dc_instance, **command_args):
     ret = dc_instance._buildBash(**command_args)
-
+# ###########
+# use parse_timeout, because this one is used by rq scheduler which has no parse_timeout
+# ###########
 @rq_instance.job(func_or_queue='high', timeout=NORMAL_JOB_TIMEOUT, result_ttl=parse_timeout(RESUTL_TTL))
 def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redis_url):
     jobs = []
@@ -127,7 +165,7 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
     except Exception as e:
         status = False
 
-    print(jobs)
+    # print(jobs)
     try:
         if status:
             for job in jobs:
@@ -176,8 +214,8 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     # print('#####', is_tar, is_zip, file_name)
     # response = requests.get(resource['resource_data_url'])
     logs = {}
-    
-    download_command = "wget -O %s %s 2>&1" % (file_path, resource_data_url)
+    #  2>&1
+    download_command = "wget -O %s %s" % (file_path, resource_data_url)
     p = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
         # update the real job id and update data
@@ -194,7 +232,7 @@ def rq_download_job(resource, dataset_id, index, dir_path):
 
     out_zip, err_zip = "", ""
     if is_zip:
-        unzip_command = "unzip -o -U %s -d %s 2>&1" % (file_path, dir_path)
+        unzip_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
         p2 = subprocess.Popen(unzip_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         out_zip, err_zip = p2.communicate()
         # zip_ref = zipfile.ZipFile(file_path, 'r')
