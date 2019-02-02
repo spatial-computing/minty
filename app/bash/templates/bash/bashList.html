@@ -36,7 +36,7 @@
   <form class="setting-form" action="">
     {% for key in default_setting %}
     <div class="custom-control custom-switch">
-      {% if default_setting[key] ==True %}
+      {% if default_setting[key] == True %}
       <input type="checkbox" class="custom-setting custom-control-input" id="{{key}}" name="{{key}}" checked>
       {% else %}
       <input type="checkbox" class="custom-setting custom-control-input" id="{{key}}" name="{{key}}" >
@@ -103,7 +103,7 @@
                     
                   
                   <td class="center">
-                    <button class="btn btn-outline-info btn-sm status-btn" data-csrf="{{ csrf_token() }}" data-rqid="{{ bash['rqids'] }}" data-download-id="{{ bash['download_ids'] }}" data-bashid="{{bash['id']}}" data-toggle="modal" data-target="#bash-modal">Log</button>
+                    <button class="btn btn-outline-info btn-sm status-btn" data-csrf="{{ csrf_token() }}" data-rqid="{{ bash['rqids'] }}" data-download-id="{{ bash['download_ids'] }}" data-after-run-ids="{{ bash['after_run_ids'] }}" data-bashid="{{bash['id']}}" data-toggle="modal" data-target="#bash-modal">Log</button>
                   </td>
                   <td class="center">
                     <a class="btn btn-outline-primary btn-sm" href='{{ url_for('bash.edit_bash', bash_id=bash['id']) }}'>Edit</a>
