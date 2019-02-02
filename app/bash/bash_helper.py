@@ -23,6 +23,7 @@ IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'dataset_id',
     'data_url',
     'download_ids',
+    'after_run_ids',
     COLUMN_NAME_DATA_FILE_PATH,
     COLUMN_NAME_VIZ_TYPE
 }
@@ -48,7 +49,8 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.viz_type,
         Bash.file_type,
         Bash.md5vector,
-        Bash.download_ids
+        Bash.download_ids,
+        Bash.after_run_ids
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [
@@ -211,7 +213,16 @@ def find_bash_attr(id, attr,db_session=db.session):
     bash = vars(bash)
     value = bash[attr] 
     return value
-
+    
+def find_bash_attrs(id,attrs):
+    bash = db.session.query(Bash).filter_by(id = id).options(load_only(*attrs)).first()
+    if not bash:
+        return []
+    bash = vars(bash)
+    value=[]
+    for attr in attrs:
+        value.append(bash[attr])
+    return value
 
 def add_job_id_to_bash_db(bashid, jobid, db_session=db.session, command=None):
     bash = db_session.query(Bash).filter_by(id = bashid).options(load_only('id','rqids', 'command')).first()

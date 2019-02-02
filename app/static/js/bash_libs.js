@@ -101,6 +101,7 @@
                 jobid: $(this).data('rqid'),
                 bashid: $(this).data('bashid'),
                 download_id: $(this).data('download-id'),
+                after_run_ids: $(this).data('after-run-ids'),
                 csrf_token: $(this).data('csrf')
             },
         }).done(function(json){

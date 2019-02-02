@@ -2,7 +2,7 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 
 import pymongo
-from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count
+from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count,find_bash_attrs
 import os
 import math
 import json
@@ -12,6 +12,7 @@ from app.dcwrapper import api
 import ast
 KEY_FILTER_FOR_USER = {'_sa_instance_state',  'id', 'viz_type'}
 MINTY_URL = 'http://minty.mintviz.org/'
+CHECK_JOB_ALL_IDS = ['download_ids','rqids','after_run_ids']
 class DeleteBash(MethodView):
 
     def get(self, bash_id):
@@ -142,7 +143,6 @@ class BashList(MethodView):
         th.sort()
         headers = {'Content-Type': 'text/html'}
 
-        # return make_response(render_template('bash/bashList.html',th = th,res = res,ids = ids, default_setting=self.default_setting),200,headers)
         return make_response(
             render_template(
                 'bash/bashList.html', 
@@ -172,14 +172,18 @@ class Cancel(MethodView):
     def post(self):
         bashid = request.form['bashid']
         bash_job_id = find_bash_attr(bashid,"rqids")
-        # if local_url == request.host_url:
+
+        # check status running
         if not bash_job_id:
+            update_bash(bashid, status="ready_to_run")
             return jsonify({"status":"No bash job id"})
         no_exception, job = rq_instance.job_fetch(bash_job_id)
         if no_exception:
             job.cancel()
             update_bash(bashid, status="ready_to_run") 
             return jsonify({"status":"Job cancelled"})
+        else:
+            update_bash(bashid, status="ready_to_run")
         return jsonify({"status":"No such job"})
 
 
@@ -210,40 +214,58 @@ class Status(MethodView):
             job_ids = request.form['jobid'].split(',')
             status = []
             for idx, job_id in enumerate(job_ids):
-                no_exception, job = rq_instance.job_fetch(job_id)
                 _s = ''
-                if no_exception:
-                    _s = job.get_status()
-                #     status.append(_s if _s else '')
-                # else:
+                all_ids = find_bash_attrs(bash_ids[idx],CHECK_JOB_ALL_IDS)
+                for job_id in all_ids:
+                    no_exception, job = rq_instance.job_fetch(job_id)
+                    if no_exception and job.get_status() == 'failed':
+                        _s = 'failed'
+                        break
                 if _s != 'failed':
                     _s = find_bash_attr(bash_ids[idx],'status')
-                # no batch update
-                # else:
-                #     _s = find_bash_attr(bash_ids[idx],'status')
-                #     if _s != 'failed':
-                #         update_bash(bash_ids[idx], status="failed")
-
                 status.append(_s if _s else '')
+
+                # no_exception, job = rq_instance.job_fetch(job_id)
+                # _s = ''
+                # if no_exception:
+                #     _s = job.get_status()
+                # if _s != 'failed':
+                #     _s = find_bash_attr(bash_ids[idx],'status')
+                # status.append(_s if _s else '')
             
             return jsonify({ "status": status })
         else:
             bash_id = request.form['bashid']
             job_id = request.form['jobid']
             download_id = request.form['download_id']
-            # print(jobid)
+            after_run_ids = request.form['after_run_ids']
+            all_ids = [job_id,download_id,after_run_ids]
             status = 'not_found'
             logs = {}
+            # get job status 
+            for job_id in all_ids:
+                print(job_id)
+                no_exception, job = rq_instance.job_fetch(job_id)
+                if no_exception and job.get_status() == 'failed':
+                    status = 'failed'
+                    break
+            if status != 'failed':
+                status = find_bash_attr(bash_id,'status')
+            else:
+                substatus = find_bash_attr(bash_id,'status')
+                if substatus != 'failed':
+                    update_bash(bash_id, status="failed")
+
+
             no_exception, job = rq_instance.job_fetch(job_id)
             if no_exception:
-                status = job.get_status()
-                # print(status)
-                if status != 'failed':
-                    status = find_bash_attr(bash_id,'status')
-                else:
-                    substatus = find_bash_attr(bash_id,'status')
-                    if substatus != 'failed':
-                        update_bash(bash_id, status="failed")
+                # status = job.get_status()
+                # if status != 'failed':
+                #     status = find_bash_attr(bash_id,'status')
+                # else:
+                #     substatus = find_bash_attr(bash_id,'status')
+                #     if substatus != 'failed':
+                #         update_bash(bash_id, status="failed")
 
                 if job.result:
                     logs = json.loads(job.result)
@@ -263,6 +285,7 @@ class Status(MethodView):
             status = status if status else 'not_found'
             if not logs:
                 logs = {'output':'', 'error':'', 'exc_info':''}
+
 # ================Download Log Started===========================
             download_status = 'not_found'
             download_logs = {}
