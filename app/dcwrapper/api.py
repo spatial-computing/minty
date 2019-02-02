@@ -358,12 +358,12 @@ class DCWrapper(object):
             return suffix[-1]
         return ''
     
-    def unregister_dataset_visualize_status(self, dataset_id, viz_config):
+    def unregister_dataset_visualize_status(self, dataset_id, viz_config, option):
         payload = {
                 'dataset_id': dataset_id, 
                 'viz_config_id': viz_config,
                 '$set': {
-                        'visualized' : False
+                        'visualized' : option
                     }
                 }
         print(dataset_id)
@@ -373,7 +373,7 @@ class DCWrapper(object):
             return 'error'
         
         response = req.json()
-        #print(response)
+        print(response)
         if not isinstance(response, dict):
             return 'error'
 

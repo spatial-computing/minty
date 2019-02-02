@@ -40,7 +40,7 @@
     });
     $('.unregister-btn').on('click',function (event) {
         event.preventDefault();   
-        let confirmation = confirm("This action will let data catalog mark this layer visualized as unregister");
+        let confirmation = confirm("This action will let you mark data catalog visualized as registered or unregistered");
         if (confirmation) {
             $.ajax({
                 url: '/bash/unregister',
@@ -49,7 +49,8 @@
                 data: { 
                     csrf_token: $('.unregister-btn').data('csrf'),
                     dataset_id: $(this).data('dataset_id'),
-                    viz_config: $(this).data('viz_config')}
+                    viz_config: $(this).data('viz_config'),
+                    option: $(this).data('option')}
             }).done(function (json) {
                 alert(json.status);
             });
