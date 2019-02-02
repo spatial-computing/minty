@@ -161,7 +161,7 @@
                     option: $(self).data('option')
                 }
             }).done(function (json) {
-                stop_loading()
+                stop_loading();
                 if (json.status == 'success') {
                     swal("Good Job!", "Poof! The record has been registered/unregistered on Data Catalog!", "success");    
                 }else{
@@ -313,5 +313,7 @@
 
         })
     });
-
+    $( document ).ajaxError(function() {
+      stop_loading();
+    });
 }());
