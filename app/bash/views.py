@@ -213,8 +213,9 @@ class Unregister(MethodView):
     def post(self):
         dataset_id = request.form['dataset_id']
         viz_config = request.form['viz_config']
+        option = request.form['option']
         unregister_dc = api.DCWrapper()
-        status = unregister_dc.unregister_dataset_visualize_status(dataset_id, viz_config)
+        status = unregister_dc.unregister_dataset_visualize_status(dataset_id, viz_config, option)
         return jsonify({"status":status})
 
 class Status(MethodView):
