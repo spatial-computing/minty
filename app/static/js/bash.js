@@ -226,7 +226,10 @@
         updateStatus();
     }, 10000);
     function escape_html(string) {
-        return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+        if (typeof(string) === "string") {
+            return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");    
+        }
+        return "";
     }
     $('.status-btn').on('click',function(event){
         event.preventDefault();
