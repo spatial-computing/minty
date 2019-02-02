@@ -80,6 +80,7 @@ def rq_terminate_mintcast_session(bash_id, redis_url, callback_after_terminated)
     pid = rq_connection.get(JOB_SUBPROCESS_MINTCAST_PID_REDIS_RECORD % bash_id)
     try:
         pid = int(pid)
+        os.killpg(os.getpgid(pid), signal.SIGINT)
         os.killpg(os.getpgid(pid), signal.SIGTERM)
     except Exception as e:
         callback_after_terminated(bash_id, success=False, msg=str(e))
@@ -100,11 +101,11 @@ def rq_run_command_job(command, bash_id, redis_url):
     command = "/bin/bash %s/bin/mintcast.sh %s" % (MINTCAST_PATH, command)
     # args = shlex.split(command)
     p = subprocess.Popen(
-                command, 
+                command,
                 stdin=subprocess.PIPE, 
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.PIPE, 
-                start_new_session=True,
+                preexec_fn=os.setsid,
                 shell=True
             )
     # start_new_session=True,
