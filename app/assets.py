@@ -8,12 +8,14 @@ def create_assets(assets):
     # assets.register('JS_FRAMEWORS', js)
     js = Bundle(
         'js/bash.js',
+        filters='jsmin', 
         output='js/bash_libs.js'
     )
     assets.register('JS_FRAMEWORS_BASH', js)
     
     js = Bundle(
         'js/viztype.js',
+        filters='jsmin', 
         output='js/viztype_libs.js'
     )
     assets.register('JS_FRAMEWORS_VIZTYPE', js)

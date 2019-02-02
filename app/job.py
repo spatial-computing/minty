@@ -106,10 +106,10 @@ def rq_run_command_job(command, bash_id, redis_url):
     # Ubuntu is using dash as sh: `/bin/sh -> dash`, if set shell=True, child process will go rogue
     p = subprocess.Popen(
                 args,
-                stdin=subprocess.PIPE, 
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.PIPE, 
-                preexec_fn=os.setsid,
+                # preexec_fn=os.setsid,
+                start_new_session=True,
                 shell=False
             )
     # start_new_session=True,

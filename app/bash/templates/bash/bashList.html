@@ -1,5 +1,17 @@
 {% extends 'layout/base.html' %}
 {% block content %}
+{% block stylesheet %}
+<link href="/static/css/jsoneditor.min.css?v=5.28" rel="stylesheet" type="text/css">
+{% endblock %}
+
+
+<div id="loading-screen">
+  <div class="d-flex justify-content-center align-items-center">
+    <div class="spinner spinner-border text-light" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+</div>
 
 <div class="toast" role="alert" aria-live="polite" aria-atomic="true" data-delay="5000">
   <div class="toast-header">
@@ -108,9 +120,11 @@
                   <td class="center">
                     <a class="btn btn-outline-primary btn-sm" href='#' data-href='{{ url_for('bash.edit_bash', bash_id=bash['id']) }}'>Edit</a>
                   </td>
-                  <td class="center">
+                  <td class="center dc-action">
+                    <button type="button" class="btn btn-outline-dark btn-sm edit-register-metadata" data-dataset-id="{{ bash['dataset_id'] }}" data-csrf="{{ csrf_token() }}" data-viz-config="{{ bash['viz_config'] }}" data-toggle="modal" data-target="#jsoneditor-modal">
+                      Edit DC Metadata
+                    </button>
                     <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}" data-option="{{ False }}">Unreg</button>
-                    <br><br>
                     <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}" data-option="{{ True }}">Reg</button>
                   </td>
                 </tr>
@@ -171,19 +185,37 @@
     </div>
   </div>
 
+  <!-- Modal -->
+  <div class="modal fade" id="jsoneditor-modal" tabindex="-1" role="dialog" aria-labelledby="jsoneditor-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="jsoneditor-modal-title">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div id="jsoneditor"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary save-changes" data-csrf="{{ csrf_token() }}">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   </div>
 </div>
 
 
 
-
-
 {% endblock %}
 
 
-
 {% block javascript %}
+<script src="/static/js/jsoneditor.min.js"></script>
 {% assets "JS_FRAMEWORS_BASH" %}
 <script src="{{ ASSET_URL }}"/></script>
 {% endassets %}

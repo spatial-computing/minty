@@ -1,62 +1,178 @@
 !(function () {
- 
-    
+    var container = document.getElementById("jsoneditor");
+    var options = {
+        mode: 'form',
+        sortObjectKeys: false,
 
+    };
+    var editor = new JSONEditor(container, options);
+    function start_loading() {
+        $('#loading-screen').css('display', 'flex');
+    }
+    function stop_loading() {
+        $('#loading-screen').hide();   
+    }
+
+
+    $('.edit-register-metadata').on('click', function (event) {
+        event.preventDefault();
+        let self = this;
+        start_loading();
+        $.ajax({
+            url: '/bash/edit_dc_metadata',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                csrf_token: $(self).data('csrf'),
+                dataset_id: $(self).data('dataset-id'),
+                viz_config: $(self).data('viz-config')
+            }
+        }).done(function (json) {
+            
+            if (json.status === 'ok') {
+                editor.set(json.reg_info);
+                editor.expandAll();
+                stop_loading();
+                $('#jsoneditor-modal').modal('show');
+            }else{
+                stop_loading();
+                swal("Error Occurred!", "Can not fetch dataset info!", "error");
+            }
+            
+        });
+    });
+    $('#jsoneditor-modal .save-changes').on('click', function (event) {
+        event.preventDefault();
+        let self = this;
+        var reg_json = editor.get();
+        $('#jsoneditor-modal').modal('hide');
+        start_loading();
+        $.ajax({
+            url: '/bash/register_dc_metadata',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                csrf_token: $(self).data('csrf'),
+                reg_json: JSON.stringify(reg_json)
+            }
+        }).done(function (json) {
+            stop_loading();
+            if (json.status === 'ok') {
+                swal("Good Job!", "Poof! Metadata of dataset (" + json.reg_info.record_id + ") on Data Catalog has been changed!", "success");
+            }else{
+                swal("Error Occurred!", "Can not register dataset info!", "error");
+            }
+        })
+
+    })
     $('.run-btn').on('click',function (event) {
         event.preventDefault();   
         let command = $(this).data('command');
-        let confirmation = confirm("This action will overwrite the database and may redownload files, are you sure?");
-        if (confirmation) {
+        let self = this;
+        swal({
+          title: "Are you sure?",
+          text: "This action will overwrite the database and may redownload files, are you sure?",
+          icon: "warning",
+          buttons: true,
+          dangerMode: true,
+        })
+        .then((willQueue) => {
+          if (willQueue) {
+            start_loading();
             $.ajax({
                 url: '/bash/run',
                 type: 'POST',
                 dataType: 'json',
-                data: {command:command, csrf_token:$('.run-btn').data('csrf'),bashid:$(this).data('bashid')}
+                data: {
+                    command:command, 
+                    csrf_token:$(self).data('csrf'),
+                    bashid:$(self).data('bashid')
+                }
             }).done(function (json) {
-                alert(json.status);
+                stop_loading();
+                if (json.status == 'queued') {
+                    swal("Good Job!", "Poof! Your job has been queued!", "success");    
+                }else{
+                    swal("Error Occurred!", "You job has not been queued!", "error");
+                }
                 updateStatus();
             });
-        }
-        
+          } else {
+            swal("Your record did not run!");
+          }
+        });
     });
     $('.cancel-btn').on('click',function (event) {
-        event.preventDefault();   
-        let confirmation = confirm("This action will cancel this job, are you sure?");
-        if (confirmation) {
+        event.preventDefault();
+        let self = this;
+        swal({
+          title: "Are you sure?",
+          text: "This action will cancel this job, are you sure?",
+          icon: "warning",
+          buttons: true,
+          dangerMode: true,
+        })
+        .then((willCancel) => {
+          if (willCancel) {
+            start_loading();
             $.ajax({
                 url: '/bash/cancel',
                 type: 'POST',
                 dataType: 'json',
                 data: { 
-                    csrf_token: $('.run-btn').data('csrf'),
-                    bashid: $(this).data('bashid')}
+                    csrf_token: $(self).data('csrf'),
+                    bashid: $(self).data('bashid')
+                }
             }).done(function (json) {
-                alert(json.status);
+                stop_loading()
+                if (json.status == 'Job cancelled') {
+                    swal("Good Job!", "Poof! Your job has been canceled!", "success");    
+                }else{
+                    swal("Error Occurred!", "You job has not been canceled!\n" + json.status, "error");
+                }
                 updateStatus();
             });
-
-        }
-        
+          } else {
+            swal("Your job did not be canceled!");
+          }
+        });
     });
     $('.unregister-btn').on('click',function (event) {
-        event.preventDefault();   
-        let confirmation = confirm("This action will let you mark data catalog visualized as registered or unregistered");
-        if (confirmation) {
+        event.preventDefault();
+        let self = this;
+        swal({
+          title: "Are you sure?",
+          text: "This action will let you mark data catalog visualized as registered or unregistered",
+          icon: "warning",
+          buttons: true,
+          dangerMode: true,
+        })
+        .then((willUnreg) => {
+          if (willUnreg) {
+            start_loading();
             $.ajax({
                 url: '/bash/unregister',
                 type: 'POST',
                 dataType: 'json',
                 data: { 
-                    csrf_token: $('.unregister-btn').data('csrf'),
-                    dataset_id: $(this).data('dataset_id'),
-                    viz_config: $(this).data('viz_config'),
-                    option: $(this).data('option')}
+                    csrf_token: $(self).data('csrf'),
+                    dataset_id: $(self).data('dataset_id'),
+                    viz_config: $(self).data('viz_config'),
+                    option: $(self).data('option')
+                }
             }).done(function (json) {
-                alert(json.status);
+                stop_loading()
+                if (json.status == 'success') {
+                    swal("Good Job!", "Poof! The record has been registered/unregistered on Data Catalog!", "success");    
+                }else{
+                    swal("Error Occurred!", "The record does not registered/unregistered on Data Catalog!", "error");
+                }
+                updateStatus();
             });
-
-        }
-        
+          } else {
+            swal("Your record is not changed!");
+          }
+        });
     });
 
     var badge = {
@@ -113,6 +229,7 @@
         return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
     }
     $('.status-btn').on('click',function(evnet){
+        start_loading();
         $.ajax({
             url:'/bash/status',
             type:'POST',
@@ -125,6 +242,7 @@
                 csrf_token: $(this).data('csrf')
             },
         }).done(function(json){
+            stop_loading();
             $('#bash-modal .running-log .bash-modal-status').html(badge[json.status]);
             $('#bash-modal .modal-body #nav_exc_info pre').html(json.logs.exc_info === null ? "No exc info" : escape_html(json.logs.exc_info));
             $('#bash-modal .modal-body #nav_error pre').html(escape_html(json.logs.error))

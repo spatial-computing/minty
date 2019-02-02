@@ -1,0 +1,17 @@
+{
+  "name": "minty",
+  "version": "1.0.0",
+  "description": "mintviz API and Pipeline",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github-private:spatial-computing/minty.git"
+  },
+  "author": "Libo Liu, Xuan Yang, Shawn Lin",
+  "license": "ISC"
+}

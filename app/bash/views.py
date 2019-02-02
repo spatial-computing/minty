@@ -9,7 +9,7 @@ import os
 import math
 import json
 from app.job import rq_instance
-from app.dcwrapper import api
+from app.dc_wrapper import api
 
 import ast
 KEY_FILTER_FOR_USER = {'_sa_instance_state',  'id', 'viz_type'}
@@ -205,8 +205,8 @@ class Run(MethodView):
             print(bashid)
             update_bash(bashid, status="running")
         else:
-            getdata = api.DCWrapper()
-            status = getdata.findByDatasetId(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
+            getdata = api.dc_wrapper()
+            status = getdata.find_by_dataset_id(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
         return jsonify({"status": "queued"})
 
 class Unregister(MethodView):
@@ -214,10 +214,30 @@ class Unregister(MethodView):
         dataset_id = request.form['dataset_id']
         viz_config = request.form['viz_config']
         option = request.form['option']
-        unregister_dc = api.DCWrapper()
+        unregister_dc = api.dc_wrapper()
         status = unregister_dc.unregister_dataset_visualize_status(dataset_id, viz_config, True if option == 'True' else False)
         return jsonify({"status":status})
 
+class EditDcInfo(MethodView):
+    def post(self):
+        dataset_id = request.form['dataset_id']
+        viz_config = request.form['viz_config']
+        dcwrapper = api.dc_wrapper()
+        reg_info = dcwrapper.get_dataset_info_convert_to_register_info(dataset_id, viz_config)
+        if reg_info == 'error':
+            return jsonify({"status": 'error'})    
+        return jsonify({"status": 'ok', "reg_info": reg_info})
+
+class RegisterDcInfo(MethodView):
+    def post(self):
+        jsonstr = request.form['reg_json']
+        obj = json.loads(jsonstr)
+        dcwrapper = api.dc_wrapper()
+        reg_info = dcwrapper.register_to_dc(obj)
+        if reg_info == 'error':
+            return jsonify({"status": 'error'})    
+        return jsonify({"status": 'ok', "reg_info": reg_info})
+        
 class Status(MethodView):
     def post(self):
         if 'type' in request.form and request.form['type'] == 'batch':

@@ -11,5 +11,7 @@ routes = [
 	Pluggable('/bash/defaultsetting',MIntcastTaskDefaultSetting,'defaultsetting'),
 	Pluggable('/bash/defaultsetting/controller',MIntcastTaskDefaultSettingController,'defaultsetting_controller'),
 	Pluggable('/bash/cancel',Cancel,'cancel'),
-	Pluggable('/bash/unregister', Unregister, 'unregister')
+	Pluggable('/bash/unregister', Unregister, 'unregister'),
+	Pluggable('/bash/edit_dc_metadata', EditDcInfo, 'edit_dc_metadata'),
+	Pluggable('/bash/register_dc_metadata', RegisterDcInfo, 'register_dc_metadata'),
 ]

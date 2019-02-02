@@ -2,7 +2,7 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 # from .. import app
 import pymongo
-from app.dcwrapper import api
+from app.dc_wrapper import api
 from app.bash.bash_helper import find_bash_by_viz_config_for_run
 
 class LayerJson(MethodView):
@@ -127,14 +127,14 @@ class VisualizeAction(MethodView):
                 if bash['status'] in {'running', 'downloading', 'started'}:
                     return jsonify({"status": 307, "msg": self.msg[307]})
 
-            getdata = api.DCWrapper(bash_autorun=True)
-            status = getdata.findByDatasetId(dataset_id, data_url=data_url, viz_config=viz_config) # job.status
+            getdata = api.dc_wrapper(bash_autorun=True)
+            status = getdata.find_by_dataset_id(dataset_id, data_url=data_url, viz_config=viz_config) # job.status
             return jsonify({"dataset_id": dataset_id, "status": status, "msg": self.msg[status]})
         else:
         
-            #    job = start a DCWrapper with dataset_id
-            getdata = api.DCWrapper(bash_autorun=True)
-            status = getdata.findByDatasetId(dataset_id) # job.status
+            #    job = start a dc_wrapper with dataset_id
+            getdata = api.dc_wrapper(bash_autorun=True)
+            status = getdata.find_by_dataset_id(dataset_id) # job.status
             return jsonify({"dataset_id": dataset_id, "status": status, "msg": self.msg[status]})
       
 class VizType(MethodView):

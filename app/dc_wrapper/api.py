@@ -17,6 +17,9 @@ API_STANDARD_NAME = API_URL + '/dataset_standard_variables'
 API_FIND_RESOURCES = API_URL + '/find'
 API_FIND_DATASETS = 'http://api.mint-data-catalog.org/find_datasets'
 API_UPDATE_VIZUALIZE_STATUS = 'http://api.mint-data-catalog.org/datasets/update_dataset_viz_config'
+API_REGISTER_DATASET = 'https://api.mint-data-catalog.org/datasets/register_datasets'
+
+PROVENANCE_ID = 'cacc9aa2-f532-42e6-8302-45db8684ef7a'
 
 # Scheduler
 RQ_SCHEDULER_START_IN_SECONDS = 5
@@ -24,7 +27,7 @@ RQ_SCHEDULER_REPEAT_TIMES = parse_timeout('1d') / 60  # Repeat this number of ti
 RQ_SCHEDULER_INTERVAL = 5
 
 SINGLE_FILE_TAG = 'single file tag'
-class DCWrapper(object):
+class dc_wrapper(object):
     def __init__(self, bash_autorun=True, download_dist='/tmp/mint_datasets'):
         self.bash_autorun = bash_autorun
         X_API_KEY = requests.get('https://api.mint-data-catalog.org/get_session_token') 
@@ -39,7 +42,7 @@ class DCWrapper(object):
             os.mkdir(self.download_dist)
         self.command_args = {}
 
-    def findByDatasetId(self, dataset_id, data_url=None, viz_config=None):
+    def find_by_dataset_id(self, dataset_id, data_url=None, viz_config=None):
         status = 200
         req = None
         if not isinstance(dataset_id, str):
@@ -67,13 +70,13 @@ class DCWrapper(object):
         #     db.session.add(dataset)
         #     db.session.commit()
 
-        dataset = self.findDatasetById(dataset_id)
+        dataset = self.find_dataset_by_id(dataset_id)
         if dataset == 'error':
             status = 404.2
             return status
         resources = None
         if not data_url:
-            resources = self.findResourcesById(dataset_id)
+            resources = self.find_resources_by_id(dataset_id)
             if resources == 'error':
                 status = 404.3
                 return status
@@ -186,7 +189,7 @@ class DCWrapper(object):
 
         return status
         
-    def findResourcesById(self, dataset_id):
+    def find_resources_by_id(self, dataset_id):
         payload = {'dataset_ids__in': [dataset_id], 'limit': 1}
         req = requests.post(API_FIND_RESOURCES, headers = HEADERS, data = json.dumps(payload))
 
@@ -206,7 +209,7 @@ class DCWrapper(object):
 
         return response['resources']
 
-    def findDatasetById(self, dataset_id):
+    def find_dataset_by_id(self, dataset_id):
         if isinstance(dataset_id, str):
             dataset_id = [dataset_id]
         payload = {'dataset_ids__in': dataset_id}
@@ -228,6 +231,54 @@ class DCWrapper(object):
             return 'error'
 
         return response['datasets'][0]
+
+    def get_dataset_info_convert_to_register_info(self, dataset_id, viz_config):
+        dataset_info = self.find_dataset_by_id(dataset_id)
+        if dataset_info == 'error':
+            return 'error'
+
+        register_info = {
+            "record_id" : dataset_info['dataset_id'],
+            "description": dataset_info['dataset_description'],
+            "name": dataset_info['dataset_name'],
+            "metadata": {
+                viz_config: dataset_info['dataset_metadata'][viz_config]
+            }
+        }
+        return register_info
+
+    def register_to_dc(self, payload):
+        # curl -vX POST  -d @/Users/liber/Downloads/fake_dataset/wtf_flood.json --header "Content-Type: application/json" --header 'X-Api-Key: mint-data-catalog:7d421ed6-f8dd-456f-93ad-8890d8194ff1:c2ad60ce-11bf-482e-8268-ea5973eae102'
+        # print(payload, type(payload))
+        payload["provenance_id"] = PROVENANCE_ID
+        payload = {"datasets": [
+                payload
+            ]
+        }
+        req = requests.post(API_REGISTER_DATASET, headers=HEADERS, data=json.dumps(payload))
+        print(json.dumps(payload))
+        if req.status_code != 200:
+            return 'error'
+        
+        response = req.json()
+        if not isinstance(response, dict):
+            return 'error'
+
+        if 'error' in response:
+            print(response['error'])
+            return 'error'
+
+        if 'result' not in response:
+            return 'error'
+        
+        if response['result'] != 'success':
+            return 'error'
+        
+        if len(response['datasets']) == 0:
+            return 'error'
+
+        return response['datasets'][0]
+
 
     def _download(self, resource_list, uuid2, **command_args):
         #print(len(resource_list))
