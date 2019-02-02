@@ -228,7 +228,8 @@
     function escape_html(string) {
         return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
     }
-    $('.status-btn').on('click',function(evnet){
+    $('.status-btn').on('click',function(event){
+        event.preventDefault();
         start_loading();
         $.ajax({
             url:'/bash/status',
@@ -242,7 +243,6 @@
                 csrf_token: $(this).data('csrf')
             },
         }).done(function(json){
-            stop_loading();
             $('#bash-modal .running-log .bash-modal-status').html(badge[json.status]);
             $('#bash-modal .modal-body #nav_exc_info pre').html(json.logs.exc_info === null ? "No exc info" : escape_html(json.logs.exc_info));
             $('#bash-modal .modal-body #nav_error pre').html(escape_html(json.logs.error))
@@ -254,6 +254,8 @@
             $('#bash-modal .modal-body #nav_download_output pre').html(escape_html(json.download_logs.output));
             // console.log("json.job_status")
             // console.log(json.logs)
+            stop_loading();
+            $('#bash-modal').modal('show');
         })
     });
 
