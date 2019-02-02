@@ -22,6 +22,7 @@ def create_assets(assets):
 
     css = Bundle(
         'css/sticky-footer.css',
+        filters='cssmin',
         output='css/min.css'
     )
     assets.register('CSS_FRAMEWORKS', css)

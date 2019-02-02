@@ -30,7 +30,7 @@ body {
   color: #fff;
 }
 .container {
-  max-width: 1200px;
+  max-width: 100%;
   padding: 15px;
   font-family: 'Poppins', sans-serif;
 }
