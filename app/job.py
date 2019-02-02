@@ -227,11 +227,11 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     if file_name.endswith('.zip'):
         uncompress_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
     elif file_name.endswith('.tar.gz') or file_name.endswith('.tgz'):
-        uncompress_command = "tar zxvC %s -f %s" (dir_path, file_path)
+        uncompress_command = "tar zxvC %s -f %s" % (dir_path, file_path)
     elif file_name.endswith('.tar.bz2') or file_name.endswith('.tar.bz'):
-        uncompress_command = "tar jxvC %s -f %s" (dir_path, file_path)
+        uncompress_command = "tar jxvC %s -f %s" % (dir_path, file_path)
     elif file_name.endswith('.tar') or file_name.endswith('.xz'):
-        uncompress_command = "tar xvC %s -f %s" (dir_path, file_path)
+        uncompress_command = "tar xvC %s -f %s" % (dir_path, file_path)
     else:
         is_compressed = False
 
@@ -242,9 +242,9 @@ def rq_download_job(resource, dataset_id, index, dir_path):
             if code.startswith('gzip'):
                 uncompress_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
             elif code.startswith('zip'):
-                uncompress_command = "tar zxvC %s -f %s" (dir_path, file_path)  
+                uncompress_command = "tar zxvC %s -f %s" % (dir_path, file_path)  
             elif code.startswith('bzip2'):
-                uncompress_command = "tar jxvC %s -f %s" (dir_path, file_path)
+                uncompress_command = "tar jxvC %s -f %s" % (dir_path, file_path)
 
     out_zip, err_zip = "", ""
     if is_compressed:
