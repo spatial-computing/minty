@@ -78,6 +78,9 @@ def queue_job_with_connection(job, connection, *args, **kwargs):
 def rq_terminate_mintcast_session(bash_id, redis_url, callback_after_terminated):
     rq_connection = Redis.from_url(redis_url)
     pid = rq_connection.get(JOB_SUBPROCESS_MINTCAST_PID_REDIS_RECORD % (bash_id))
+    if not pid:
+        callback_after_terminated(bash_id, success=False, msg='Program is not running. Cannot be canceled.')
+        return 'Failed to killpg'
     try:
         pid = int(pid)
         # os.killpg(os.getpgid(pid), signal.SIGINT)
