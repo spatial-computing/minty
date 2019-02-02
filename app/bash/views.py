@@ -224,7 +224,7 @@ class Status(MethodView):
             job_ids = request.form['jobid'].split(',')
             status = []
             for idx, job_id in enumerate(job_ids):
-                _s = ''
+                _s = 'not_found'
                 all_ids = find_bash_attrs(bash_ids[idx],CHECK_JOB_ALL_IDS)
                 for job_id in all_ids:
                     no_exception, job = rq_instance.job_fetch(job_id)
@@ -233,7 +233,7 @@ class Status(MethodView):
                         break
                 if _s != 'failed':
                     _s = find_bash_attr(bash_ids[idx],'status')
-                status.append(_s if _s else '')
+                status.append(_s if _s else 'not_found')
 
                 # no_exception, job = rq_instance.job_fetch(job_id)
                 # _s = ''
@@ -294,7 +294,7 @@ class Status(MethodView):
             
             status = status if status else 'not_found'
             if not logs:
-                logs = {'output':'', 'error':'', 'exc_info':''}
+                logs = {'output':'No stdout', 'error':'No stderr', 'exc_info':'No exc_info'}
 
 # ================Download Log Started===========================
             download_status = 'not_found'
