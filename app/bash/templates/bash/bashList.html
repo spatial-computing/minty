@@ -79,6 +79,7 @@
                 <th width="6%" class="center">Action</th>
                 <th width="6%" class="center">Logger</th>
                 <th width="6%" class="center">Edit</th>
+                <th width="6%" class="center">Register to DC</th>
               </tr>
             </thead>
             <tbody>
@@ -106,6 +107,9 @@
                   </td>
                   <td class="center">
                     <a class="btn btn-outline-primary btn-sm" href='{{ url_for('bash.edit_bash', bash_id=bash['id']) }}'>Edit</a>
+                  </td>
+                  <td class="center">
+                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}">Unregister</a>
                   </td>
                 </tr>
 

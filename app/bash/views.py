@@ -207,6 +207,14 @@ class Run(MethodView):
             status = getdata.findByDatasetId(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
         return jsonify({"status": "queued"})
 
+class Unregister(MethodView):
+    def post(self):
+        dataset_id = request.form['dataset_id']
+        viz_config = request.form['viz_config']
+        unregister_dc = api.DCWrapper()
+        status = unregister_dc.unregister_dataset_visualize_status(dataset_id, viz_config)
+        return jsonify({"status":status})
+
 class Status(MethodView):
     def post(self):
         if 'type' in request.form and request.form['type'] == 'batch':

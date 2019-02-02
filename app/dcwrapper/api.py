@@ -16,6 +16,7 @@ API_URL = 'http://api.mint-data-catalog.org/datasets'
 API_STANDARD_NAME = API_URL + '/dataset_standard_variables'
 API_FIND_RESOURCES = API_URL + '/find'
 API_FIND_DATASETS = 'http://api.mint-data-catalog.org/find_datasets'
+API_UPDATE_VIZUALIZE_STATUS = 'http://api.mint-data-catalog.org/datasets/update_dataset_viz_config'
 
 # Scheduler
 RQ_SCHEDULER_START_IN_SECONDS = 5
@@ -285,13 +286,17 @@ class DCWrapper(object):
             return bash
 
     def _after_download(self, redis_url):
+        print('kepia###3', self.command_args['status'])
+        if self.command_args['status'] == 'running' or self.command_args['status'] == 'ready_to_run':
+            return
+        
         from app.models import get_db_session_instance
         db_session = get_db_session_instance()
         if not self.bash_autorun:
             self.command_args['status'] = 'ready_to_run'
         else:
             self.command_args['status'] = 'running'
-            
+        
         bash = self._buildBash(db_session, from_download_func=False, **self.command_args)
         if self.bash_autorun:
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
@@ -352,3 +357,28 @@ class DCWrapper(object):
         if len(suffix) > 0:
             return suffix[-1]
         return ''
+    
+    def unregister_dataset_visualize_status(self, dataset_id, viz_config):
+        payload = {
+                'dataset_id': dataset_id, 
+                'viz_config_id': viz_config,
+                '$set': {
+                        'visualized' : False
+                    }
+                }
+        print(dataset_id)
+        print(viz_config)
+        req = requests.post(API_UPDATE_VIZUALIZE_STATUS, data = json.dumps(payload))
+        if req.status_code != 200:
+            return 'error'
+        
+        response = req.json()
+        #print(response)
+        if not isinstance(response, dict):
+            return 'error'
+
+        if 'error' in response:
+            print(response['error'])
+            return 'error'
+
+        return 'success'

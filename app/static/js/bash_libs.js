@@ -38,6 +38,25 @@
         }
         
     });
+    $('.unregister-btn').on('click',function (event) {
+        event.preventDefault();   
+        let confirmation = confirm("This action will let data catalog mark this layer visualized as unregister");
+        if (confirmation) {
+            $.ajax({
+                url: '/bash/unregister',
+                type: 'POST',
+                dataType: 'json',
+                data: { 
+                    csrf_token: $('.unregister-btn').data('csrf'),
+                    dataset_id: $(this).data('dataset_id'),
+                    viz_config: $(this).data('viz_config')}
+            }).done(function (json) {
+                alert(json.status);
+            });
+
+        }
+        
+    });
 
     var badge = {
         finished: '<span class="badge badge-info text-wrap">Finished</span>',

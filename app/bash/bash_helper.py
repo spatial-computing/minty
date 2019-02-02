@@ -51,6 +51,8 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.md5vector,
         Bash.download_ids,
         Bash.after_run_ids
+        Bash.dataset_id
+
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [
@@ -246,7 +248,13 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
     API_CHECK_HAS_LAYER = 'http://minty.mintviz.org/minty/has_layer/'
     API_CHECK_MINT_CHART_LAYER = 'http://minty.mintviz.org/minty/chart/'
     def update_viz_status_to_dc(dataset_id, viz_config):
-        payload = {'dataset_id': dataset_id, 'viz_config_id': viz_config}
+        payload = {
+                'dataset_id': dataset_id, 
+                'viz_config_id': viz_config,
+                '$set': {
+                        'visualized' : True
+                    }
+                }
         req = requests.post(API_UPDATE_VIZSTATUS_TO_DC, data = json.dumps(payload))
         if req.status_code != 200:
             return 'error'

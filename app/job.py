@@ -74,9 +74,11 @@ def queue_job_with_connection(job, connection, *args, **kwargs):
 def rq_run_command_job(command, bash_id, redis_url):
     # pre = "cd ../../mintcast&&export MINTCAST_PATH=.&&./../mintcast/bin/mintcast.sh"
     # command = pre + command
-    pre = "/bin/bash ./bin/mintcast.sh"
-    command = "cd %s && %s %s" % (MINTCAST_PATH, pre, command)
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    # trap 'echo Terminating && trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT && 
+    # pre = "" % (MINTCAST_PATH)
+    command = "/bin/bash %s/bin/mintcast.sh %s" % (MINTCAST_PATH, command)
+    p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    print("p.id######", p.pid)
     out, err = p.communicate()
     # update the real job id and update data
     # rq_connection = redis_url_or_rq_connection
@@ -175,7 +177,7 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     # response = requests.get(resource['resource_data_url'])
     logs = {}
     
-    download_command = "wget -O %s %s" % (file_path, resource_data_url)
+    download_command = "wget -O %s %s 2>&1" % (file_path, resource_data_url)
     p = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = p.communicate()
         # update the real job id and update data
@@ -189,10 +191,10 @@ def rq_download_job(resource, dataset_id, index, dir_path):
                 is_tar = True
             if magic_fileinfo.lower().startswith('zip'):
                 is_zip = True
-                
+
     out_zip, err_zip = "", ""
     if is_zip:
-        unzip_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
+        unzip_command = "unzip -o -U %s -d %s 2>&1" % (file_path, dir_path)
         p2 = subprocess.Popen(unzip_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         out_zip, err_zip = p2.communicate()
         # zip_ref = zipfile.ZipFile(file_path, 'r')
