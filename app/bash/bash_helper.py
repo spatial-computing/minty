@@ -50,9 +50,8 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.file_type,
         Bash.md5vector,
         Bash.download_ids,
-        Bash.after_run_ids
+        Bash.after_run_ids,
         Bash.dataset_id
-
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [
