@@ -77,10 +77,10 @@ def queue_job_with_connection(job, connection, *args, **kwargs):
 @rq_instance.job(func_or_queue='high', timeout=NORMAL_JOB_TIMEOUT, result_ttl=RESUTL_TTL)    
 def rq_terminate_mintcast_session(bash_id, redis_url, callback_after_terminated):
     rq_connection = Redis.from_url(redis_url)
-    pid = rq_connection.get(JOB_SUBPROCESS_MINTCAST_PID_REDIS_RECORD % bash_id)
+    pid = rq_connection.get(JOB_SUBPROCESS_MINTCAST_PID_REDIS_RECORD % (bash_id))
     try:
         pid = int(pid)
-        os.killpg(os.getpgid(pid), signal.SIGINT)
+        # os.killpg(os.getpgid(pid), signal.SIGINT)
         os.killpg(os.getpgid(pid), signal.SIGTERM)
     except Exception as e:
         callback_after_terminated(bash_id, success=False, msg=str(e))
@@ -95,18 +95,18 @@ def rq_run_command_job(command, bash_id, redis_url):
     # command = pre + command
     # trap 'echo Terminating && trap - SIGTERM && kill -- -$$' SIGINT SIGTERM EXIT && 
     # pre = "" % (MINTCAST_PATH)
-    # import shlex
+    import shlex
     rq_connection = Redis.from_url(redis_url)
 
     command = "/bin/bash %s/bin/mintcast.sh %s" % (MINTCAST_PATH, command)
-    # args = shlex.split(command)
+    args = shlex.split(command)
     p = subprocess.Popen(
-                command,
+                args,
                 stdin=subprocess.PIPE, 
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.PIPE, 
                 preexec_fn=os.setsid,
-                shell=True
+                shell=False
             )
     # start_new_session=True,
     print("p.id######", p.pid)
