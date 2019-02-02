@@ -99,7 +99,11 @@ def rq_run_command_job(command, bash_id, redis_url):
     rq_connection = Redis.from_url(redis_url)
 
     command = "/bin/bash %s/bin/mintcast.sh %s" % (MINTCAST_PATH, command)
+    
     args = shlex.split(command)
+    # Have to be shlex split Ubuntu server only could cancel when shell=False, 
+    # however, Mac OSX could cancel when shell=True
+    # Ubuntu is using dash as sh: `/bin/sh -> dash`, if set shell=True, child process will go rogue
     p = subprocess.Popen(
                 args,
                 stdin=subprocess.PIPE, 
