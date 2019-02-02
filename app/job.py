@@ -196,6 +196,7 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
 @rq_instance.job(func_or_queue='low', timeout=DOWNLOAD_JOB_TIMEOUT, result_ttl=RESUTL_TTL)
 def rq_download_job(resource, dataset_id, index, dir_path):
      # = '/tmp/' + dataset_id
+    import shlex
     is_compressed = True
     # is_tar = False
     file = None
@@ -218,7 +219,8 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     logs = {}
     #  2>&1
     download_command = "wget -O %s %s" % (file_path, resource_data_url)
-    p = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    download_args = shlex.split(download_command)
+    p = subprocess.Popen(download_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     out, err = p.communicate()
         # update the real job id and update data
         # rq_connection = redis_url_or_rq_connection
@@ -249,7 +251,8 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     out_zip, err_zip = "", ""
     if is_compressed:
         # unzip_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
-        p2 = subprocess.Popen(uncompress_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        uncompress_args = shlex.split(uncompress_command)
+        p2 = subprocess.Popen(uncompress_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         out_zip, err_zip = p2.communicate()
         os.remove(file_path)
 
