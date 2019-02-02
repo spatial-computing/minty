@@ -10,5 +10,6 @@ routes = [
 	Pluggable('/bash/status', Status, 'status'),
 	Pluggable('/bash/defaultsetting',MIntcastTaskDefaultSetting,'defaultsetting'),
 	Pluggable('/bash/defaultsetting/controller',MIntcastTaskDefaultSettingController,'defaultsetting_controller'),
-	Pluggable('/bash/cancel',Cancel,'cancel')
+	Pluggable('/bash/cancel',Cancel,'cancel'),
+	Pluggable('/bash/unregister', Unregister, 'unregister')
 ]
