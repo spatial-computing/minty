@@ -196,8 +196,8 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
 @rq_instance.job(func_or_queue='low', timeout=DOWNLOAD_JOB_TIMEOUT, result_ttl=RESUTL_TTL)
 def rq_download_job(resource, dataset_id, index, dir_path):
      # = '/tmp/' + dataset_id
-    is_zip = False
-    is_tar = False
+    is_compressed = True
+    # is_tar = False
     file = None
     resource_data_url = None
     if isinstance(resource, str):
@@ -212,10 +212,7 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     file_name = file[-1]
     file_path = dir_path + '/' + file_name
     # print('$$$', file, file_name, file_path)
-    if file_name.find('.tar') != -1:
-        is_tar = True
-    if file_name.endswith('.zip'):
-        is_zip = True
+
     # print('#####', is_tar, is_zip, file_name)
     # response = requests.get(resource['resource_data_url'])
     logs = {}
@@ -226,30 +223,36 @@ def rq_download_job(resource, dataset_id, index, dir_path):
         # update the real job id and update data
         # rq_connection = redis_url_or_rq_connection
         # if isinstance(redis_url_or_rq_connection, str):
+    uncompress_command = ''
+    if file_name.endswith('.zip'):
+        uncompress_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
+    elif file_name.endswith('.tar.gz') or file_name.endswith('.tgz'):
+        uncompress_command = "tar zxvC %s -f %s" (dir_path, file_path)
+    elif file_name.endswith('.tar.bz2') or file_name.endswith('.tar.bz'):
+        uncompress_command = "tar jxvC %s -f %s" (dir_path, file_path)
+    elif file_name.endswith('.tar') or file_name.endswith('.xz'):
+        uncompress_command = "tar xvC %s -f %s" (dir_path, file_path)
+    else:
+        is_compressed = False
 
-    if not is_zip and not is_tar:
+    if not is_compressed:
         if os.path.exists(file_path):
             magic_fileinfo = magic.from_file(file_path)
-            if magic_fileinfo.lower().startswith('gzip'):
-                is_tar = True
-            if magic_fileinfo.lower().startswith('zip'):
-                is_zip = True
+            code = magic_fileinfo.lower()
+            if code.startswith('gzip'):
+                uncompress_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
+            elif code.startswith('zip'):
+                uncompress_command = "tar zxvC %s -f %s" (dir_path, file_path)  
+            elif code.startswith('bzip2'):
+                uncompress_command = "tar jxvC %s -f %s" (dir_path, file_path)
 
     out_zip, err_zip = "", ""
-    if is_zip:
-        unzip_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
-        p2 = subprocess.Popen(unzip_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    if is_compressed:
+        # unzip_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
+        p2 = subprocess.Popen(uncompress_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         out_zip, err_zip = p2.communicate()
-        # zip_ref = zipfile.ZipFile(file_path, 'r')
-        # zip_ref.extractall(dir_path)
-        # zip_ref.close()
         os.remove(file_path)
-    elif is_tar:
-        tar_ref = tarfile.open(file_path, 'r')
-        tar_ref.extractall(dir_path)
-        tar_ref.close()
-        os.remove(file_path)
-    
+
     logs = {
         "output": str(out, 'utf8') if isinstance(out, bytes) else str(out),
         "error": str(err, 'utf8') if isinstance(err, bytes) else str(err)
