@@ -94,7 +94,7 @@
             for (var i = 0; i < json.status.length; i++) {
                 $($(document).find('.bash-status')[i]).html( badge[json.status[i]] )
                 $($(document).find('.bash-status')[i]).parents('tr').removeClass().addClass(job_status_tr_class[json.status[i]]);
-                if(json.status[i] === 'running'){
+                if(json.status[i] in {'running':0, 'downloading':0}){
                    $($(document).find('.run-btn')[i]).hide(); 
                    $($(document).find('.cancel-btn')[i]).show();
                 }else {

@@ -2,7 +2,9 @@ from flask import jsonify, request, url_for, redirect, current_app, render_templ
 from flask.views import MethodView
 
 import pymongo
-from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count,find_bash_attrs
+
+from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count, cancel_mintcast_job, find_bash_attrs
+
 import os
 import math
 import json
@@ -180,7 +182,7 @@ class Cancel(MethodView):
         no_exception, job = rq_instance.job_fetch(bash_job_id)
         if no_exception:
             job.cancel()
-            update_bash(bashid, status="ready_to_run") 
+            cancel_mintcast_job(bashid)
             return jsonify({"status":"Job cancelled"})
         else:
             update_bash(bashid, status="ready_to_run")
@@ -223,7 +225,7 @@ class Status(MethodView):
             job_ids = request.form['jobid'].split(',')
             status = []
             for idx, job_id in enumerate(job_ids):
-                _s = ''
+                _s = 'not_found'
                 all_ids = find_bash_attrs(bash_ids[idx],CHECK_JOB_ALL_IDS)
                 for job_id in all_ids:
                     no_exception, job = rq_instance.job_fetch(job_id)
@@ -232,7 +234,7 @@ class Status(MethodView):
                         break
                 if _s != 'failed':
                     _s = find_bash_attr(bash_ids[idx],'status')
-                status.append(_s if _s else '')
+                status.append(_s if _s else 'not_found')
 
                 # no_exception, job = rq_instance.job_fetch(job_id)
                 # _s = ''
@@ -293,7 +295,7 @@ class Status(MethodView):
             
             status = status if status else 'not_found'
             if not logs:
-                logs = {'output':'', 'error':'', 'exc_info':''}
+                logs = {'output':'No stdout', 'error':'No stderr', 'exc_info':'No exc_info'}
 
 # ================Download Log Started===========================
             download_status = 'not_found'
