@@ -142,8 +142,9 @@ pre {
 }
 
 .custom-switch {
-    flex-grow: 1;
-    flex: 1 1 33%;
+  flex-grow: 1;
+  flex: 1 1 40%;
+  margin: 8px;
 }
 .modal-body pre {
   white-space: pre-wrap;
