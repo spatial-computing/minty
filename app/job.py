@@ -40,13 +40,17 @@ RESUTL_TTL = '7d' # -1 for never expire, clean up result key manually
 RUN_MINTCAST_JOB_TIMEOUT = '20d'
 NORMAL_JOB_TIMEOUT = '30m'
 DOWNLOAD_JOB_TIMEOUT = '4h'
-def queue_job_with_connection(job, connection, *args, **kwargs):
+def queue_job_with_connection(job, connection, _queue_name=None, *args, **kwargs):
     if not connection:
         return job
 
     from rq import Queue
+    
+    if not _queue_name:
+        _queue_name = job.helper.queue_name
+
     rq_queue = Queue(
-        name=job.helper.queue_name,
+        name=_queue_name,
         connection=connection,
         is_async=True
         # job_class='flask_rq2.job.FlaskJob'
@@ -244,12 +248,15 @@ def rq_download_job(resource, dataset_id, index, dir_path):
         if os.path.exists(file_path):
             magic_fileinfo = magic.from_file(file_path)
             code = magic_fileinfo.lower()
+            is_compressed = True
             if code.startswith('gzip'):
-                uncompress_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
-            elif code.startswith('zip'):
                 uncompress_command = "tar zxvC %s -f %s" % (dir_path, file_path)  
-            elif code.startswith('bzip2'):
+            elif code.startswith('zip'):
+                uncompress_command = "unzip -o -U %s -d %s" % (file_path, dir_path)
+            elif code.startswith('bzip'):
                 uncompress_command = "tar jxvC %s -f %s" % (dir_path, file_path)
+            else:
+                is_compressed = False
 
     out_zip, err_zip = "", ""
     if is_compressed:

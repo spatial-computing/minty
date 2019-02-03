@@ -355,10 +355,17 @@ class dc_wrapper(object):
             command = bash_helper.find_command_by_id(bash.id, db_session=db_session)
             from app.job import queue_job_with_connection
             from redis import Redis
+            
+            # Make sure mint-chart be processed first rather than wait in line with mint-map*
+            queue_name = None
+            if bash.viz_type == 'mint-chart':
+                queue_name = 'high'
+
             rq_connection = Redis.from_url(redis_url)
             bash_job = queue_job_with_connection(
                 rq_run_command_job, 
-                rq_connection, 
+                rq_connection,
+                _queue_name=queue_name,
                 command, 
                 bash.id,
                 redis_url
