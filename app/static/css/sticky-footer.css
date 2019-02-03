@@ -55,6 +55,7 @@ body {
 
 #mintcast-command-list th, td {
   white-space: normal;
+  vertical-align: middle !important;
 }
 #mintcast-command-list th {
   text-transform: capitalize;
