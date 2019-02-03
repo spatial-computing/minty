@@ -40,7 +40,7 @@ RESUTL_TTL = '7d' # -1 for never expire, clean up result key manually
 RUN_MINTCAST_JOB_TIMEOUT = '20d'
 NORMAL_JOB_TIMEOUT = '30m'
 DOWNLOAD_JOB_TIMEOUT = '4h'
-def queue_job_with_connection(job, connection, _queue_name=None, *args, **kwargs):
+def queue_job_with_connection(job, connection, *args, _queue_name=None, **kwargs):
     if not connection:
         return job
 

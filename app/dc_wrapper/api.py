@@ -365,10 +365,10 @@ class dc_wrapper(object):
             bash_job = queue_job_with_connection(
                 rq_run_command_job, 
                 rq_connection,
-                _queue_name=queue_name,
                 command, 
                 bash.id,
-                redis_url
+                redis_url,
+                _queue_name=queue_name
             )
             
             bash_helper.add_job_id_to_bash_db(bash.id, bash_job.id, db_session=db_session)
