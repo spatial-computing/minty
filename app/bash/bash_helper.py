@@ -301,7 +301,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         if not isinstance(response, dict):
             return 'has_layer return error.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
 
-        from datetime import datetime
+        from datetime import datetime, timedelta
         if viz_type == 'mint-chart':
             if response.get('status') != None and response['status'] == 404:
                 return 'Viz_type : mint-chart, cannot find the layer with this uuid.\nDataset_id: %s\nViz_config: %s' % (dataset_id, viz_config)
@@ -322,7 +322,7 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         
         job = get_current_job()
 
-        job_enqueued_at = utc_to_local(job.enqueued_at.replace(second=0, microsecond=0))
+        job_enqueued_at = utc_to_local(job.enqueued_at.replace(second=0, microsecond=0)) - timedelta(minutes=10)
         layer_modified_at = layer_modified_at
 
         time_comparision = "\njob_enqueued_at: %s\nlayer_modified_at: %s" % (datetime.strftime(job_enqueued_at,'%Y-%m-%d %H:%M:%S %f %z'), datetime.strftime(layer_modified_at,'%Y-%m-%d %H:%M:%S %f %z'))
