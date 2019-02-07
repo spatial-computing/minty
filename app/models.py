@@ -44,10 +44,10 @@ class Tileserverconfig(db.Model):
     __tablename__ = 'tileserverconfig'
 
     id = db.Column(db.Integer, primary_key=True, nullable=False)
-    layerid = db.Column(db.String(255), nullable=False)
-    mbtiles = db.Column(db.String(255), nullable=False)
+    layerid = db.Column(db.String(), nullable=False)
+    mbtiles = db.Column(db.String(), nullable=False)
     md5 = db.Column(db.String(255), nullable=False)
-    layer_name = db.Column(db.String(255), nullable=False)  
+    layer_name = db.Column(db.String(), nullable=False)  
 
 class Layer(db.Model):
     __tablename__='layer'
