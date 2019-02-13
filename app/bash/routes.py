@@ -14,4 +14,5 @@ routes = [
 	Pluggable('/bash/unregister', Unregister, 'unregister'),
 	Pluggable('/bash/edit_dc_metadata', EditDcInfo, 'edit_dc_metadata'),
 	Pluggable('/bash/register_dc_metadata', RegisterDcInfo, 'register_dc_metadata'),
+	Pluggable('/bash/search',SearchBash,'search_bash')
 ]

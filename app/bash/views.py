@@ -3,18 +3,21 @@ from flask.views import MethodView
 
 import pymongo
 
-from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count, cancel_mintcast_job, find_bash_attrs
+from .bash_helper import find_bash_by_id_for_run, get_bash_column_metadata, find_bash_attr, delete_bash, add_bash, find_bash_by_id, update_bash, find_all, find_one, run_bash, find_command_by_id, combine, find_count, cancel_mintcast_job, find_bash_attrs, find_all_bashes, add_bash_to_redis
 
 import os
 import math
 import json
 from app.job import rq_instance
 from app.dc_wrapper import api
-
+import redis
+from redis import Redis
 import ast
 KEY_FILTER_FOR_USER = {'_sa_instance_state',  'id', 'viz_type'}
 MINTY_URL = 'http://minty.mintviz.org/'
 CHECK_JOB_ALL_IDS = ['download_ids','rqids','after_run_ids']
+REDIS_EXPIRE_TIME = 86400
+
 class DeleteBash(MethodView):
 
     def get(self, bash_id):
@@ -404,3 +407,26 @@ class MIntcastTaskDefaultSettingController(MethodView):
 
     def __del__(self):
         self.mongo_client.close()
+
+class SearchBash(MethodView):
+    def post(self):
+        r = Redis.from_url(rq_instance.redis_url,decode_responses=True)
+        if not r.keys("minty:bash:search:*"):
+            bashes = find_all_bashes()
+            for bash in bashes:
+                bash = bash._asdict()
+                display_on_table = bash
+                add_bash_to_redis(display_on_table, REDIS_EXPIRE_TIME, r)
+
+        value = request.form['value']
+        search_key = "minty:bash:search:*"+value+"*"
+        result =[]
+        keys = set()
+        for key in r.keys(search_key):
+            keys.add(key)
+            if len(keys) == 5:
+                break
+        for key in keys:
+            returned_bash = r.hgetall(r.get(key))
+            result.append(returned_bash)
+        return jsonify({'status':400,'result':result})

@@ -81,7 +81,7 @@ class Layer(db.Model):
     valuearray = db.Column(db.TEXT)
     vector_json = db.Column(db.TEXT)
     colormap = db.Column(db.TEXT)
-    hotspot = db.Column(db.TEXT)
+    layer_type = db.Column(db.Integer,server_default = text('100'))
     original_dataset_bounds = db.Column(db.TEXT)
     mapping = db.Column(db.String())
     create_at = db.Column(db.DateTime, server_default=func.now())

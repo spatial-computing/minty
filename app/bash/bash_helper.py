@@ -3,6 +3,8 @@ import subprocess
 from database import MongoConfig
 import pymongo
 import json
+import redis
+from redis import Redis
 from app.models import Bash, db
 from app.job import rq_run_command_job, rq_instance, rq_terminate_mintcast_session
 from sqlalchemy.orm import load_only
@@ -10,6 +12,32 @@ from sqlalchemy.orm import load_only
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
 COLUMN_NAME_VIZ_TYPE = 'viz_type'
+
+BASH_DISPLAY_ON_TABLE_SEARCH_FILTERS = [
+            Bash.id, 
+            Bash.command, 
+            Bash.rqids, 
+            Bash.viz_config, 
+            Bash.viz_type, 
+            Bash.file_type, 
+            Bash.md5vector, 
+            Bash.download_ids, 
+            Bash.after_run_ids, 
+            Bash.dataset_id
+]
+
+BASH_DISPLAY_ON_TABLE = [
+            'id', 
+            'command', 
+            'rqids', 
+            'viz_config', 
+            'viz_type', 
+            'file_type', 
+            'md5vector', 
+            'download_ids', 
+            'after_run_ids', 
+            'dataset_id'
+]
 
 IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
     'id', 
@@ -173,6 +201,16 @@ def find_all(limit = 20, page=0, db_session=db.session):
     #    res.append(combine(vars(bash)))
     return bashes
 
+def find_all_bashes(db_session=db.session):
+    bashes = db_session.query(Bash)\
+                       .with_entities(*BASH_DISPLAY_ON_TABLE_SEARCH_FILTERS)\
+                       .order_by(Bash.id.desc())\
+                       .all()
+    # res=[]
+    # for bash in bashes:
+    #    res.append(combine(vars(bash)))
+    return bashes
+
 def find_one(db_session=db.session):
     return db_session.query(Bash)\
                      .with_entities(*PROJECTION_OF_BASH_USER_COULD_MODIFY)\
@@ -187,11 +225,39 @@ def get_bash_column_metadata():
 def add_bash(db_session=db.session, **kwargs):
     # kwargs
     newbash = Bash(**kwargs)
-    newbash.command = combine(vars(newbash))
+    print(type(newbash))
+    # newbash.command = combine(vars(newbash))
     db_session.add(newbash)
+    db_session.flush()
     db_session.commit()
-    #print (bash)
+    print(newbash.id)
+    r = Redis.from_url(rq_instance.redis_url,decode_responses=True)
+    expire_time = get_expire_time(r)
+    if expire_time != -1:
+        bash_on_table = dict()
+        newbash = vars(newbash)
+        for key in BASH_DISPLAY_ON_TABLE:
+            bash_on_table[key] = newbash[key]
+        add_bash_to_redis(bash_on_table,expire_time,r)    
     return newbash
+
+def get_expire_time(r = Redis.from_url(rq_instance.redis_url,decode_responses=True)):
+    redis_key_list = r.scan(match='minty:*',count=1)[1]
+    if redis_key_list:
+        return r.ttl(redis_key_list[0])
+    else:
+        return -1
+
+def add_bash_to_redis(bash_on_table, expire_time,r = Redis.from_url(rq_instance.redis_url,decode_responses=True)):
+    
+    redis_key_md5vector = "minty:bash:search:"+bash_on_table['md5vector']
+    redis_key_dataset_id = "minty:bash:search:"+bash_on_table['dataset_id']
+    bash_id = str(bash_on_table['id'])
+    redis_key_bash_id = "minty:bash:bashid:"+bash_id
+    r.setex(redis_key_md5vector,expire_time,redis_key_bash_id)
+    r.setex(redis_key_dataset_id,expire_time,redis_key_bash_id)
+    r.hmset(redis_key_bash_id,bash_on_table)
+    r.expire(redis_key_bash_id,expire_time)      
 
 #delete this bash
 def delete_bash(id, db_session=db.session):
@@ -206,6 +272,15 @@ def update_bash(id, db_session=db.session, **kwargs):
         setattr(bash, key, kwargs[key])
     bash.command = combine(vars(bash))
     db_session.commit()
+
+    r = Redis.from_url(rq_instance.redis_url,decode_responses=True)
+    expire_time = get_expire_time(r)
+    if expire_time != -1:
+        bash_on_table = dict()
+        bash = vars(bash)
+        for key in BASH_DISPLAY_ON_TABLE:
+            bash_on_table[key] = bash[key]
+        add_bash_to_redis(bash_on_table,expire_time,r) 
     return bash
 
 

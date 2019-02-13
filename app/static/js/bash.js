@@ -1,4 +1,9 @@
 !(function () {
+    let pre_tbody;
+    $( document ).ready(function() {
+        console.log( "ready!" );
+        pre_tbody = $('.after-search').clone()
+    });
     var container = document.getElementById("jsoneditor");
     var options = {
         mode: 'form',
@@ -13,8 +18,7 @@
         $('#loading-screen').hide();   
     }
 
-
-    $('.edit-register-metadata').on('click', function (event) {
+    $('body').on('click','.edit-register-metadata', function (event) {
         event.preventDefault();
         let self = this;
         start_loading();
@@ -23,7 +27,7 @@
             type: 'POST',
             dataType: 'json',
             data: {
-                csrf_token: $(self).data('csrf'),
+                csrf_token: $('#csrf_token_hidden').val(),
                 dataset_id: $(self).data('dataset-id'),
                 viz_config: $(self).data('viz-config')
             }
@@ -41,7 +45,7 @@
             
         });
     });
-    $('#jsoneditor-modal .save-changes').on('click', function (event) {
+    $('body').on('click', '#jsoneditor-modal .save-changes', function (event) {
         event.preventDefault();
         let self = this;
         var reg_json = editor.get();
@@ -52,7 +56,7 @@
             type: 'POST',
             dataType: 'json',
             data: {
-                csrf_token: $(self).data('csrf'),
+                csrf_token: $(self).val(),
                 reg_json: JSON.stringify(reg_json)
             }
         }).done(function (json) {
@@ -65,7 +69,7 @@
         })
 
     })
-    $('.run-btn').on('click',function (event) {
+    $('body').on('click','.run-btn',function (event) {
         event.preventDefault();   
         let command = $(this).data('command');
         let self = this;
@@ -85,7 +89,7 @@
                 dataType: 'json',
                 data: {
                     command:command, 
-                    csrf_token:$(self).data('csrf'),
+                    csrf_token:$('#csrf_token_hidden').val(),
                     bashid:$(self).data('bashid')
                 }
             }).done(function (json) {
@@ -102,7 +106,7 @@
           }
         });
     });
-    $('.cancel-btn').on('click',function (event) {
+    $('body').on('click','.cancel-btn',function (event) {
         event.preventDefault();
         let self = this;
         swal({
@@ -120,7 +124,7 @@
                 type: 'POST',
                 dataType: 'json',
                 data: { 
-                    csrf_token: $(self).data('csrf'),
+                    csrf_token: $('#csrf_token_hidden').val(),
                     bashid: $(self).data('bashid')
                 }
             }).done(function (json) {
@@ -137,7 +141,7 @@
           }
         });
     });
-    $('.unregister-btn').on('click',function (event) {
+    $('body').on('click','.unregister-btn',function (event) {
         event.preventDefault();
         let self = this;
         swal({
@@ -155,7 +159,7 @@
                 type: 'POST',
                 dataType: 'json',
                 data: { 
-                    csrf_token: $(self).data('csrf'),
+                    csrf_token: $('#csrf_token_hidden').val(),
                     dataset_id: $(self).data('dataset_id'),
                     viz_config: $(self).data('viz_config'),
                     option: $(self).data('option')
@@ -231,9 +235,11 @@
         }
         return "";
     }
-    $('.status-btn').on('click',function(event){
+    $('body').on('click','.status-btn',function(event){
         event.preventDefault();
         start_loading();
+        console.log($(this).data('rqid'));
+        console.log("aaaa");
         $.ajax({
             url:'/bash/status',
             type:'POST',
@@ -243,7 +249,7 @@
                 bashid: $(this).data('bashid'),
                 download_id: $(this).data('download-id'),
                 after_run_ids: $(this).data('after-run-ids'),
-                csrf_token: $(this).data('csrf')
+                csrf_token: $('#csrf_token_hidden').val()
             },
         }).done(function(json){
             $('#bash-modal .running-log .bash-modal-status').html(badge[json.status]);
@@ -277,7 +283,7 @@
     //     });       
 
     // })
-    $('.custom-setting').on('change',function(event){
+    $('body').on('change','.custom-setting',function(event){
         event.preventDefault();
         let status = $(this).prop("checked");
         let name = $( this ).attr('name');
@@ -295,7 +301,7 @@
 
         })
     });
-    $('.custom-controller').on('change',function(event){
+    $('body').on('change','.custom-controller', function(event){
         event.preventDefault();
         let status = $(this).prop("checked");
         let name = $( this ).attr('name');
@@ -313,6 +319,69 @@
 
         })
     });
+
+
+    $('body').on('input','#search-bash',function(event){
+        event.preventDefault();
+        let value = $(this).val()
+        if(value.length>=3){
+            let csrf_token = $('#csrf_token_hidden').val();
+            $.ajax({
+                url:'/bash/search',
+                type:'POST',
+                dataType:'json',
+                data:{csrf_token:csrf_token, value:value}
+            }).done(function(json){
+                    console.log(json.result)
+                    $('tbody').remove()
+                    $('table').append("<tbody class=\"after-search\"></tbody>")
+                    let bash_rqids = []
+                    let bash_ids = []
+                    json.result.map(bash=>{
+                        let {id, command, rqids, viz_config, viz_type, file_type, md5vector, download_ids, after_run_ids, dataset_id} = bash
+                        bash_rqids.push(rqids)
+                        bash_ids.push(id)
+                        let html_string = "\
+                        <tr> \
+                            <td class=\"bash-status vcenter\"></td>\
+                            <td><pre>"+command+"</pre></td>\
+                            <td class=\"center\">\
+                                <button class=\"btn btn-outline-danger btn-sm run-btn\" data-command= \"" + command + "\" data-bashid=\"" +id+ "\" style=\"display:none\">Run</button>\
+                                <button class=\"btn btn-outline-danger btn-sm cancel-btn\" data-command= \""+ command+ "\" data-bashid=\""+id+ "\" style=\"display:none\">Cancel</button>\
+                            </td>\
+                            <td class=\"center\">\
+                                <button class=\"btn btn-outline-info btn-sm status-btn\"  data-rqid=\"" + rqids + "\" data-download-id=\""+download_ids+"\" data-after-run-ids=\"" +after_run_ids+ "\" data-bashid=\""+id+"\" >Log</button>\
+                            </td>\
+                            <td class=\"center\">\
+                                <a class=\"btn btn-outline-primary btn-sm\" href='#' data-href='/bash/edit/"+id+"'>Edit</a>\
+                            </td>\
+                            <td class='center dc-action'>\
+                                <button type='button' class='btn btn-outline-dark btn-sm edit-register-metadata' data-dataset-id=\""+id+"\" data-viz-config=\""+viz_config+"\" >\
+                                    Edit DC Metadata\
+                                </button>\
+                                <button class='btn btn-outline-dark btn-sm unregister-btn' data-dataset_id=\""+id+"\" data-viz_config=\""+viz_config+"\" data-option='False'>Unreg</button>\
+                                <button class='btn btn-outline-dark btn-sm unregister-btn' data-dataset_id=\""+id+"\" data-viz_config=\""+viz_config+"\" data-option='True'>Reg</button>\
+                            </td>\
+                        </tr>"
+                        $('tbody').append(html_string)
+                    })
+                    html_string_bash_rqids = "<input id='bash_rqids' type='hidden' name='rqids' value=\""+bash_rqids.join(',')+"\">"
+                    html_string_bash_ids = "<input id='bash_ids' type='hidden' name='bashids' value=\""+ bash_ids.join(',')+"\">"
+                    $('tbody').append(html_string_bash_rqids)
+                    $('tbody').append(html_string_bash_ids)
+
+                
+                })
+            }
+        else {
+            $('tbody').remove()
+            $('table').append(pre_tbody)
+        }
+        
+
+
+    })
+
     $( document ).ajaxError(function() {
       stop_loading();
     });

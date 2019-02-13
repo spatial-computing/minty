@@ -65,6 +65,8 @@
     <div class="middle">
       <div class="inner">
 
+          <input type='text' id='search-bash' placeholder="search bash">
+
           <nav aria-label="Page navigation">
             <ul class="pagination justify-content-end">
               <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
@@ -94,7 +96,8 @@
                 <th width="6%" class="center">DC</th>
               </tr>
             </thead>
-            <tbody>
+
+            <tbody class="after-search">
               {% set bash_rqids = [] %}
               {% set bash_ids = [] %}
               {% for bash in res %}
@@ -135,6 +138,7 @@
               <input id="bash_rqids" type="hidden" name="rqids" value="{{ bash_rqids|join(',') }}">
               <input id="bash_ids" type="hidden" name="bashids" value="{{ bash_ids|join(',') }}">
             </tbody>
+
           </table>
           <button  class="btn btn-primary" onclick="window.location.href = '{{ url_for('bash.add_bash')}}';">addBash</button>
       </div>
