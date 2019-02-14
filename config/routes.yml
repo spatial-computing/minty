@@ -10,18 +10,132 @@
   suffix:
     /:
       controller: BlogIndex
-      methods: get
+      methods:  GET, POST
       endpoint: blog_index
     /view/<id>:
       controller: BlogView
-      methods: get
+      methods:  GET, POST
       endpoint: blog_view
     /edit/<id>:
       controller: BlogEdit
-      methods: get, post
+      methods:  POST, DELETE
       endpoint: blog_edit
     /delete/<id>:
       controller: BlogDelete
-      methods: delete
+      methods: GET
       endpoint: blog_delete
 
+/minty:
+  scope: true
+  app: minty
+  suffix:
+    /layer/<md5>:
+      controller: LayerJson
+      methods: get
+      endpoint: findLayerByVectorMD5 
+    /has_layer/<md5>:
+      controller: HasLayerJson
+      method: get
+      endpoint: hasLayerByVectorMD5
+    /layer/dc/<dcid>:
+      controller: DcidJson
+      methods: get
+      endpoint: findLayerByDataCatalogID
+    /metadata:
+      controller: MetadataJson
+      methods: get
+      endpoint: metadata
+    /autocomplete:
+      controller: AutocompleteJson
+      methods: get
+      endpoint: autocomplete
+    /layer_index:
+      controller: AutocompleteJson
+      methods: get
+      endpoint: layer_index
+    /visualize/<dataset_id>:
+      controller: VisualizeAction
+      methods: get
+      endpoint: visualize_action
+    /viz_type:
+      controller: VizType
+      methods: get
+      endpoint: viz_type
+    /chart/<dataset_id>:
+      controller: ChartData
+      methods: get
+      endpoint: chart_data
+    /tilestache/index.html:
+      controller: TileStacheIndex
+      methods: get
+      endpoint: tilestache_index
+    /tilestache/config:
+      controller: TileStacheConfig
+      methods: get
+      endpoint: tilestache_config
+
+/bash:
+  scope: true
+  app: bash
+  suffix:
+    /:
+      controller: BashList
+      methods: get, post
+      endpoint: bash_list
+    /delete/<string:bash_id>:
+      controller: DeleteBash
+      methods: get
+      endpoint: delete_bash
+    /add:
+      controller: AddBash
+      methods: get, post
+      endpoint: add_bash
+    /edit/<string:bash_id>:
+      controller: EditBash
+      methods: get, post
+      endpoint: edit_bash
+    /run:
+      controller: Run
+      methods: post
+      endpoint: run
+    /status:
+      controller: Status
+      methods: post
+      endpoint: status
+    /defaultsetting:
+      controller: MIntcastTaskDefaultSetting
+      methods: get, post
+      endpoint: defaultsetting
+    /defaultsetting/controller:
+      controller: MIntcastTaskDefaultSettingController
+      methods: get, post
+      endpoint: defaultsetting_controller
+    /cancel:
+      controller: Cancel
+      methods: post
+      endpoint: cancel
+    /unregister:
+      controller: Unregister
+      methods: post
+      endpoint: unregister
+    /edit_dc_metadata:
+      controller: EditDcInfo
+      methods: post
+      endpoint: edit_dc_metadata
+    /register_dc_metadata:
+      controller: RegisterDcInfo
+      methods: post
+      endpoint: register_dc_metadata
+    /search:
+      controller: SearchBash
+      methods: post
+      endpoint: search_bash
+
+/viztype:
+  scope: true
+  app: viztype
+  suffix:
+    /:
+      controller: VizType
+      methods: get, post, delete
+      endpoint: viztype_index

@@ -1,0 +1,226 @@
+{% extends 'layout/base.html' %}
+{% block content %}
+{% block stylesheet %}
+<link href="/static/css/jsoneditor.min.css?v=5.28" rel="stylesheet" type="text/css">
+{% endblock %}
+
+
+<div id="loading-screen">
+  <div class="d-flex justify-content-center align-items-center">
+    <div class="spinner spinner-border text-light" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" role="alert" aria-live="polite" aria-atomic="true" data-delay="5000">
+  <div class="toast-header">
+    <strong class="mr-auto">Mintcast Setting Changed</strong>
+    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="toast-body" style="opacity: 1">
+    Hello, world! This is a toast message.
+  </div>
+</div>
+
+<input id="csrf_token_hidden" type="hidden" name="csrf_token" value="{{csrf_token()}}">
+
+<div class="default-setting-panel">
+  <h5>Setting Controller</h5>
+  <form class="setting-form" action="">
+    {% for key in default_setting_controller %}
+    <div class="custom-control custom-switch">
+      {% if default_setting_controller[key] ==True %}
+      <input type="checkbox" class="custom-controller custom-control-input" id="{{key}}" name="{{key}}" checked>
+      {% else %}
+      <input type="checkbox" class="custom-controller custom-control-input" id="{{key}}" name="{{key}}" >
+      {% endif %}
+      <label class="custom-control-label" for="{{key}}">{{key}}</label>
+    </div>
+    {% endfor%}
+  </form>
+</div>
+
+<div class="default-setting-panel">
+  <h5>MintCast Default Value Panel</h5>
+  <form class="setting-form" action="">
+    {% for key in default_setting %}
+    <div class="custom-control custom-switch">
+      {% if default_setting[key] == True %}
+      <input type="checkbox" class="custom-setting custom-control-input" id="{{key}}" name="{{key}}" checked>
+      {% else %}
+      <input type="checkbox" class="custom-setting custom-control-input" id="{{key}}" name="{{key}}" >
+      {% endif %}
+      <label class="custom-control-label" for="{{key}}">{{key}}</label>
+    </div>
+    {% endfor%}
+  </form>
+</div>
+<hr>
+<h5>Mintcast Tasks</h5>
+<div class="content-section">
+  <div class="outer">
+    <div class="middle">
+      <div class="inner">
+
+          <input type='text' id='search-bash' placeholder="search bash">
+
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-end">
+              <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                <a class="page-link" href="?page={{ current_page - 1 }}{% if current_limit != default_limit %}&limit={{current_limit}}{% endif %}" tabindex="-1" aria-disabled="true">Previous</a>
+              </li>
+              {% for page in range(1, total_page_num+1) %}
+                <li class="page-item {% if current_page == page %}active{% endif %}"><a class="page-link" href="?page={{page}}{% if current_limit != default_limit %}&limit={{current_limit}}{% endif %}">{{page}}</a></li>
+              {% endfor %}
+              <li class="page-item {% if current_page == total_page_num %}disabled{% endif %}">
+                <a class="page-link" href="?page={{ current_page + 1 }}{% if current_limit != default_limit %}&limit={{current_limit}}{% endif %}">Next</a>
+              </li>
+            </ul>
+          </nav>
+
+          <table id="mintcast-command-list" class="table table-sm" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th width="10%" class="center">Status</th>
+                {% for key in th %}
+                  {% if key!="" %}
+                    <th width="66%">{{key}}</th>
+                  {% endif %}
+                {% endfor %}
+                <th width="6%" class="center">Action</th>
+                <th width="6%" class="center">Logger</th>
+                <th width="6%" class="center">Edit</th>
+                <th width="6%" class="center">DC</th>
+              </tr>
+            </thead>
+
+            <tbody class="after-search">
+              {% set bash_rqids = [] %}
+              {% set bash_ids = [] %}
+              {% for bash in res %}
+                <tr>
+                  <td class="bash-status vcenter"></td>
+                  {% for key in th %}
+                  {% if key == 'command' %}
+                      <td><pre>{{bash[key]}}</pre></td>
+                  {% else %}
+                      <td >{{bash[key]}}</td>
+                  {% endif %}
+                    <!-- <td></td> -->
+                  {% endfor %}
+                  <td class="center">
+                    <button class="btn btn-outline-danger btn-sm run-btn" data-csrf="{{ csrf_token() }}" data-command="{{bash['command']}}" data-bashid="{{bash['id']}}">Run</button>
+                    <button class="btn btn-outline-danger btn-sm cancel-btn" data-csrf="{{ csrf_token() }}" data-command="{{bash['command']}}" data-bashid="{{bash['id']}}" style="display:none">Cancel</button>
+                  </td>
+                    
+                  
+                  <td class="center">
+                    <button class="btn btn-outline-info btn-sm status-btn" data-csrf="{{ csrf_token() }}" data-rqid="{{ bash['rqids'] }}" data-download-id="{{ bash['download_ids'] }}" data-after-run-ids="{{ bash['after_run_ids'] }}" data-bashid="{{bash['id']}}" >Log</button>
+                  </td>
+                  <td class="center">
+                    <a class="btn btn-outline-primary btn-sm" href='#' data-href='{{ url_for('bash.edit_bash', bash_id=bash['id']) }}'>Edit</a>
+                  </td>
+                  <td class="center dc-action">
+                    <button type="button" class="btn btn-outline-dark btn-sm edit-register-metadata" data-dataset-id="{{ bash['dataset_id'] }}" data-csrf="{{ csrf_token() }}" data-viz-config="{{ bash['viz_config'] }}" >
+                      Edit DC Metadata
+                    </button>
+                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}" data-option="{{ False }}">Unreg</button>
+                    <button class="btn btn-outline-dark btn-sm unregister-btn" data-csrf="{{ csrf_token() }}" data-dataset_id="{{ bash['dataset_id'] }}" data-viz_config="{{ bash['viz_config'] }}" data-option="{{ True }}">Reg</button>
+                  </td>
+                </tr>
+
+                {% do bash_rqids.append(bash['rqids']) %}
+                {% do bash_ids.append(bash['id']) %}
+              {% endfor %}
+              <input id="bash_rqids" type="hidden" name="rqids" value="{{ bash_rqids|join(',') }}">
+              <input id="bash_ids" type="hidden" name="bashids" value="{{ bash_ids|join(',') }}">
+            </tbody>
+
+          </table>
+          <button  class="btn btn-primary" onclick="window.location.href = '{{ url_for('bash.add_bash')}}';">addBash</button>
+      </div>
+    </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="bash-modal" tabindex="-1" role="dialog" aria-labelledby="bash-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="bash-modal-label">Log</h5>
+        </div>
+        <div class="modal-body">
+          <div class="running-log">
+            <div class="tab-title"><div class="tab-title-text">Mintcast Log</div><div class="bash-modal-status"></div></div>
+            <nav>
+              <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <a class="nav-item nav-link active" id="nav_exc_info_title_tab" data-toggle="tab" href="#nav_exc_info" role="tab" aria-controls="nav-home" aria-selected="true">Exc Info</a>
+                <a class="nav-item nav-link" id="nav_error_title_tab" data-toggle="tab" href="#nav_error" role="tab" aria-controls="nav-profile" aria-selected="false">Shell Stderr</a>
+                <a class="nav-item nav-link" id="nav_output_title_tab" data-toggle="tab" href="#nav_output" role="tab" aria-controls="nav-contact" aria-selected="false">Shell Stdout</a>
+              </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+              <div class="tab-pane fade show active" id="nav_exc_info" role="tabpanel" aria-labelledby="nav_exc_info_title_tab"><pre></pre></div>
+              <div class="tab-pane fade" id="nav_error" role="tabpanel" aria-labelledby="nav_error_title_tab"><pre></pre></div>
+              <div class="tab-pane fade" id="nav_output" role="tabpanel" aria-labelledby="nav_output_title_tab"><pre></pre></div>
+            </div>
+          </div>
+          <div class="download-log">
+            <div class="tab-title"><div class="tab-title-text">Download Log</div><div class="bash-modal-status"></div></div>
+            <nav>
+              <div class="nav nav-tabs" id="nav-download-tab" role="tablist">
+                <a class="nav-item nav-link active" id="nav_download_exc_info_title_tab" data-toggle="tab" href="#nav_download_exc_info" role="tab" aria-controls="nav-home" aria-selected="true">Exc Info</a>
+                <a class="nav-item nav-link" id="nav_download_error_title_tab" data-toggle="tab" href="#nav_download_error" role="tab" aria-controls="nav-profile" aria-selected="false">Shell Stderr</a>
+                <a class="nav-item nav-link" id="nav_download_output_title_tab" data-toggle="tab" href="#nav_download_output" role="tab" aria-controls="nav-contact" aria-selected="false">Shell Stdout</a>
+              </div>
+            </nav>
+            <div class="tab-content" id="nav-download-tabContent">
+              <div class="tab-pane fade show active" id="nav_download_exc_info" role="tabpanel" aria-labelledby="nav_download_exc_info_title_tab"><pre></pre></div>
+              <div class="tab-pane fade" id="nav_download_error" role="tabpanel" aria-labelledby="nav_download_error_title_tab"><pre></pre></div>
+              <div class="tab-pane fade" id="nav_download_output" role="tabpanel" aria-labelledby="nav_download_output_title_tab"><pre></pre></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="jsoneditor-modal" tabindex="-1" role="dialog" aria-labelledby="jsoneditor-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="jsoneditor-modal-title">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div id="jsoneditor"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary save-changes" data-csrf="{{ csrf_token() }}">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+
+{% block javascript %}
+<script src="/static/js/jsoneditor.min.js"></script>
+{% assets "JS_FRAMEWORS_BASH" %}
+<script src="{{ ASSET_URL }}"/></script>
+{% endassets %}
+{% endblock %}

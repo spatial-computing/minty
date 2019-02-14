@@ -5,6 +5,7 @@ from lib.utils.update import update_context
 from .models import db
 from .assets import create_assets
 from .jobs import rq_instance
+import rq_dashboard
 
 def init_app(app, csrf, assets):
     with app.app_context():
@@ -12,6 +13,7 @@ def init_app(app, csrf, assets):
         create_assets(assets)
         db.init_app(app)
         rq_instance.init_app(app)
+        app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rq")
         update_context(app, {"db": db, "assets": assets, "rq_instance": rq_instance})
 
 def internal_render():

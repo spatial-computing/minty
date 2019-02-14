@@ -10,7 +10,7 @@ def create_app(config_name='development'):
     app_name = app_config[config_name].APP_NAME or __name__
     app = Flask(app_name)
     app.config.from_object(app_config[config_name])
-
+    print(app.config)
     csrf = CSRFProtect()
     csrf.init_app(app)
 
@@ -18,15 +18,16 @@ def create_app(config_name='development'):
 
     app.static_folder = 'public'
     
-    blueprint = Blueprint('public', 'public', static_url_path='/public', static_folder='public')
-    app.register_blueprint(blueprint)
-    blueprint = Blueprint('app', 'app', template_folder='templates')
-    app.register_blueprint(blueprint)
+    with app.app_context():
+        blueprint = Blueprint('public', 'public', static_url_path='/public', static_folder='public')
+        app.register_blueprint(blueprint)
+        blueprint = Blueprint('app', 'app', template_folder='templates')
+        app.register_blueprint(blueprint)
+    
+        rt = Route(routes)
+        rt.init_app(app)
 
-    rt = Route(routes)
-    rt.init_app(app)
-
-    user_app.init_app(app, csrf, assets)
+        user_app.init_app(app, csrf, assets)
 
     @app.errorhandler(403)
     def forbidden(error):

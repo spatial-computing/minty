@@ -1,0 +1,69 @@
+{% extends 'layout/base.html' %}
+{% block content %}
+        
+      <div class="container">
+        <form class="bashform">
+          {% for key in txt %}
+          <div class="form-group ">
+            <label >{{key}}</label>
+            <input type="txt" class="form-control" name={{key}} value={{bash[key]}} >
+          </div>
+          {% endfor %}
+
+          {% for key in boolean%}
+          <div class="form-check">
+            {% if bash[key] %}
+              <input type="checkbox" class="form-check-input" checked name={{key}}>
+            {% else %}
+              <input type="checkbox" class="form-check-input" name={{key}}>
+            {% endif %}
+            <label class="form-check-label" ckecked="true">{{key}}</label>
+          </div>
+          {% endfor %}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% if 'id' in bash %}
+          <input type="hidden" value="{{bash['id']}}" id="updata_bash_id">
+          <button  type = "submit" class="btn btn-primary submit" data-action="update">update</button>
+          {% else %}
+           <button  type = "submit" class="btn btn-primary submit" data-action="add" data-bashid="{{bash['id']}}">addbash</button>
+          {% endif %}
+        </form>
+        <div style="padding-top: 20px;">
+          <button onclick="window.location.href = '{{ url_for('bash.delete_bash',bash_id=bash['id']) }}';" class="btn btn-danger ">delete</button>
+        </div>
+      </div>
+
+{% endblock %}
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/bash.js') }}"></script>
+
+{% block javascript %}
+<script type="text/javascript">
+  $('.bashform').on('submit', function (event){
+    event.preventDefault();
+    let bash=$( this ).serialize();
+    if ($('.submit').data('action')=='add'){
+        $.ajax({
+            url:'/bash/add',
+            type:'POST',
+            dataType: 'json',
+            data: bash
+        }).done(function(json){
+            window.location.reload()
+        });
+    }
+    else {  
+        let updata_bash_id = $('#updata_bash_id').val()
+        let url='/bash/edit/'+updata_bash_id
+        $.ajax({
+            url:url,
+            type:'POST',
+            dataType: 'json',
+            data: bash
+        }).done(function(json){
+           
+        });           
+    }
+  });
+</script>
+{% endblock %}
