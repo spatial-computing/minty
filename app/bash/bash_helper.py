@@ -8,7 +8,7 @@ from redis import Redis
 from app.models import Bash, db
 from app.jobs import rq_run_command_job, rq_instance, rq_terminate_mintcast_session
 from sqlalchemy.orm import load_only
-from flask import current_app
+from app.models import get_mongo_connection
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
@@ -130,7 +130,7 @@ PROJECTION_OF_BASH_TO_USE = [
     Bash.status
 ]
 def combine( args ):
-    mongo_client = pymongo.MongoClient(current_app.config.get('MONGODB_DATABASE_URI'))
+    mongo_client = pymongo.MongoClient(get_mongo_connection())
     mongo_db = mongo_client["mintcast"]
     mongo_mintcast_default = mongo_db["metadata"]
     default_setting = mongo_mintcast_default.find_one({'type': 'minty-mintcast-cmd-parameter-setting'}, {"_id": False, "type":False})
@@ -230,11 +230,12 @@ def add_bash(db_session=db.session, **kwargs):
     db_session.add(newbash)
     db_session.flush()
     db_session.commit()
-   
+
     r = Redis.from_url(rq_instance.redis_url,decode_responses=True)
     expire_time = get_expire_time(r)
     if expire_time != -1:
         bash_on_table = dict()
+        newbash = db_session.query(Bash).filter_by(id = id).first()
         newbash = vars(newbash)
         for key in BASH_DISPLAY_ON_TABLE:
             bash_on_table[key] = newbash[key]
@@ -266,18 +267,24 @@ def delete_bash(id, db_session=db.session):
     db_session.commit()
 
 #update bash
-def update_bash(id, db_session=db.session, **kwargs):
+def update_bash(id, db_session=db.session, with_combine=True, **kwargs):
     bash = db_session.query(Bash).filter_by(id = id).first()
     for key in kwargs:
         setattr(bash, key, kwargs[key])
-    bash.command = combine(vars(bash))
-    db_session.commit()
 
+    if with_combine:
+        bash.command = combine(vars(bash))
+
+    db_session.commit()
+    
     r = Redis.from_url(rq_instance.redis_url,decode_responses=True)
     expire_time = get_expire_time(r)
     if expire_time != -1:
         bash_on_table = dict()
+        
+        bash = db_session.query(Bash).filter_by(id = id).first()
         bash = vars(bash)
+
         for key in BASH_DISPLAY_ON_TABLE:
             bash_on_table[key] = bash[key]
         add_bash_to_redis(bash_on_table,expire_time,r) 
@@ -323,9 +330,9 @@ def _after_terminated(bash_id, success=True, msg=''):
     from app.models import get_db_session_instance
     db_session = get_db_session_instance()
     if success:
-        update_bash(bash_id, db_session=db_session, status="ready_to_run") 
+        update_bash(bash_id, db_session=db_session, with_combine=False, status="ready_to_run") 
     else:
-        update_bash(bash_id, db_session=db_session, status="failed", logs=json.dumps({'exc_info': msg}))
+        update_bash(bash_id, db_session=db_session, with_combine=False,  status="failed", logs=json.dumps({'exc_info': msg}))
 
 
 def update_bash_status(bash_id, job_id, logs, rq_connection):

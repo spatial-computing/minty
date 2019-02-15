@@ -1,7 +1,6 @@
 from lib.utils.conversions import dict2obj
 import yaml
 
-
 database_settings = {}
 with open('config/database.yml', 'r') as f:
     database_settings = yaml.load(f)

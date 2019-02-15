@@ -13,6 +13,7 @@ Flask-Assets==0.12
 Flask-RQ2==18.3
 Flask-SQLAlchemy==2.3.2
 Flask-WTF==0.14.2
+GDAL==2.4.0
 idna==2.8
 ipython==7.2.0
 ipython-genutils==0.2.0
