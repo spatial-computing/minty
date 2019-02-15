@@ -320,11 +320,17 @@
         })
     });
 
-
-    $('body').on('input','#search-bash',function(event){
+    $('body').on('click', '#clear-search-bar', function (event) {
+        event.preventDefault();
+        $('#search-bash').val('');
+        $('#search-bash').trigger('input');
+        $(this).css('visibility', 'hidden');
+    });
+    $('body').on('input', '#search-bash',function(event){
         event.preventDefault();
         let value = $(this).val()
         if(value.length>=3){
+            $('#clear-search-bar').css('visibility', 'visible');
             let csrf_token = $('#csrf_token_hidden').val();
             $.ajax({
                 url:'/bash/search',
@@ -369,17 +375,14 @@
                     html_string_bash_ids = "<input id='bash_ids' type='hidden' name='bashids' value=\""+ bash_ids.join(',')+"\">"
                     $('tbody').append(html_string_bash_rqids)
                     $('tbody').append(html_string_bash_ids)
-
-                
                 })
             }
         else {
+            $('#clear-search-bar').css('visibility', 'hidden');
             $('tbody').remove()
             $('table').append(pre_tbody)
         }
-        
-
-
+        updateStatus();
     })
 
     $( document ).ajaxError(function() {

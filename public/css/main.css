@@ -189,14 +189,37 @@ pre {
   width: 100%;
   height: 400px;
 }
+.table-search-page-header nav{
+  flex:2;
+}
+.search-bash-div{
+  flex: 1;
+}
 
+.search-bash-div .in-append{
+  align-items: center;
+  margin-left: -31px;
+  z-index: 9;
+}
 #search-bash{
-  width: 300px;
+  /*width: 300px;*/
   line-height: 30px;
+}
+
+#search-bash:focus{
+  border-color:#ced4da;
+  box-shadow:none;
 }
 .table-search-page-header{
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
+#clear-search-bar{
+  visibility: hidden;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background: none;
 }
