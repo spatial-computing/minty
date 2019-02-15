@@ -248,6 +248,8 @@ class Status(MethodView):
             job_ids = request.form['jobid'].split(',')
             status = []
             for idx, job_id in enumerate(job_ids):
+                if not job_id:
+                    continue
                 _s = 'not_found'
                 all_ids = find_bash_attrs(bash_ids[idx],CHECK_JOB_ALL_IDS)
                 for job_id in all_ids:
