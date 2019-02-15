@@ -338,12 +338,13 @@
                     let bash_rqids = []
                     let bash_ids = []
                     json.result.map(bash=>{
-                        let {id, command, rqids, viz_config, viz_type, file_type, md5vector, download_ids, after_run_ids, dataset_id} = bash
+                        let {id, command, rqids, viz_config, viz_type, file_type, md5vector, download_ids, after_run_ids, dataset_id, layer_name} = bash
                         bash_rqids.push(rqids)
                         bash_ids.push(id)
                         let html_string = "\
                         <tr> \
                             <td class=\"bash-status vcenter\"></td>\
+                            <td class='vcenter'>"+layer_name+"</td>\
                             <td><pre>"+command+"</pre></td>\
                             <td class=\"center\">\
                                 <button class=\"btn btn-outline-danger btn-sm run-btn\" data-command= \"" + command + "\" data-bashid=\"" +id+ "\" style=\"display:none\">Run</button>\
