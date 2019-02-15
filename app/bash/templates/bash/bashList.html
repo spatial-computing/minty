@@ -103,10 +103,9 @@
                 <th width="6%" class="center">DC</th>
               </tr>
             </thead>
-
-            <tbody class="after-search">
-              {% set bash_rqids = [] %}
-              {% set bash_ids = [] %}
+            {% set bash_rqids = [] %}
+            {% set bash_ids = [] %}
+            <tbody class="before-search">
               {% for bash in res %}
                 <tr>
                   <td class="bash-status vcenter"></td>
