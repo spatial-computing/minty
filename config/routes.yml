@@ -111,10 +111,8 @@
       endpoint: search_bash
 
 /viztype:
-  scope: true
+  scope: false
   app: viztype
-  suffix:
-    /:
-      controller: VizType
-      methods: get, post, delete
-      endpoint: viztype_index
+  controller: VizType
+  methods: get, post, delete
+  endpoint: viztype_index

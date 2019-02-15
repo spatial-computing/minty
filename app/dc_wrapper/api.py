@@ -337,7 +337,7 @@ class dc_wrapper(object):
             return bash
 
     def _after_download(self, redis_url):
-        print('kepia###3', self.command_args['status'])
+        # print('kepia###3', self.command_args['status'])
         if self.command_args['status'] == 'running' or self.command_args['status'] == 'ready_to_run':
             return
         
@@ -424,14 +424,14 @@ class dc_wrapper(object):
                         'visualized' : option
                     }
                 }
-        print(dataset_id)
-        print(viz_config)
+        # print(dataset_id)
+        # print(viz_config)
         req = requests.post(API_UPDATE_VIZUALIZE_STATUS, data = json.dumps(payload))
         if req.status_code != 200:
             return 'error'
         
         response = req.json()
-        print(response)
+        # print(response)
         if not isinstance(response, dict):
             return 'error'
 
