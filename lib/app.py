@@ -3,14 +3,15 @@ from flask_wtf import CSRFProtect
 from flask_assets import Environment
 
 from config import app_config, routes
-from .route import Route
-import app as user_app
 
 def create_app(config_name='development'):
+    from .route import Route
+    import app as user_app
+    
     app_name = app_config[config_name].APP_NAME or __name__
     app = Flask(app_name)
     app.config.from_object(app_config[config_name])
-    print(app.config)
+    
     csrf = CSRFProtect()
     csrf.init_app(app)
 
@@ -23,7 +24,7 @@ def create_app(config_name='development'):
         app.register_blueprint(blueprint)
         blueprint = Blueprint('app', 'app', template_folder='templates')
         app.register_blueprint(blueprint)
-    
+        
         rt = Route(routes)
         rt.init_app(app)
 
@@ -39,7 +40,6 @@ def create_app(config_name='development'):
 
     @app.errorhandler(500)
     def internal_server_error(error):
-        db.session.rollback()
         return render_template('error/500.html', title='Server Error'), 500
 
     return app

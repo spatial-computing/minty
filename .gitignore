@@ -6,11 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
-bundle/*.css
-bundle/*.js
+public/bundle/*.css
+public/bundle/*.js
 *.db
 
+minty_env
 database.yml
+database.py
 
 # Distribution / packaging
 .Python

@@ -192,4 +192,11 @@ pre {
 
 #search-bash{
   width: 300px;
+  line-height: 30px;
+}
+.table-search-page-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 }

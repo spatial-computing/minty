@@ -12,13 +12,13 @@ def create_assets(assets):
     js = Bundle(
         'js/bash.js',
         filters='jsmin', 
-        output='bundle/bash_libs.js'
+        output='bundle/bash.min.js'
     )
     assets.register('JS_FRAMEWORS_BASH', js)
     
     js = Bundle(
         'js/viztype.js',
         filters='jsmin', 
-        output='bundle/viztype_libs.js'
+        output='bundle/viztype.min.js'
     )
     assets.register('JS_FRAMEWORS_VIZTYPE', js)

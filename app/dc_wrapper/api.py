@@ -353,7 +353,7 @@ class dc_wrapper(object):
             bash = db_session.query(Bash).filter_by(md5vector=bash.md5vector).first()
             
             command = bash_helper.find_command_by_id(bash.id, db_session=db_session)
-            from app.job import queue_job_with_connection
+            from app.jobs import queue_job_with_connection
             from redis import Redis
             
             # Make sure mint-chart be processed first rather than wait in line with mint-map*

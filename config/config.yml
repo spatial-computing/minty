@@ -18,9 +18,11 @@ default: &default
 
 development:
   <<: *default
+  ASSETS_DEBUG: true
 
 production:
   <<: *default
+  DEBUG: false
 
 testing:
   <<: *default
