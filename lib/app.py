@@ -10,7 +10,7 @@ def create_app(config_name='development'):
     app_name = app_config[config_name].APP_NAME or __name__
     app = Flask(app_name)
     app.config.from_object(app_config[config_name])
-    print(app.config)
+    
     csrf = CSRFProtect()
     csrf.init_app(app)
 
