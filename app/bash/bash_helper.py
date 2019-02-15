@@ -8,8 +8,7 @@ from redis import Redis
 from app.models import Bash, db
 from app.jobs import rq_run_command_job, rq_instance, rq_terminate_mintcast_session
 from sqlalchemy.orm import load_only
-
-
+from flask import current_app
 
 MINTCAST_PATH = os.environ.get('MINTCAST_PATH')
 COLUMN_NAME_DATA_FILE_PATH = 'data_file_path'
@@ -131,8 +130,7 @@ PROJECTION_OF_BASH_TO_USE = [
     Bash.status
 ]
 def combine( args ):
-
-    mongo_client = pymongo.MongoClient(MONGODB_CONNECTION)
+    mongo_client = pymongo.MongoClient(current_app.config.get('MONGODB_DATABASE_URI'))
     mongo_db = mongo_client["mintcast"]
     mongo_mintcast_default = mongo_db["metadata"]
     default_setting = mongo_mintcast_default.find_one({'type': 'minty-mintcast-cmd-parameter-setting'}, {"_id": False, "type":False})
