@@ -4,27 +4,6 @@
   file: index.html
   endpoint: index
 
-/blog:
-  scope: true
-  app: blog
-  suffix:
-    /:
-      controller: BlogIndex
-      methods:  GET, POST
-      endpoint: blog_index
-    /view/<id>:
-      controller: BlogView
-      methods:  GET, POST
-      endpoint: blog_view
-    /edit/<id>:
-      controller: BlogEdit
-      methods:  POST, DELETE
-      endpoint: blog_edit
-    /delete/<id>:
-      controller: BlogDelete
-      methods: GET
-      endpoint: blog_delete
-
 /minty:
   scope: true
   app: minty

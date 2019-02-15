@@ -1,7 +1,7 @@
 {% extends 'layout/base.html' %}
 {% block content %}
 {% block stylesheet %}
-<link href="/static/css/jsoneditor.min.css?v=5.28" rel="stylesheet" type="text/css">
+<link href="/public/css/jsoneditor.min.css?v=5.28" rel="stylesheet" type="text/css">
 {% endblock %}
 
 
@@ -212,14 +212,11 @@
 
   </div>
 </div>
-
-
-
 {% endblock %}
 
 
 {% block javascript %}
-<script src="/static/js/jsoneditor.min.js"></script>
+<script src="/public/js/jsoneditor.min.js"></script>
 {% assets "JS_FRAMEWORS_BASH" %}
 <script src="{{ ASSET_URL }}"/></script>
 {% endassets %}
