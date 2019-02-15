@@ -10,6 +10,7 @@ bundle/*.css
 bundle/*.js
 *.db
 
+minty_env
 database.yml
 database.py
 
