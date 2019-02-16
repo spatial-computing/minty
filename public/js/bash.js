@@ -338,7 +338,6 @@
                 dataType:'json',
                 data:{csrf_token:csrf_token, value:value}
             }).done(function(json){
-<<<<<<< HEAD
                 // console.log(json.result)
                 $('tbody').remove()
                 $('table').append("<tbody class=\"after-search\"></tbody>")
@@ -351,6 +350,7 @@
                     let html_string = "\
                     <tr> \
                         <td class=\"bash-status vcenter\"></td>\
+                        <td class='vcenter'>"+layer_name.replace(/-_-/g,' ')+"</td>\
                         <td><pre>"+command+"</pre></td>\
                         <td class=\"center\">\
                             <button class=\"btn btn-outline-danger btn-sm run-btn\" data-command= \"" + command + "\" data-bashid=\"" +id+ "\" style=\"display:none\">Run</button>\
@@ -371,48 +371,6 @@
                         </td>\
                     </tr>"
                     $('tbody').append(html_string)
-=======
-                    console.log(json.result)
-                    $('tbody').remove()
-                    $('table').append("<tbody class=\"after-search\"></tbody>")
-                    let bash_rqids = []
-                    let bash_ids = []
-                    json.result.map(bash=>{
-                        let {id, command, rqids, viz_config, viz_type, file_type, md5vector, download_ids, after_run_ids, dataset_id, layer_name} = bash
-                        bash_rqids.push(rqids)
-                        bash_ids.push(id)
-                        let html_string = "\
-                        <tr> \
-                            <td class=\"bash-status vcenter\"></td>\
-                            <td class='vcenter'>"+layer_name+"</td>\
-                            <td><pre>"+command+"</pre></td>\
-                            <td class=\"center\">\
-                                <button class=\"btn btn-outline-danger btn-sm run-btn\" data-command= \"" + command + "\" data-bashid=\"" +id+ "\" style=\"display:none\">Run</button>\
-                                <button class=\"btn btn-outline-danger btn-sm cancel-btn\" data-command= \""+ command+ "\" data-bashid=\""+id+ "\" style=\"display:none\">Cancel</button>\
-                            </td>\
-                            <td class=\"center\">\
-                                <button class=\"btn btn-outline-info btn-sm status-btn\"  data-rqid=\"" + rqids + "\" data-download-id=\""+download_ids+"\" data-after-run-ids=\"" +after_run_ids+ "\" data-bashid=\""+id+"\" >Log</button>\
-                            </td>\
-                            <td class=\"center\">\
-                                <a class=\"btn btn-outline-primary btn-sm\" href='#' data-href='/bash/edit/"+id+"'>Edit</a>\
-                            </td>\
-                            <td class='center dc-action'>\
-                                <button type='button' class='btn btn-outline-dark btn-sm edit-register-metadata' data-dataset-id=\""+id+"\" data-viz-config=\""+viz_config+"\" >\
-                                    Edit DC Metadata\
-                                </button>\
-                                <button class='btn btn-outline-dark btn-sm unregister-btn' data-dataset_id=\""+id+"\" data-viz_config=\""+viz_config+"\" data-option='False'>Unreg</button>\
-                                <button class='btn btn-outline-dark btn-sm unregister-btn' data-dataset_id=\""+id+"\" data-viz_config=\""+viz_config+"\" data-option='True'>Reg</button>\
-                            </td>\
-                        </tr>"
-                        $('tbody').append(html_string)
-                    })
-                    html_string_bash_rqids = "<input id='bash_rqids' type='hidden' name='rqids' value=\""+bash_rqids.join(',')+"\">"
-                    html_string_bash_ids = "<input id='bash_ids' type='hidden' name='bashids' value=\""+ bash_ids.join(',')+"\">"
-                    $('tbody').append(html_string_bash_rqids)
-                    $('tbody').append(html_string_bash_ids)
-
-                
->>>>>>> origin/addtitle
                 })
                 html_string_bash_rqids = "<input id='bash_rqids' type='hidden' name='rqids' value=\""+bash_rqids.join(',')+"\">"
                 html_string_bash_ids = "<input id='bash_ids' type='hidden' name='bashids' value=\""+ bash_ids.join(',')+"\">"
