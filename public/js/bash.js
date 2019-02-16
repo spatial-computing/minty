@@ -56,7 +56,7 @@
             type: 'POST',
             dataType: 'json',
             data: {
-                csrf_token: $(self).val(),
+                csrf_token: $('#csrf_token_hidden').val(),
                 reg_json: JSON.stringify(reg_json)
             }
         }).done(function (json) {
@@ -228,7 +228,7 @@
     updateStatus();
     var handle = setInterval(function () {
         updateStatus();
-    }, 10000);
+    }, 60000);
     function escape_html(string) {
         if (typeof(string) === "string") {
             return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");    

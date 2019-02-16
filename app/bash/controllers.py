@@ -203,13 +203,13 @@ class Run(MethodView):
         if bash['status'] in {'running', 'downloading', 'started'}:
             return jsonify({"status": "It\'s running"})
 
-        if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
-            run_bash(bashid)
-            print(bashid)
-            update_bash(bashid, status="running")
-        else:
-            getdata = api.dc_wrapper()
-            status = getdata.find_by_dataset_id(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
+        # if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
+        #     run_bash(bashid)
+        #     print(bashid)
+        #     update_bash(bashid, status="running")
+        # else:
+        getdata = api.dc_wrapper()
+        status = getdata.find_by_dataset_id(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
         return jsonify({"status": "queued"})
 
 class Unregister(MethodView):
