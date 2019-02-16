@@ -10,6 +10,8 @@ public/bundle/*.css
 public/bundle/*.js
 *.db
 
+.DS_Store
+
 .esri.gz
 
 minty_env
