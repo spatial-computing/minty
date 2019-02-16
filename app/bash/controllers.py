@@ -420,15 +420,26 @@ class SearchBash(MethodView):
                 display_on_table = bash
                 add_bash_to_redis(display_on_table, REDIS_EXPIRE_TIME, r)
 
-        value = request.form['value']
+        value = request.form['value'].strip()
         search_key = "minty:bash:search:*"+value+"*"
-        result =[]
+        result = []
         keys = set()
         for key in r.keys(search_key):
             keys.add(key)
             if len(keys) == 5:
                 break
+        if len(keys) == 0:
+            strs = value.split(" ")
+            for string in strs:
+                search_key = "minty:bash:search:*"+string+"*"
+                for key in r.keys(search_key):
+                    keys.add(key)
+                    if len(keys) == 5:
+                        break
+        bashids = set()
         for key in keys:
-            returned_bash = r.hgetall(r.get(key))
+            bashids.add(r.get(key))
+        for bashid in bashids:
+            returned_bash = r.hgetall(bashid)
             result.append(returned_bash)
         return jsonify({'status':400,'result':result})

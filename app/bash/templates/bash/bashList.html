@@ -92,15 +92,16 @@
             <thead>
               <tr>
                 <th width="10%" class="center">Status</th>
+                <th width="10%" class="center">Title</th>
                 {% for key in th %}
                   {% if key!="" %}
-                    <th width="66%">{{key}}</th>
+                    <th width="60%">{{key}}</th>
                   {% endif %}
                 {% endfor %}
-                <th width="6%" class="center">Action</th>
-                <th width="6%" class="center">Logger</th>
-                <th width="6%" class="center">Edit</th>
-                <th width="6%" class="center">DC</th>
+                <th width="5%" class="center">Action</th>
+                <th width="5%" class="center">Logger</th>
+                <th width="5%" class="center">Edit</th>
+                <th width="5%" class="center">DC</th>
               </tr>
             </thead>
             {% set bash_rqids = [] %}
@@ -109,6 +110,7 @@
               {% for bash in res %}
                 <tr>
                   <td class="bash-status vcenter"></td>
+                  <td class="vcenter">{{ bash['layer_name'] }}</td>
                   {% for key in th %}
                   {% if key == 'command' %}
                       <td><pre>{{bash[key]}}</pre></td>

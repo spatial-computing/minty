@@ -24,7 +24,8 @@ BASH_DISPLAY_ON_TABLE_SEARCH_FILTERS = [
             Bash.md5vector, 
             Bash.download_ids, 
             Bash.after_run_ids, 
-            Bash.dataset_id
+            Bash.dataset_id,
+            Bash.layer_name
 ]
 
 BASH_DISPLAY_ON_TABLE = [
@@ -37,7 +38,8 @@ BASH_DISPLAY_ON_TABLE = [
             'md5vector', 
             'download_ids', 
             'after_run_ids', 
-            'dataset_id'
+            'dataset_id',
+            'layer_name'
 ]
 
 IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
@@ -80,7 +82,8 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.md5vector,
         Bash.download_ids,
         Bash.after_run_ids,
-        Bash.dataset_id
+        Bash.dataset_id,
+        Bash.layer_name
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [
@@ -228,15 +231,16 @@ def add_bash(db_session=db.session, **kwargs):
     
     # newbash.command = combine(vars(newbash))
     db_session.add(newbash)
-    db_session.flush()
     db_session.commit()
 
     r = Redis.from_url(rq_instance.redis_url,decode_responses=True)
     expire_time = get_expire_time(r)
     if expire_time != -1:
         bash_on_table = dict()
+        
         newbash = db_session.query(Bash).filter_by(md5vector = kwargs['md5vector']).first()
         newbash = vars(newbash)
+
         for key in BASH_DISPLAY_ON_TABLE:
             bash_on_table[key] = newbash[key]
         add_bash_to_redis(bash_on_table,expire_time,r)    
@@ -253,10 +257,12 @@ def add_bash_to_redis(bash_on_table, expire_time,r = Redis.from_url(rq_instance.
     
     redis_key_md5vector = "minty:bash:search:"+bash_on_table['md5vector']
     redis_key_dataset_id = "minty:bash:search:"+bash_on_table['dataset_id']
+    redis_key_layername = "minty:bash:search:"+bash_on_table['layer_name'].replace("-_-"," ")
     bash_id = str(bash_on_table['id'])
     redis_key_bash_id = "minty:bash:bashid:"+bash_id
     r.setex(redis_key_md5vector,expire_time,redis_key_bash_id)
     r.setex(redis_key_dataset_id,expire_time,redis_key_bash_id)
+    r.setex(redis_key_layername,expire_time,redis_key_bash_id)
     r.hmset(redis_key_bash_id,bash_on_table)
     r.expire(redis_key_bash_id,expire_time)      
 
