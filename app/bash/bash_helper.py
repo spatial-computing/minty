@@ -24,7 +24,8 @@ BASH_DISPLAY_ON_TABLE_SEARCH_FILTERS = [
             Bash.md5vector, 
             Bash.download_ids, 
             Bash.after_run_ids, 
-            Bash.dataset_id
+            Bash.dataset_id,
+            Bash.progress
 ]
 
 BASH_DISPLAY_ON_TABLE = [
@@ -37,7 +38,8 @@ BASH_DISPLAY_ON_TABLE = [
             'md5vector', 
             'download_ids', 
             'after_run_ids', 
-            'dataset_id'
+            'dataset_id',
+            'progress'
 ]
 
 IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
@@ -80,7 +82,8 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.md5vector,
         Bash.download_ids,
         Bash.after_run_ids,
-        Bash.dataset_id
+        Bash.dataset_id,
+        Bash.progress
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [
@@ -470,3 +473,10 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         # subprocess.run(["bash", "rm", "-rf", path])
 
     return bash
+
+def extract_failed(md5vector):
+    from app.models import get_db_session_instance
+    db_session = get_db_session_instance()
+    bash = db_session.query(Bash).filter_by(md5vector = md5vector).first()
+    bash.status = 'failed'
+    db_session.commit()

@@ -167,6 +167,7 @@ class Bash(db.Model):
     data_url = db.Column(db.String(), server_default='')
     download_ids = db.Column(db.String(), server_default='')
     after_run_ids = db.Column(db.String(),server_default='') 
+    progress = db.Column(db.String(),server_default='')
     def __setitem__(self, k, v):
         self.k = v
 

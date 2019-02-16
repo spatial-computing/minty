@@ -221,6 +221,11 @@
                     $($(document).find('.run-btn')[i]).show();
                     $($(document).find('.cancel-btn')[i]).hide(); 
                 }
+
+                var newWidth = "width:" + json.progress[i] + ";";
+                //console.log(newWidth);
+                $($(document).find('.progress-bar span')[i]).text(json.progress[i])
+                $($(document).find('.progress-bar')[i]).attr("style", newWidth);
             }
             
         });
