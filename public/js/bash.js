@@ -1,7 +1,7 @@
 !(function () {
     let pre_tbody;
     $( document ).ready(function() {
-        console.log( "ready!" );
+        // console.log( "ready!" );
         pre_tbody = $('.before-search').clone()
     });
     var container = document.getElementById("jsoneditor");
@@ -56,7 +56,7 @@
             type: 'POST',
             dataType: 'json',
             data: {
-                csrf_token: $(self).val(),
+                csrf_token: $('#csrf_token_hidden').val(),
                 reg_json: JSON.stringify(reg_json)
             }
         }).done(function (json) {
@@ -228,7 +228,7 @@
     updateStatus();
     var handle = setInterval(function () {
         updateStatus();
-    }, 10000);
+    }, 60000);
     function escape_html(string) {
         if (typeof(string) === "string") {
             return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");    
@@ -238,8 +238,8 @@
     $('body').on('click','.status-btn',function(event){
         event.preventDefault();
         start_loading();
-        console.log($(this).data('rqid'));
-        console.log("aaaa");
+        // console.log($(this).data('rqid'));
+        // console.log("aaaa");
         $.ajax({
             url:'/bash/status',
             type:'POST',
@@ -328,7 +328,7 @@
     });
     $('body').on('input', '#search-bash',function(event){
         let value = $('#search-bash').val().trim();
-        console.log(value)
+        // console.log(value)
         if( value.length > 3 ){
             $('#clear-search-bar').css('visibility', 'visible');
             let csrf_token = $('#csrf_token_hidden').val();
