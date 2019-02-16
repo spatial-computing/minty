@@ -1,7 +1,7 @@
 !(function () {
     let pre_tbody;
     $( document ).ready(function() {
-        console.log( "ready!" );
+        // console.log( "ready!" );
         pre_tbody = $('.before-search').clone()
     });
     var container = document.getElementById("jsoneditor");
@@ -238,8 +238,8 @@
     $('body').on('click','.status-btn',function(event){
         event.preventDefault();
         start_loading();
-        console.log($(this).data('rqid'));
-        console.log("aaaa");
+        // console.log($(this).data('rqid'));
+        // console.log("aaaa");
         $.ajax({
             url:'/bash/status',
             type:'POST',
@@ -328,7 +328,7 @@
     });
     $('body').on('input', '#search-bash',function(event){
         let value = $('#search-bash').val().trim();
-        console.log(value)
+        // console.log(value)
         if( value.length > 3 ){
             $('#clear-search-bar').css('visibility', 'visible');
             let csrf_token = $('#csrf_token_hidden').val();
