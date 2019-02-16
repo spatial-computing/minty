@@ -235,7 +235,7 @@ def add_bash(db_session=db.session, **kwargs):
     expire_time = get_expire_time(r)
     if expire_time != -1:
         bash_on_table = dict()
-        newbash = db_session.query(Bash).filter_by(id = id).first()
+        newbash = db_session.query(Bash).filter_by(md5vector = kwargs['md5vector']).first()
         newbash = vars(newbash)
         for key in BASH_DISPLAY_ON_TABLE:
             bash_on_table[key] = newbash[key]

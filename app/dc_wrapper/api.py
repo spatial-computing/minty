@@ -120,17 +120,31 @@ class dc_wrapper(object):
         if data_url:
             command_args.update({"data_url": data_url})
 
-        if metadata['viz_type'] != 'mint-chart':
+        if metadata['viz_type'] != 'mint-chart' and metadata['viz_type'] != 'mint-map-geojson':
             command_args.update({
                 "file_type": metadata['metadata']['file-type'],
             })
-        else:
+        elif metadata['viz_type'] == 'mint-chart':
             # Bar Dot Donut
             command_args.update({
                 "chart_type": metadata['metadata']['chart-type'].lower(),
                 "file_type": 'csv',
                 "type": 'csv'
             })
+        elif metadata['viz_type'] == 'mint-map-geojson':
+            # geojson
+            file_type = 'geojson'
+            if metadata['metadata']['file-type'] == 'DOT_CSV':
+                file_type = 'csv'
+            elif metadata['metadata']['file-type'] == 'GeoJSON':
+                file_type = 'geojson'
+            elif metadata['metadata']['file-type'] == 'Shapefile':
+                file_type = 'shapefile'
+            command_args.update({
+                "type": 'geojson',
+                "file_type": file_type
+            })
+
         # Black2White BuPu YlGnBl
         # South Sudan Pongo Basin No Clip
         if 'shapefile' in metadata['metadata']:
@@ -383,15 +397,18 @@ class dc_wrapper(object):
             'geojson' : {'geojson', 'json'},
             'csv' : {'csv'}, 
             'netcdf' : {'nc'},
-            'geotiff': {'tif', 'tiff', 'asc'}
+            'geotiff': {'tif', 'tiff', 'asc'},
+            'shapefile': {'shp'}
         }
         FILE_TYPE_TO_MAGIC = {
             'netcdf': [ 'NetCDF Data Format', 'Hierarchical Data Format'],
-            'geotiff': [ 'TIFF image data' ]
+            'geotiff': [ 'TIFF image data' ],
+            'shapefile': [ 'ESRI Shapefile' ]
         }
         for root, dirs, files in os.walk(single_file_dir):
             for name in files:
                 filename = os.path.join(root, name)
+                # print(file_type)
                 if file_type in ONLY_CHECK_SUFFIX:
                     suffix = self._check_suffix(filename)
                     if suffix in FILE_TYPE_TO_SUFFIX[file_type.lower()]:
