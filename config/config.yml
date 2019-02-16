@@ -8,13 +8,13 @@ default: &default
   SEND_FILE_MAX_AGE_DEFAULT: 0
   ASSETS_DEBUG: false
   KONCH_SHELL: ipy
+  KONCH_BANNER: Minty (Flask on Fire Console)
   RQ_QUEUES: [high, normal, low]
   RQ_SCHEDULER_QUEUE: high
   RQ_SCHEDULER_INTERVAL: 60
   RQ_POLL_INTERVAL: 10000
   WEB_BACKGROUND: black
   DELETE_JOBS: False
-
 
 development:
   <<: *default
