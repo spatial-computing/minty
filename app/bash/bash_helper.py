@@ -255,9 +255,9 @@ def get_expire_time(r = Redis.from_url(rq_instance.redis_url,decode_responses=Tr
 
 def add_bash_to_redis(bash_on_table, expire_time,r = Redis.from_url(rq_instance.redis_url,decode_responses=True)):
     
-    redis_key_md5vector = "minty:bash:search:"+bash_on_table['md5vector']
-    redis_key_dataset_id = "minty:bash:search:"+bash_on_table['dataset_id']
-    redis_key_layername = "minty:bash:search:"+bash_on_table['layer_name'].replace("-_-"," ")
+    redis_key_md5vector = "minty:bash:search:"+bash_on_table['md5vector'].lower()
+    redis_key_dataset_id = "minty:bash:search:"+bash_on_table['dataset_id'].lower()
+    redis_key_layername = "minty:bash:search:"+bash_on_table['layer_name'].replace("-_-"," ").lower()
     bash_id = str(bash_on_table['id'])
     redis_key_bash_id = "minty:bash:bashid:"+bash_id
     r.setex(redis_key_md5vector,expire_time,redis_key_bash_id)

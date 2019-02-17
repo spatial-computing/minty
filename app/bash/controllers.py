@@ -420,7 +420,7 @@ class SearchBash(MethodView):
                 display_on_table = bash
                 add_bash_to_redis(display_on_table, REDIS_EXPIRE_TIME, r)
 
-        value = request.form['value'].strip()
+        value = request.form['value'].strip().lower()
         search_key = "minty:bash:search:*"+value+"*"
         result = []
         keys = set()
