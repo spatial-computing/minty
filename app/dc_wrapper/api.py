@@ -126,9 +126,10 @@ class dc_wrapper(object):
             })
         elif metadata['viz_type'] == 'mint-chart':
             # Bar Dot Donut
+            chart_type_x = metadata['metadata']['chart-type'].lower()
             command_args.update({
-                "chart_type": metadata['metadata']['chart-type'].lower(),
-                "file_type": 'csv',
+                "chart_type": chart_type_x,
+                "file_type": 'csv' if chart_type_x != 'bubble' else 'json',
                 "type": 'csv'
             })
         elif metadata['viz_type'] == 'mint-map-geojson':
@@ -391,11 +392,13 @@ class dc_wrapper(object):
     def _magicfile_check(self, single_file_dir, file_type, dataset_id):
         ONLY_CHECK_SUFFIX = {
             'geojson',
-            'csv'
+            'csv',
+            'json'
         }
         FILE_TYPE_TO_SUFFIX = {
             'geojson' : {'geojson', 'json'},
-            'csv' : {'csv'}, 
+            'csv' : {'csv'},
+            'json' : {'json'}, 
             'netcdf' : {'nc'},
             'geotiff': {'tif', 'tiff', 'asc'},
             'shapefile': {'shp'}
