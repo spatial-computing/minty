@@ -247,6 +247,7 @@ class Status(MethodView):
             bash_ids = list(map(int, filter(lambda x: x  !=  '',request.form['bashid'].split(',') ) ))
             job_ids = request.form['jobid'].split(',')
             status = []
+            progress = []
             for idx, job_id in enumerate(job_ids):
                 if not job_id:
                     continue
@@ -260,7 +261,15 @@ class Status(MethodView):
                 if _s != 'failed':
                     _s = find_bash_attr(bash_ids[idx],'status')
                 status.append(_s if _s else 'not_found')
-
+                _p = find_bash_attr(bash_ids[idx], 'progress')
+                if _p is None or _p == '':
+                    _p = '0' 
+                #else:
+                    #idx_total = _p.split('/')
+                    #idx = float(idx_total[0])
+                    #total = float(idx_total[1])
+                    #_p = str(round((idx/total) * 100, 2))
+                progress.append(_p)
                 # no_exception, job = rq_instance.job_fetch(job_id)
                 # _s = ''
                 # if no_exception:
@@ -269,7 +278,7 @@ class Status(MethodView):
                 #     _s = find_bash_attr(bash_ids[idx],'status')
                 # status.append(_s if _s else '')
             
-            return jsonify({ "status": status })
+            return jsonify({ "status": status, "progress": progress})
         else:
             bash_id = request.form['bashid']
             job_id = request.form['jobid']

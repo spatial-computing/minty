@@ -25,7 +25,9 @@ BASH_DISPLAY_ON_TABLE_SEARCH_FILTERS = [
             Bash.download_ids, 
             Bash.after_run_ids, 
             Bash.dataset_id,
-            Bash.layer_name
+            Bash.layer_name,
+            Bash.status,
+            Bash.progress
 ]
 
 BASH_DISPLAY_ON_TABLE = [
@@ -40,6 +42,8 @@ BASH_DISPLAY_ON_TABLE = [
             'after_run_ids', 
             'dataset_id',
             'layer_name'
+            'status',
+            'progress'
 ]
 
 IGNORED_KEY_AS_PARAMETER_IN_COMMAND = {
@@ -83,7 +87,9 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.download_ids,
         Bash.after_run_ids,
         Bash.dataset_id,
-        Bash.layer_name
+        Bash.layer_name,
+        Bash.status,
+        Bash.progress
 ]
 
 PROJECTION_OF_BASH_USER_COULD_MODIFY = [
@@ -130,7 +136,8 @@ PROJECTION_OF_BASH_TO_USE = [
     Bash.viz_type,
     Bash.data_file_path,
     Bash.dir,
-    Bash.status
+    Bash.status,
+    Bash.progress
 ]
 def combine( args ):
     mongo_client = pymongo.MongoClient(get_mongo_connection())
@@ -476,3 +483,10 @@ def update_bash_status(bash_id, job_id, logs, rq_connection):
         # subprocess.run(["bash", "rm", "-rf", path])
 
     return bash
+
+def extract_failed(md5vector):
+    from app.models import get_db_session_instance
+    db_session = get_db_session_instance()
+    bash = db_session.query(Bash).filter_by(md5vector = md5vector).first()
+    bash.status = 'failed'
+    db_session.commit()

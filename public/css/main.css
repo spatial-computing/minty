@@ -223,3 +223,41 @@ pre {
   border: none;
   background: none;
 }
+
+.progress {
+  overflow: visible;
+  margin-bottom: 26px;
+  height: 4px;
+}
+
+.progress .progress-bar {
+  background-color: rgb(241, 109, 60);
+  position: relative;
+  border-radius: 4px;
+}
+
+.progress .progress-bar span {
+  background-color: rgb(241, 109, 60);
+  position: absolute;
+  bottom: -20px;
+  font-size: 10px;
+  line-height: 10px;
+  padding: 2px 3px 2px 4px;
+  right: -1.4em;
+  border-radius: 2px;
+}
+
+.progress .progress-bar span:after {
+  bottom: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-color: rgba(255, 255, 255, 0);
+  border-bottom-color: rgb(241, 109, 60);
+  border-width: 5px;
+  margin-left: -5px;
+}

@@ -201,7 +201,7 @@ def rq_check_job_status_scheduler(job_ids, register_following_job_callback, redi
         # requests.post('http://127.0.0.1:65522/rq/cancel_scheduler',  data = json.dumps({job_id: get_current_job()}))
 
 @rq_instance.job(func_or_queue='low', timeout=DOWNLOAD_JOB_TIMEOUT, result_ttl=RESUTL_TTL)
-def rq_download_job(resource, dataset_id, index, dir_path):
+def rq_download_job(resource, md5vector, index, dir_path):
      # = '/tmp/' + dataset_id
     import shlex
     is_compressed = True
@@ -273,6 +273,10 @@ def rq_download_job(resource, dataset_id, index, dir_path):
     if err_zip or out_zip:
         logs['output'] += str(out_zip, 'utf8') if isinstance(out_zip, bytes) else str(out_zip)
         logs['error'] += str(err_zip, 'utf8') if isinstance(err_zip, bytes) else str(err_zip)
+
+    if err_zip:
+        from app.bash import bash_helper
+        bash_helper.extract_failed(md5vector)  
     print("download file %d" %(index+1))
     return json.dumps(logs)
 
