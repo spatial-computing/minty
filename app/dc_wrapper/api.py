@@ -333,6 +333,7 @@ class dc_wrapper(object):
             bash = bash_helper.add_bash(db_session=db_session, **kwargs)
             return bash
         else:
+            kwargs['progress'] = ''
             bash = bash_helper.update_bash(bash_check.id, db_session=db_session, **kwargs)
             return bash
 

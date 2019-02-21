@@ -206,7 +206,7 @@ class Run(MethodView):
         if (bash['data_file_path'] == '' and os.path.exists(bash['dir'])) or (os.path.isfile(bash['data_file_path'])):
             run_bash(bashid)
             print(bashid)
-            update_bash(bashid, status="running")
+            update_bash(bashid, status="running", progress="")
         else:
             getdata = api.dc_wrapper()
             status = getdata.find_by_dataset_id(bash['dataset_id'], data_url=bash['data_url'], viz_config=bash['viz_config']) 
@@ -261,12 +261,12 @@ class Status(MethodView):
                 status.append(_s if _s else 'not_found')
                 _p = find_bash_attr(bash_ids[idx], 'progress')
                 if _p is None or _p == '':
-                    _p = '0.00%' 
-                else:
-                    idx_total = _p.split('/')
-                    idx = float(idx_total[0])
-                    total = float(idx_total[1])
-                    _p = str(round((idx/total) * 100, 2))
+                    _p = '0' 
+                #else:
+                    #idx_total = _p.split('/')
+                    #idx = float(idx_total[0])
+                    #total = float(idx_total[1])
+                    #_p = str(round((idx/total) * 100, 2))
                 progress.append(_p)
                 # no_exception, job = rq_instance.job_fetch(job_id)
                 # _s = ''

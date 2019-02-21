@@ -231,13 +231,13 @@ pre {
 }
 
 .progress .progress-bar {
-  background-color: #5c4084;
+  background-color: rgb(241, 109, 60);
   position: relative;
   border-radius: 4px;
 }
 
 .progress .progress-bar span {
-  background-color: #5c4084;
+  background-color: rgb(241, 109, 60);
   position: absolute;
   bottom: -20px;
   font-size: 10px;
@@ -257,7 +257,7 @@ pre {
   position: absolute;
   pointer-events: none;
   border-color: rgba(255, 255, 255, 0);
-  border-bottom-color: #5c4084;
+  border-bottom-color: rgb(241, 109, 60);
   border-width: 5px;
   margin-left: -5px;
 }

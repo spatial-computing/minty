@@ -25,6 +25,7 @@ BASH_DISPLAY_ON_TABLE_SEARCH_FILTERS = [
             Bash.download_ids, 
             Bash.after_run_ids, 
             Bash.dataset_id,
+            Bash.status,
             Bash.progress
 ]
 
@@ -39,6 +40,7 @@ BASH_DISPLAY_ON_TABLE = [
             'download_ids', 
             'after_run_ids', 
             'dataset_id',
+            'status',
             'progress'
 ]
 
@@ -83,6 +85,7 @@ PROJECTION_OF_BASH_NEED_TO_DISPLAY_ON_WEB = [
         Bash.download_ids,
         Bash.after_run_ids,
         Bash.dataset_id,
+        Bash.status,
         Bash.progress
 ]
 
@@ -130,7 +133,8 @@ PROJECTION_OF_BASH_TO_USE = [
     Bash.viz_type,
     Bash.data_file_path,
     Bash.dir,
-    Bash.status
+    Bash.status,
+    Bash.progress
 ]
 def combine( args ):
     mongo_client = pymongo.MongoClient(get_mongo_connection())
