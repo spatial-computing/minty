@@ -221,6 +221,24 @@
                     $($(document).find('.run-btn')[i]).show();
                     $($(document).find('.cancel-btn')[i]).hide(); 
                 }
+                var newWidth = "";
+                var spantext = ""
+                if(json.progress[i] == "0") {
+                    newWidth = "width:" + json.progress[i] + "%;";
+                    spantext = "0/?";
+                }
+                else {
+                    var idx_total = json.progress[i].split("/")
+                    var idx = parseFloat(idx_total[0])
+                    var total = parseFloat(idx_total[1])
+                    var percent = (idx/total) * 100
+                    newWidth = "width:" + percent.toFixed(2) + "%;";
+                    spantext = json.progress[i];
+                }
+                //console.log(newWidth);
+                $($(document).find('.progress-bar span')[i]).text(spantext)
+                $($(document).find('.progress-bar')[i]).attr("style", newWidth);
+                
             }
             
         });

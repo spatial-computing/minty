@@ -113,7 +113,18 @@
                   <td class="vcenter">{{ bash['layer_name'].replace('-_-',' ') }}</td>
                   {% for key in th %}
                   {% if key == 'command' %}
-                      <td><pre>{{bash[key]}}</pre></td>
+                      <td>
+                        <pre>{{bash[key]}}</pre>
+                        {% if bash['viz_type'] != 'mint-map-time-series' or (bash['status'] == 'success' and bash['progress'] == None) %}
+                        <div class="progress" style="visibility: hidden;">
+                        {% else %}
+                        <div class="progress">
+                        {% endif %}
+                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                              <span>0/?</span>
+                            </div>
+                        </div>
+                      </td>
                   {% else %}
                       <td >{{bash[key]}}</td>
                   {% endif %}
