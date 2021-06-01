@@ -44,7 +44,7 @@ six==1.12.0
 SQLAlchemy==1.2.17
 SQLAlchemy-Utils==0.33.11
 traitlets==4.3.2
-urllib3==1.24.1
+urllib3==1.26.5
 uWSGI==2.0.18
 wcwidth==0.1.7
 webassets==0.12.1
